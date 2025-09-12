@@ -1,0 +1,1 @@
+export const ROUTES={home:'/',product:'/product',productA:'/product/a',productB:'/product/b',methodology:'/methodology',about:'/about'}; export const SITE={name:'IiAS Sustain',tagline:'Evidence-based Governance & ESG'};
