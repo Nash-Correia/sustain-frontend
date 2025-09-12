@@ -26,7 +26,9 @@ sustain-frontend/
 │  ├─ StatsGrid.tsx
 │  ├─ InsightCard.tsx
 │  ├─ ContactForm.tsx
-│  └─ Footer.tsx
+│  ├─ Footer.tsx
+|  └─NewsletterForm.tsx
+|   
 │
 ├─ lib/
 │  ├─ utils.ts                 # clsx, regex, helpers
