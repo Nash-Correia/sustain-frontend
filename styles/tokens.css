@@ -1,1 +1,5 @@
-:root{ --brand-teal-900:#1C4439; --brand-aqua-300:#6EC8BD; --brand-sage-300:#CADA8E; }
+:root{
+--brand-50:#F0FBF8; --brand-100:#DCF4EE; --brand-200:#B8E9DC; --brand-300:#8EDACA;
+--brand-400:#6EC8BD; --brand-500:#46B7AB; --brand-600:#2F8E7A; --brand-700:#1E5B4A;
+--brand-800:#1C4439; --brand-900:#123129; --sage-300:#CADA8E;
+}

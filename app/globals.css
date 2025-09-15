@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@import '../styles/tokens.css';
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -24,3 +30,13 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+
+
+/* Smooth focus rings */
+:focus-visible { outline: none; }
+
+
+/* Body defaults */
+html, body { height: 100%; }
