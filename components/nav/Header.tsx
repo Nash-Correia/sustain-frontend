@@ -136,9 +136,9 @@ export default function Header() {
               {SITE.name}
             </span>
           </Link>
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-8 text-xl">
             <div className="relative group">
-              <Dropdown label={<>Products</>} align="left">
+              <Dropdown label={<>Products</>} align="left" >
                 <MenuItem href={ROUTES.productA}>Product Sub‑page 1</MenuItem>
                 <MenuItem href={ROUTES.productB}>Product Sub‑page 2</MenuItem>
               </Dropdown>

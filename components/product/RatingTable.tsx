@@ -22,6 +22,7 @@ type Props = {
   filterYear: number;
   onFilterYear: (v: number) => void;
   yearOptions: number[];
+  onRequest: (company: string) => void;
 };
 
 export default function RatingTable(p: Props) {
@@ -91,18 +92,12 @@ export default function RatingTable(p: Props) {
               {r.rating}
             </div>
             <div className="text-center">
-              {r.reportUrl ? (
-                <a
-                  href={r.reportUrl}
-                  className="text-[14px] font-medium text-[#1D7AEA] hover:underline"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Download
-                </a>
-              ) : (
-                <span className="text-[14px] text-gray-400">—</span>
-              )}
+<button
+className="text-[14px] font-medium text-[#1D7AEA] hover:underline"
+onClick={() => p.onRequest(r.company)}
+>
+Download
+</button>
             </div>
           </li>
         ))}
@@ -268,10 +263,12 @@ function PagerButton({
       aria-label={ariaLabel}
       disabled={disabled}
       onClick={onClick}
-      className={[
-        "h-8 w-8 rounded-lg border border-gray-300 grid place-items-center",
-        disabled ? "text-gray-300 bg-white" : "text-gray-600 bg-white hover:bg-gray-50",
-      ].join(" ")}
+        className={[
+        "grid h-8 w-8 place-items-center rounded-lg border",
+        disabled
+            ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+            : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+        ].join(" ")}
     >
       {children}
     </button>
