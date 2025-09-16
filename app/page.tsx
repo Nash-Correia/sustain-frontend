@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { baseMetadata } from '@/lib/seo'
 import Hero from '@/components/Hero'
+import SearchHero from '@/components/SearchHero'
 import StatsGrid from '@/components/StatsGrid'
 import Insights from '@/components/Insights'
 import ContactForm from '@/components/ContactForm'
@@ -15,6 +16,7 @@ path: '/',
 
 export default function Page(){
 return (<>
+<SearchHero />
 <Hero />
 <StatsGrid />
 <Insights />

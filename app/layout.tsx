@@ -16,7 +16,7 @@ return (
 <html lang="en" className={inter.className}>
 <body className="min-h-screen flex flex-col bg-white text-gray-900">
 <Header />
-<main id="main" className="flex-1 pt-16" role="main">{children}</main>
+<main id="main" className="flex-1 pt-20" role="main">{children}</main>
 <Footer />
 </body>
 </html>

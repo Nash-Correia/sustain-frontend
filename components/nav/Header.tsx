@@ -71,42 +71,56 @@ export default function Header() {
   return (
     <header className="fixed inset-x-0 top-0 z-40 bg-white/90 backdrop-blur border-b border-gray-200">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-20 items-center justify-between">
           {/* Logo */}
           <Link href={ROUTES.home} className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-teal-800" aria-hidden />
+      
+            <img 
+  src="/logos/iias-sustain-logo.png" 
+  alt="My Site Logo" 
+  className="h-14 w-14" 
+/>
             <span className="font-semibold tracking-tight">{SITE.name}</span>
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1">
-            <Dropdown label={<>Product</>} align="left">
-              <MenuItem href={ROUTES.productA}>Product Sub‑page 1</MenuItem>
-              <MenuItem href={ROUTES.productB}>Product Sub‑page 2</MenuItem>
-            </Dropdown>
+          <nav className="hidden md:flex items-center gap-8">
+            <div className="relative group">
+              <Dropdown label={<>Products</>} align="left">
+                <MenuItem href={ROUTES.productA}>Product Sub‑page 1</MenuItem>
+                <MenuItem href={ROUTES.productB}>Product Sub‑page 2</MenuItem>
+              </Dropdown>
+              <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-teal-600 transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+            </div>
 
-            <Link href={ROUTES.methodology} className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 rounded-md">Methodology</Link>
-            <Link href={ROUTES.about} className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 rounded-md">About Us</Link>
+            <div className="relative group">
+              <Link href={ROUTES.methodology} className="px-2 py-2 text-xl font-medium text-black hover:text-gray-700 transition-colors">
+                Methodology
+              </Link>
+              <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-teal-600 transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+            </div>
 
-            {/* Login Dropdown (frontend-only now) */}
-            <Dropdown label={<>Login</>}>
-              {/* BEFORE LOGIN */}
-              <MenuItem href="#signin">Sign in</MenuItem>
-              <MenuItem href="#signup">Sign up</MenuItem>
-              {/* AFTER LOGIN (uncomment when backend ready) */}
-              {/**
-              <MenuItem href="/dashboard">Dashboard</MenuItem>
-              <button
-                onClick={async () => {
-                  // await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-                }}
-                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
-              >
-                Logout
-              </button>
-              */}
-            </Dropdown>
+            <div className="relative group">
+              <Link href={ROUTES.policies} className="px-2 py-2 text-xl font-medium text-black hover:text-gray-700 transition-colors">
+                Policies
+              </Link>
+              <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-teal-600 transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+            </div>
+
+            <div className="relative group">
+              <Link href={ROUTES.about} className="px-2 py-2 text-xl font-medium text-black hover:text-gray-700 transition-colors">
+                About
+              </Link>
+              <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-teal-600 transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+            </div>
           </nav>
+
+          {/* Login Button */}
+          <div className="hidden md:block">
+            <button className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-green-500 hover:bg-green-600 text-white font-bold text-xl rounded-lg shadow-lg transition-colors">
+              Login
+            </button>
+          </div>
 
           {/* Mobile menu button */}
           <button
@@ -128,7 +142,7 @@ export default function Header() {
           <div className="mx-auto max-w-7xl px-4 py-3 space-y-1">
             <details className="group">
               <summary className="flex cursor-pointer items-center justify-between px-3 py-2 text-sm font-medium text-gray-700 hover:text-teal-800">
-                <span>Product</span>
+                <span>Products</span>
                 <span className="ml-2">▾</span>
               </summary>
               <div className="pl-4 py-2 space-y-1">
@@ -137,23 +151,14 @@ export default function Header() {
               </div>
             </details>
             <Link className="block px-3 py-2 text-sm font-medium text-gray-700 hover:text-teal-800" href={ROUTES.methodology}>Methodology</Link>
-            <Link className="block px-3 py-2 text-sm font-medium text-gray-700 hover:text-teal-800" href={ROUTES.about}>About Us</Link>
-
-            <details className="group">
-              <summary className="flex cursor-pointer items-center justify-between px-3 py-2 text-sm font-medium text-gray-700 hover:text-teal-800">
-                <span>Login</span>
-                <span className="ml-2">▾</span>
-              </summary>
-              <div className="pl-4 py-2 space-y-1">
-                <Link className="block text-sm text-gray-700 py-1" href="#signin">Sign in</Link>
-                <Link className="block text-sm text-gray-700 py-1" href="#signup">Sign up</Link>
-              </div>
-            </details>
+            <Link className="block px-3 py-2 text-sm font-medium text-gray-700 hover:text-teal-800" href={ROUTES.policies}>Policies</Link>
+            <Link className="block px-3 py-2 text-sm font-medium text-gray-700 hover:text-teal-800" href={ROUTES.about}>About</Link>
+            <button className="w-full mt-4 inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors">
+              Login
+            </button>
           </div>
         </div>
       )}
     </header>
   );
 }
-
-
