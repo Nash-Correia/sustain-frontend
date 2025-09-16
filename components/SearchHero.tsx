@@ -14,7 +14,7 @@ export default function SearchHero() {
   }
 
   return (
-    <section aria-label="Site search" className="bg-[rgba(226,238,240,0.50)] backdrop-blur-sm">
+    <section aria-label="Site search" className="bg-[rgba(21, 184, 67, 0.5)] backdrop-blur-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
         <form onSubmit={onSubmit} className="mx-auto max-w-4xl flex flex-col md:flex-row items-stretch gap-3">
           <label htmlFor="site-search" className="sr-only">Search</label>
