@@ -153,7 +153,7 @@ export default function Header() {
               </Link>
             </nav>
             <div>
-              <button className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-green-500 hover:bg-green-600 text-white font-bold text-xl rounded-lg shadow-lg transition-colors">
+              <button className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-green-light hover:bg-opacity-90 text-white font-bold text-lg rounded-md shadow-sm transition-colors">
                 Login
               </button>
             </div>

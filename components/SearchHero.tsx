@@ -2,6 +2,25 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
+// A simple, reusable Search Icon component
+const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+);
+
 export default function SearchHero() {
   const router = useRouter();
   const [q, setQ] = useState("");
@@ -9,33 +28,23 @@ export default function SearchHero() {
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const query = q.trim();
-    const url = query ? `/?q=${encodeURIComponent(query)}` : "/";
+    if (!query) return;
+    // You can update this URL to a dedicated search results page if you have one
+    const url = `/?q=${encodeURIComponent(query)}`;
     router.push(url);
   }
 
-  return (
-    <section aria-label="Site search" className="bg-[rgba(21, 184, 67, 0.5)] backdrop-blur-sm">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-        <form onSubmit={onSubmit} className="mx-auto max-w-4xl flex flex-col md:flex-row items-stretch gap-3">
-          <label htmlFor="site-search" className="sr-only">Search</label>
-          <input
-            id="site-search"
-            name="q"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Type to search..."
-            className="flex-1 h-14 rounded-md border border-black bg-[#F4FAF4] shadow-md px-4 text-lg placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-600"
-            autoComplete="off"
-          />
+return (
+    <section aria-label="Site search" className="pt-8 pb-4">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <form /* ... */ className="mx-auto max-w-2xl flex items-stretch gap-2">
+          {/* ... */}
           <button
             type="submit"
-            className="md:w-auto w-full h-14 inline-flex items-center justify-center gap-2 rounded-[15px] bg-black px-6 text-white text-lg font-medium shadow-md hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-600"
+            className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-dark px-4 sm:px-5 text-white text-base font-medium shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-dark"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-              <circle cx="11" cy="11" r="7" stroke="white" strokeWidth="2" />
-              <path d="M20 20L16.65 16.65" stroke="white" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-            <span>Search</span>
+            <SearchIcon className="text-white h-5 w-5" />
+            <span className="hidden sm:inline">Search</span> {/* Text appears on small screens and up */}
           </button>
         </form>
       </div>

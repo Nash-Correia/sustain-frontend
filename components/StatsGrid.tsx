@@ -1,23 +1,20 @@
 export default function StatsGrid() {
   const stats = [
-    { k: ">500", v: "Companies covered" },
-    { k: "35+", v: "Sectors mapped" },
-    { k: "15Y", v: "Advisory track record" },
-    { k: "AA", v: "Methodology aligned" },
+    { value: "500", label: "Companies Covered" },
+    { value: "14 +", label: "Years of Excellence" },
+    { value: "SEBI", label: "Registered ERP" },
   ];
+
   return (
-    <section className="bg-gray-50 border-y border-gray-200">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-        <dl className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {stats.map((item) => (
-            <div key={item.v} className="rounded-2xl bg-white p-5 shadow-sm border border-gray-100">
-              <dt className="text-2xl font-semibold text-teal-900">{item.k}</dt>
-              <dd className="mt-1 text-sm text-gray-600">{item.v}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
+    <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16">
+      <dl className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {stats.map((item) => (
+          <div key={item.label} className="rounded-large border border-gray-200 bg-white p-6 text-center shadow-sm">
+            <dt className="text-4xl font-bold text-brand-dark">{item.value}</dt>
+            <dd className="mt-2 text-base text-gray-600">{item.label}</dd>
+          </div>
+        ))}
+      </dl>
     </section>
   );
 }
-

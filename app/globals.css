@@ -10,15 +10,34 @@
   --foreground: #171717;
 }
 
-/* v4 inline theme (optional but handy) */
-@theme inline {
-  --color-brand-surface: #F0F8F0; /* page bg */
-  --color-brand-section: #E2EEF0; /* hero blocks */
-  --color-brand-accent:  #22C55E; /* CTA green */
-}
-
 /* DO NOT set body background here; let Tailwind classes control it */
 html, body { height: 100%; }
 
 /* stronger placeholders */
 input::placeholder, textarea::placeholder { color:#4b5563; opacity:1; }
+
+
+
+/* v4 inline theme */
+@theme inline {
+  --color-brand-dark: #1C1C1C;
+  --color-brand-green-light: #23B353;
+  --color-brand-surface: #EAF3F0;
+  --color-brand-bg-light: #F7F7F7;
+  
+  /* Add these new colors for the rating system */
+  --color-rating-a-plus: #4CF148;
+  --color-rating-a: #7ED957;
+  --color-rating-b-plus: #A8DC65;
+  --color-rating-b: #DCD649;
+  --color-rating-c-plus: #C6BF27;
+  --color-rating-c: #C08E6E;
+  --color-rating-d: #7A523A;
+
+  --rounded-large: 1.25rem;
+}
+
+body {
+  background-color: var(--color-brand-bg-light);
+  color: var(--color-brand-dark);
+}
