@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 
-// Types
+// ====== Types ======
 export type RatingRow = {
   company: string;
   sector: string;
@@ -25,19 +25,23 @@ type Props = {
   onRequest: (company: string) => void;
 };
 
+// Fixed page size + row height (keeps footer/pager from moving)
+const PAGE_SIZE = 10;
+const ROW_H = "h-12"; // ~48px per row
+
 export default function RatingTable(p: Props) {
+  const fillerCount = Math.max(0, PAGE_SIZE - p.rows.length);
+
   return (
     <div className="rounded-[14px] border border-gray-300 bg-white shadow-sm">
-      {/* table header */}
+      {/* header */}
       <div className="grid grid-cols-[1.2fr_1fr_.6fr_.6fr] items-center px-6 h-14 rounded-t-[14px] border-b border-gray-200 text-[15px] font-semibold text-[#1C6C6C]">
         {/* Company Name + dropdown */}
         <div className="relative">
           <HeaderDropdown
             label="Company Name"
             chevron
-            selectedLabel={
-              p.filterCompany === "All Companies" ? undefined : p.filterCompany
-            }
+            selectedLabel={p.filterCompany === "All Companies" ? undefined : p.filterCompany}
           >
             <MenuList>
               {p.companyOptions.map((opt) => (
@@ -53,16 +57,12 @@ export default function RatingTable(p: Props) {
           </HeaderDropdown>
         </div>
 
-        <div className="text-center">ESG Sector</div>
-        <div className="text-center">ESG Rating</div>
+        <div className="text-center whitespace-nowrap">ESG Sector</div>
+        <div className="text-center whitespace-nowrap">ESG Rating</div>
 
         {/* Year dropdown (defaults to 2024) */}
         <div className="relative flex items-center justify-center">
-          <HeaderDropdown
-            label={`${p.filterYear} Report`}
-            chevron
-            center
-          >
+          <HeaderDropdown label={`${p.filterYear} Report`} chevron center>
             <MenuList align="right">
               {p.yearOptions.map((y) => (
                 <MenuItem
@@ -78,27 +78,39 @@ export default function RatingTable(p: Props) {
         </div>
       </div>
 
-      {/* rows */}
+      {/* body (fixed height via filler rows) */}
       <ul className="divide-y divide-gray-200">
+        {/* data rows */}
         {p.rows.map((r, i) => (
           <li
             key={`${r.company}-${i}`}
-            className="grid grid-cols-[1.2fr_1fr_.6fr_.6fr] items-center px-6 py-3">
-            <div className="text-[15px] text-gray-900">{r.company}</div>
-            <div className="text-[14px] text-gray-600 text-center">
-              {r.sector}
-            </div>
-            <div className="text-[14px] font-extrabold text-gray-900 text-center">
-              {r.rating}
-            </div>
+            className={`grid min-w-0 grid-cols-[1.2fr_1fr_.6fr_.6fr] items-center px-6 ${ROW_H}`}
+          >
+            <div className="min-w-0 truncate text-[15px] text-gray-900">{r.company}</div>
+            <div className="text-center text-[14px] text-gray-600">{r.sector}</div>
+            <div className="text-center text-[14px] font-extrabold text-gray-900">{r.rating}</div>
             <div className="text-center">
-<button
-className="text-[14px] font-medium text-[#1D7AEA] hover:underline"
-onClick={() => p.onRequest(r.company)}
->
-Download
-</button>
+              <button
+                className="text-[14px] font-medium text-[#1D7AEA] hover:underline"
+                onClick={() => p.onRequest(r.company)}
+              >
+                Download
+              </button>
             </div>
+          </li>
+        ))}
+
+        {/* filler rows to keep table height stable */}
+        {Array.from({ length: fillerCount }).map((_, i) => (
+          <li
+            key={`filler-${i}`}
+            className={`grid grid-cols-[1.2fr_1fr_.6fr_.6fr] px-6 ${ROW_H}`}
+          >
+            {/* empty cells keep grid lines aligned without visual noise */}
+            <div />
+            <div />
+            <div />
+            <div />
           </li>
         ))}
       </ul>
@@ -116,7 +128,7 @@ Download
         <div className="mx-2 flex items-center gap-2">
           {makeWindow(p.page, p.pages).map((n, idx) =>
             n === -1 ? (
-              <span key={`dots-${idx}`} className="text-gray-400 select-none">
+              <span key={`dots-${idx}`} className="select-none text-gray-400">
                 …
               </span>
             ) : (
@@ -125,7 +137,7 @@ Download
                 onClick={() => p.onPage(n)}
                 className={
                   n === p.page
-                    ? "h-8 w-8 rounded-full bg-gray-900 text-white text-[13px] font-semibold"
+                    ? "h-8 w-8 rounded-full bg-gray-900 text-[13px] font-semibold text-white"
                     : "h-8 w-8 rounded-full text-[13px] text-gray-500 hover:bg-gray-100"
                 }
               >
@@ -185,9 +197,9 @@ function HeaderDropdown({
         {chevron && <ChevronDown className="h-4 w-4 text-gray-400" />}
       </button>
 
-      {/* hint of selected filter (subtle) */}
+      {/* subtle selected hint */}
       {selectedLabel && (
-        <span className="ml-2 text-xs text-gray-500 truncate max-w-[18ch]" title={selectedLabel}>
+        <span className="ml-2 max-w-[18ch] truncate text-xs text-gray-500" title={selectedLabel}>
           {selectedLabel}
         </span>
       )}
@@ -213,11 +225,7 @@ function MenuList({
   children: React.ReactNode;
   align?: "left" | "right";
 }) {
-  return (
-    <div className={["py-2", align === "right" ? "text-right" : ""].join(" ")}>
-      {children}
-    </div>
-  );
+  return <div className={["py-2", align === "right" ? "text-right" : ""].join(" ")}>{children}</div>;
 }
 
 function MenuItem({
@@ -235,9 +243,7 @@ function MenuItem({
       role="menuitem"
       className={[
         "block w-full px-4 py-2 text-left text-[14px]",
-        selected
-          ? "bg-gray-100 text-gray-900 font-medium"
-          : "text-gray-700 hover:bg-gray-50",
+        selected ? "bg-gray-100 font-medium text-gray-900" : "text-gray-700 hover:bg-gray-50",
       ].join(" ")}
     >
       {children}
@@ -263,12 +269,12 @@ function PagerButton({
       aria-label={ariaLabel}
       disabled={disabled}
       onClick={onClick}
-        className={[
+      className={[
         "grid h-8 w-8 place-items-center rounded-lg border",
         disabled
-            ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
-            : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-        ].join(" ")}
+          ? "cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400"
+          : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50",
+      ].join(" ")}
     >
       {children}
     </button>

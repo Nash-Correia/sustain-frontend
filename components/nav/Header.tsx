@@ -44,7 +44,7 @@ function Dropdown({
     <div className="relative" ref={ref}>
       <button
         // Corrected: The text color for the button label is now text-gray-900
-        className="px-3 py-2 text-sm font-medium text-gray-900 hover:text-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 rounded-md inline-flex items-center gap-1"
+        className="px-3 py-0 text-sm font-medium text-gray-900 hover:text-teal-800 focus:outline-none  focus:ring-teal-600 rounded-md inline-flex items-center gap-1"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="true"
         aria-expanded={open}
@@ -130,18 +130,17 @@ export default function Header() {
             <img
               src="/logos/iias-sustain-logo.png"
               alt="My Site Logo"
-              className="h-14 w-14"
+              className="h-18 w-22"
             />
-            <span className="font-semibold tracking-tight text-gray-900">
-              {SITE.name}
-            </span>
+
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-xl">
             <div className="relative group">
-              <Dropdown label={<>Products</>} align="left" >
+                <Dropdown label={<div className="px-2 py-0 text-xl font-medium text-gray-900 hover:text-gray-700 transition-colors"> Products</div>}  >
                 <MenuItem href={ROUTES.productA}>Product Sub‑page 1</MenuItem>
                 <MenuItem href={ROUTES.productB}>Product Sub‑page 2</MenuItem>
               </Dropdown>
+
               <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-teal-600 transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
             </div>
             <div className="relative group">
@@ -153,15 +152,7 @@ export default function Header() {
               </Link>
               <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-teal-600 transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
             </div>
-            <div className="relative group">
-              <Link
-                href={ROUTES.policies}
-                className="px-2 py-2 text-xl font-medium text-gray-900 hover:text-gray-700 transition-colors"
-              >
-                Policies
-              </Link>
-              <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-teal-600 transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
-            </div>
+
             <div className="relative group">
               <Link
                 href={ROUTES.about}
@@ -227,12 +218,6 @@ export default function Header() {
               href={ROUTES.methodology}
             >
               Methodology
-            </Link>
-            <Link
-              className="block px-3 py-2 text-sm font-medium text-gray-700 hover:text-teal-800"
-              href={ROUTES.policies}
-            >
-              Policies
             </Link>
             <Link
               className="block px-3 py-2 text-sm font-medium text-gray-700 hover:text-teal-800"
