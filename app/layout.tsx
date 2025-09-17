@@ -3,6 +3,7 @@ import { inter } from './fonts';
 import Header from '@/components/nav/Header';
 import Footer from '@/components/Footer';
 import type { Metadata } from 'next';
+import BackToTopButton from '@/components/ui/BackToTopButton'; // <-- 1. Import the new component
 
 export const metadata: Metadata = {
   title: 'IiAS Sustain',
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </main>
         <Footer />
+        <BackToTopButton /> {/* <-- 2. Add the component here */}
       </body>
     </html>
   );
