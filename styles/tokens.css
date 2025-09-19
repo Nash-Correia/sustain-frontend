@@ -1,5 +1,6 @@
-:root{
---brand-50:#F0FBF8; --brand-100:#DCF4EE; --brand-200:#B8E9DC; --brand-300:#8EDACA;
---brand-400:#6EC8BD; --brand-500:#46B7AB; --brand-600:#2F8E7A; --brand-700:#1E5B4A;
---brand-800:#1C4439; --brand-900:#123129; --sage-300:#CADA8E;
-}
+/* All color variables from this file have been migrated to tailwind.config.ts 
+  to create a single, centralized design system. This file can now be safely removed, 
+  or kept for future use if you decide to add non-color CSS variables 
+  (e.g., for complex animations).
+*/
+

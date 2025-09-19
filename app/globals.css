@@ -1,43 +1,53 @@
-/* Tailwind v4 */
+/* Import Tailwind's base styles and utilities */
 @import "tailwindcss";
 
-/* your tokens */
-@import "../styles/tokens.css";
+/* This @theme block is the official way to define custom design tokens in Tailwind v4.
+  It contains our full, methodology-driven color palette as CSS variables.
+*/
+@theme {
+  --color-brand-dark: #1C1C1C;
+  --color-brand-action: #23B353;
+  --color-brand-surface: #EAF3F0;
+  --color-brand-bg-light: #F7F7F7;
 
-/* brand + design tokens */
+  --color-pillar-environmental: #10B981;
+  --color-pillar-social: #3B82F6;
+  --color-pillar-governance: #F59E0B;
+
+  /* Rating colors from your methodology document */
+  --color-rating-a-plus: #22543d;
+  --color-rating-a: #2f855a;
+  --color-rating-b-plus: #38a169;
+  --color-rating-b: #97a35b;
+  --color-rating-c-plus: #d69e2e;
+  --color-rating-c: #b7791f;
+  --color-rating-d: #97266d;
+
+  /* UI colors for consistency */
+  --color-ui-text-primary: #1A202C;
+  --color-ui-text-secondary: #4A5568;
+  --color-ui-border: #E2E8F0;
+  --color-ui-fill: #F7FAFC;
+
+  /* Semantic colors for feedback */
+  --color-semantic-success: #38A169;
+  --color-semantic-error: #E53E3E;
+  --color-semantic-warning: #DD6B20;
+
+  --rounded-large: 1.25rem;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
 
-/* DO NOT set body background here; let Tailwind classes control it */
-html, body { height: 100%; }
-
-/* stronger placeholders */
-input::placeholder, textarea::placeholder { color:#4b5563; opacity:1; }
-
-
-
-/* v4 inline theme */
-@theme inline {
-  --color-brand-dark: #1C1C1C;
-  --color-brand-green-light: #23B353;
-  --color-brand-surface: #EAF3F0;
-  --color-brand-bg-light: #F7F7F7;
-  
-  /* Add these new colors for the rating system */
-  --color-rating-a-plus: #4CF148;
-  --color-rating-a: #7ED957;
-  --color-rating-b-plus: #A8DC65;
-  --color-rating-b: #DCD649;
-  --color-rating-c-plus: #C6BF27;
-  --color-rating-c: #C08E6E;
-  --color-rating-d: #7A523A;
-
-  --rounded-large: 1.25rem;
+html, body { 
+  height: 100%; 
 }
 
-body {
-  background-color: var(--color-brand-bg-light);
-  color: var(--color-brand-dark);
+input::placeholder, textarea::placeholder { 
+  color: #9ca3af;
+  opacity: 1; 
 }
+
