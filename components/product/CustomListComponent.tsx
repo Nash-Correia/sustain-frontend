@@ -88,7 +88,7 @@ export default function CustomListComponent({ allCompanyData, setPortfolio, port
 
         {/* Add Button */}
         <div className="md:col-span-4 flex justify-end">
-          <button onClick={handleAdd} className="h-12 w-full sm:w-auto rounded-md bg-brand-green-light px-6 text-white font-semibold hover:bg-opacity-90 transition">
+          <button onClick={handleAdd} className="h-12 w-full sm:w-auto rounded-md bg-login-btn px-6 text-white font-semibold hover:bg-opacity-90 transition">
             + Add to Comparison
           </button>
         </div>

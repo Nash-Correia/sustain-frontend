@@ -1,7 +1,7 @@
 import type { Config } from 'tailwindcss'
 
-// For Tailwind v4, the config is much simpler. 
-// The primary theme customizations are now located in `app/globals.css`.
+// For Tailwind v4 with Next.js, this file just needs to point to your content.
+// All theme customizations now live in `app/globals.css`.
 const config: Config = {
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',

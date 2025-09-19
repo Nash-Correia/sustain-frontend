@@ -13,37 +13,32 @@ const getArcPath = (startAngle: number, endAngle: number, radius: number, outerR
   const oy1 = 100 + outerRadius * Math.sin(startRad);
   const ox2 = 100 + outerRadius * Math.cos(endRad);
   const oy2 = 100 + outerRadius * Math.sin(endRad);
-  
-  const largeArcFlag = endRad - startRad <= Math.PI ? "0" : "1";
-
-  return `M ${x1} ${y1} L ${ox1} ${oy1} A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 1 ${ox2} ${oy2} L ${x2} ${y2} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${x1} ${y1} Z`;
+  return `M ${x1} ${y1} L ${ox1} ${oy1} A ${outerRadius} ${outerRadius} 0 0 1 ${ox2} ${oy2} L ${x2} ${y2} A ${radius} ${radius} 0 0 0 ${x1} ${y1} Z`;
 };
 
-
-// Data for each segment of the gauge, now with direct hex color values
-// matching tailwind.config.ts
+// Data for each segment of the gauge
 const gaugeSegments = [
-    { rating: 'A+', color: '#22543d', startAngle: -180, endAngle: -154.3 },
-    { rating: 'A', color: '#2f855a', startAngle: -154.3, endAngle: -128.6 },
-    { rating: 'B+', color: '#38a169', startAngle: -128.6, endAngle: -102.9 },
-    { rating: 'B', color: '#97a35b', startAngle: -102.9, endAngle: -77.2 },
-    { rating: 'C+', color: '#d69e2e', startAngle: -77.2, endAngle: -51.5 },
-    { rating: 'C', color: '#b7791f', startAngle: -51.5, endAngle: -25.8 },
-    { rating: 'D', color: '#97266d', startAngle: -25.8, endAngle: 0 },
+    { rating: 'A+', color: 'var(--color-rating-a-plus)', startAngle: -180, endAngle: -154.3 },
+    { rating: 'A', color: 'var(--color-rating-a)', startAngle: -154.3, endAngle: -128.6 },
+    { rating: 'B+', color: 'var(--color-rating-b-plus)', startAngle: -128.6, endAngle: -102.9 },
+    { rating: 'B', color: 'var(--color-rating-b)', startAngle: -102.9, endAngle: -77.2 },
+    { rating: 'C+', color: 'var(--color-rating-c-plus)', startAngle: -77.2, endAngle: -51.5 },
+    { rating: 'C', color: 'var(--color-rating-c)', startAngle: -51.5, endAngle: -25.8 },
+    { rating: 'D', color: 'var(--color-rating-d)', startAngle: -25.8, endAngle: 0 },
 ];
 
-// Helper to get styling details, now returning hex codes and rotation
+// Helper to get styling details based on the rating grade
 const getRatingVisuals = (rating: any) => {
     const ratingStr = String(rating || '').toUpperCase();
     switch (ratingStr) {
-        case 'A+': return { color: '#22543d', needleRotation: -80 };
-        case 'A': return { color: '#2f855a', needleRotation: -55 };
-        case 'B+': return { color: '#38a169', needleRotation: -30 };
-        case 'B': return { color: '#97a35b', needleRotation: 0 };
-        case 'C+': return { color: '#d69e2e', needleRotation: 30 };
-        case 'C': return { color: '#b7791f', needleRotation: 55 };
-        case 'D': return { color: '#97266d', needleRotation: 80 };
-        default: return { color: '#9ca3af', needleRotation: 0 }; // gray-400
+        case 'A+': return { color: 'text-rating-a-plus', needleRotation: 80 };
+        case 'A': return { color: 'text-rating-a', needleRotation: 55 };
+        case 'B+': return { color: 'text-rating-b-plus', needleRotation: 30 };
+        case 'B': return { color: 'text-rating-b', needleRotation: 0 };
+        case 'C+': return { color: 'text-rating-c-plus', needleRotation: -30 };
+        case 'C': return { color: 'text-rating-c', needleRotation: -55 };
+        case 'D': return { color: 'text-rating-d', needleRotation: -80 };
+        default: return { color: 'text-gray-300', needleRotation: 0 };
     }
 };
 
@@ -62,15 +57,13 @@ export default function GreenRatingGauge({ score, rating, fundName }: GreenRatin
   };
 
   return (
-    <div className="bg-ui-surface border border-ui-border rounded-large p-6 sm:p-8">
+    <div className="bg-white border border-gray-200 rounded-large p-6 sm:p-8">
       <div className="relative max-w-sm mx-auto flex flex-col items-center">
         <div className="relative w-full">
           <svg viewBox="0 0 200 110" className="w-full">
-            {/* Gauge segments with correct colors */}
             {gaugeSegments.map((segment) => (
               <path key={segment.rating} d={getArcPath(segment.startAngle, segment.endAngle, 65, 95)} fill={segment.color} stroke="#fff" strokeWidth="2" />
             ))}
-            {/* Labels on top of segments */}
             {gaugeSegments.map(({ rating, startAngle, endAngle }) => {
               const midAngle = (startAngle + endAngle) / 2 * (Math.PI / 180);
               const x = 100 + 80 * Math.cos(midAngle);
@@ -79,33 +72,31 @@ export default function GreenRatingGauge({ score, rating, fundName }: GreenRatin
             })}
           </svg>
 
-          {/* White semi-circle to cover the bottom */}
-          <div className="absolute bottom-[-15px] left-1/2 -translate-x-1/2 w-[130px] h-[65px] bg-ui-surface"></div>
+          <div className="absolute bottom-[-15px] left-1/2 -translate-x-1/2 w-[130px] h-[65px] bg-white"></div>
           
-          {/* Needle, only shown when there is data */}
           {showData && (
             <>
-              <div className="absolute bottom-[10px] left-0 right-0 h-1/2 flex justify-center" style={{ transformOrigin: 'bottom center' }}>
-                 <div className="w-1 h-[75px] origin-bottom transition-transform duration-700 ease-out" style={needleStyle}>
-                  <div className="w-full h-full bg-brand-dark rounded-t-full"></div>
+              <div className="absolute bottom-[10px] left-0 right-0 h-1/2 flex justify-center">
+                <div className="w-1 h-[85%] origin-bottom transition-transform duration-700 ease-out" style={needleStyle}>
+                  <div className="w-full h-full bg-transparent"></div>
                 </div>
               </div>
-              <div className="absolute bottom-[2px] left-1/2 -translate-x-1/2 w-5 h-5 bg-brand-dark rounded-full border-4 border-ui-surface"></div>
+              
             </>
           )}
 
            {/* Center Text displaying the RATING (Letter Grade) */}
-           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/3 text-center">
-             <span className="text-5xl font-bold" style={{ color: showData ? color : 'transparent' }}>
+           <div className="absolute top-41 left-1/2 -translate-x-1/2 -translate-y-1/3 text-center">
+             <span className={clsx("text-5xl font-bold", showData ? color : "text-black-300")}>
                {showData ? rating : ''}
              </span>
            </div>
         </div>
 
-        <p className="text-center text-2xl font-bold text-ui-text-primary mt-4 h-8">
-          {showData ? fundName : 'Select a fund to see its rating'}
+        <p className="text-center text-2xl font-bold text-brand-dark mt-2 h-8">
+          {showData ? fundName : ''}
         </p>
-        <p className="text-center text-sm text-ui-text-secondary mt-2 max-w-xs mx-auto">
+        <p className="text-center text-xs text-gray-500 mt-2 max-w-xs mx-auto">
           Ratings are calculated based on a weighted average, in line with each fund's % allocation of AUM.
         </p>
       </div>

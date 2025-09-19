@@ -1,11 +1,9 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image"; // Import Next.js Image component
 import { usePathname } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
 import { clsx } from "@/lib/utils";
-import logo from '@/public/logos/iias-sustain-logo.png'; // Import the logo image
 
 /**
  * A reusable dropdown component for the desktop navigation.
@@ -13,11 +11,11 @@ import logo from '@/public/logos/iias-sustain-logo.png'; // Import the logo imag
 function Dropdown({
   label,
   children,
-  className,
+  className, // <-- Added className prop
 }: {
   label: string;
   children: React.ReactNode;
-  className?: string;
+  className?: string; // <-- Added className prop type
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
@@ -42,6 +40,7 @@ function Dropdown({
   return (
     <div className="relative" ref={ref}>
       <button
+        // Use the passed className here, defaulting to base styles
         className={clsx(
           "inline-flex items-center gap-1",
           className
@@ -131,19 +130,16 @@ export default function Header() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-20 items-center justify-between">
           <Link href={ROUTES.home} className="flex items-center gap-2">
-            {/* Use Next.js Image component for optimization */}
-            <Image
-              src={logo}
-              alt="IiAS Sustain Logo"
-              width={400} // Set appropriate width
-              height={160} // Set appropriate height
-              priority // Prioritize loading the logo
-              style={{ width: 'auto', height: '80px' }} // Maintain aspect ratio
+            <img
+              src="/logos/iias-sustain-logo.png"
+              alt="My Site Logo"
+              className="h-18 w-22"
             />
           </Link>
           {/* Wrapper for right-aligned items */}
           <div className="hidden md:flex items-center gap-8">
             <nav className="flex items-center gap-8 text-xl">
+              {/* Simplified Dropdown usage */}
               <Dropdown label="Products" className={navLinkClasses}>
                 <MenuItem href={ROUTES.productA}>ESG Comparison</MenuItem>
                 <MenuItem href={ROUTES.productB}>ESG Reports</MenuItem>
@@ -157,7 +153,7 @@ export default function Header() {
               </Link>
             </nav>
             <div>
-              <button className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-green-light hover:bg-opacity-90 text-white font-bold text-lg rounded-md shadow-sm transition-colors">
+              <button className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-login-btn hover:bg-opacity-90 text-white font-bold text-lg rounded-md shadow-sm transition-colors">
                 Login
               </button>
             </div>
