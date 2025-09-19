@@ -1,8 +1,9 @@
 import Excel from 'exceljs';
 
-// Define the structure of a row from the Excel file
+// Updated interface to include the NSE Symbol and correct the data types
 export interface CompanyDataRow {
   companyName: string;
+  nseSymbol: string;
   isin: string;
   sector: string;
   marketCap: number;
@@ -10,7 +11,7 @@ export interface CompanyDataRow {
   esgScore: number;
 }
 
-// DEFINE THE PORTFOLIOCOMPANY TYPE HERE
+// PortfolioCompany interface remains the same
 export interface PortfolioCompany {
   isin: string;
   aum: number;
@@ -18,11 +19,9 @@ export interface PortfolioCompany {
   companyName: string;
 }
 
-
-// The function to get the data remains the same
 export async function getCompanyData(): Promise<CompanyDataRow[]> {
   try {
-    const response = await fetch('/data.xlsm');
+    const response = await fetch('/data.xlsm'); // Assuming the file is renamed
     if (!response.ok) {
       throw new Error(`Failed to fetch Excel file: ${response.statusText}`);
     }
@@ -44,15 +43,17 @@ export async function getCompanyData(): Promise<CompanyDataRow[]> {
         return;
       }
 
+      // CORRECTED COLUMN MAPPING
       const companyName = row.getCell('A').value as string;
-      const isin = row.getCell('B').value as string;
-      const sector = row.getCell('C').value as string;
-      const marketCap = parseFloat(row.getCell('D').value as string);
-      const esgRating = row.getCell('E').value as string;
-      const esgScore = parseInt(row.getCell('F').value as string, 10);
+      const nseSymbol = row.getCell('B').value as string; // Reading NSE Symbol from Column B
+      const isin = row.getCell('C').value as string;      // Reading ISIN from Column C
+      const sector = row.getCell('D').value as string;
+      const marketCap = parseFloat(row.getCell('E').value as string);
+      const esgRating = row.getCell('F').value as string;
+      const esgScore = parseInt(row.getCell('G').value as string, 10);
 
       if (companyName && isin && !isNaN(esgScore)) {
-        data.push({ companyName, isin, sector, marketCap, esgRating, esgScore });
+        data.push({ companyName, nseSymbol, isin, sector, marketCap, esgRating, esgScore });
       }
     });
 

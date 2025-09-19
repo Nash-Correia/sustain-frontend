@@ -1,62 +1,80 @@
-import MethodologyHero from "@/components/methodology/MethodologyHero";
-import { PillarCard } from "@/components/methodology/PillarCard";
-import WeightingTable from "@/components/methodology/WeightingTable";
-import ScorecardOverview from "@/components/methodology/ScorecardOverview";
-import ProcessSteps from "@/components/methodology/ProcessSteps";
-import FAQ from "@/components/methodology/FAQ";
-import GlossaryList from "@/components/methodology/GlossaryList";
+"use client";
+import React, { useState, useEffect } from 'react';
+
+// Import all the necessary components
+import InteractiveMethodologyDiagram from '@/components/methodology/InteractiveMethodologyDiagram';
+import BackToTopButton from '@/components/ui/BackToTopButton';
+import PillarScoreCard from '@/components/methodology/cards/PillarScoreCard';
+import EnvironmentalPillarCard from '@/components/methodology/cards/EnvironmentalPillarCard';
+import SocialPillarCard from '@/components/methodology/cards/SocialPillarCard';
+import GovernancePillarCard from '@/components/methodology/cards/GovernancePillarCard';
+import ScreenCard from '@/components/methodology/cards/ScreenCard';
+import PositiveScreenCard from '@/components/methodology/cards/PositiveScreenCard';
+import NegativeScreenCard from '@/components/methodology/cards/NegativeScreenCard';
+import ControversyCard from '@/components/methodology/cards/ControversyCard';
+import CompositeRatingCard from '@/components/methodology/cards/CompositeRatingCard';
+import MethodologyOverviewPanel from '@/components/methodology/MethodologyOverviewPanel'; // <-- Import new panel
+import OverviewTrigger from '@/components/methodology/OverviewTrigger'; // <-- Import new trigger
 
 export default function MethodologyPage() {
-  const pillars = [
-    { title: "Governance", desc: "Board, ownership, oversight, shareholder rights.", items: ["Board composition", "Independence & committees", "Disclosures"] },
-    { title: "Environmental", desc: "Emissions, resource use, risk management.", items: ["GHG and energy", "Water & waste", "Targets & plans"] },
-    { title: "Social", desc: "Workforce, community, product responsibility.", items: ["Health & safety", "Diversity & inclusion", "Supply chain"] },
-  ];
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [isPanelOpen, setIsPanelOpen] = useState(false); // <-- State for the panel
+
+  const handleNodeClick = (sectionId: string) => {
+    setActiveSection(prev => (prev === sectionId ? null : sectionId));
+  };
+  
+  useEffect(() => {
+    if (activeSection) {
+      const el = document.getElementById(activeSection);
+      if (el) {
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+      }
+    }
+  }, [activeSection]);
+
+  const renderActiveSection = () => {
+    if (!activeSection) return null;
+
+    switch (activeSection) {
+      case 'pillarScore': return <PillarScoreCard />;
+      case 'environmental': return <EnvironmentalPillarCard />;
+      case 'social': return <SocialPillarCard />;
+      case 'governance': return <GovernancePillarCard />;
+      case 'screen': return <ScreenCard />;
+      case 'positive': return <PositiveScreenCard />;
+      case 'negative': return <NegativeScreenCard />;
+      case 'controversy': return <ControversyCard />;
+      case 'compositeRating': return <CompositeRatingCard />;
+      default: return null;
+    }
+  };
 
   return (
     <>
-      <MethodologyHero />
-
-      {/* Pillars */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <h2 className="text-xl font-semibold text-teal-900">Pillars</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {pillars.map((p) => (
-            <PillarCard key={p.title} title={p.title} desc={p.desc} items={p.items} />
-          ))}
-        </div>
-      </section>
-
-      {/* Weights */}
-      <WeightingTable rows={[
-        { pillar: "Governance", weight: "40%", notes: "Governance tilt" },
-        { pillar: "Environmental", weight: "30%" },
-        { pillar: "Social", weight: "30%" },
-      ]} />
-
-      {/* Scorecard */}
-      <ScorecardOverview />
-
-      {/* Process */}
-      <ProcessSteps />
-
-      {/* FAQ & Glossary */}
-      <FAQ />
-      <GlossaryList />
-
-      {/* Resources */}
+      {/* The main page content */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-        <div className="rounded-2xl border border-gray-200 p-5">
-          <h2 className="text-xl font-semibold text-teal-900">Methodology Resources</h2>
-          <p className="mt-1 text-sm text-gray-600">Download a summary or request the full guide.</p>
-          <div className="mt-3 flex flex-wrap gap-3">
-            <a href="#" className="rounded-2xl border border-teal-800 px-4 py-2 text-teal-800 text-sm">Download Summary (PDF)</a>
-            {/* BACKEND PREP: Replace with real URL later */}
-            {/* <a href={`${process.env.NEXT_PUBLIC_API_BASE_URL}/files/methodology-summary.pdf`} className="rounded-2xl border border-teal-800 px-4 py-2 text-teal-800 text-sm">Download Summary (PDF)</a> */}
-            <a href="#contact" className="rounded-2xl bg-teal-800 px-4 py-2 text-white text-sm">Request Full Guide</a>
+        <div className="flex flex-col items-center text-center gap-8">
+          <div className="max-w-3xl">
+            <h1 className="text-4xl sm:text-5xl font-bold text-brand-dark">Our Methodology</h1>
+            <p className="mt-4 text-lg text-gray-700">
+              The IiAS ESG rating methodology evaluates the top 500 companies by market capitalization in India. This comprehensive assessment focuses on sustainability-related disclosures and practices across Environmental, Social, and Governance dimensions.
+            </p>
+          </div>
+          <div className="w-full max-w-5xl">
+            <InteractiveMethodologyDiagram onNodeClick={handleNodeClick} />
           </div>
         </div>
       </section>
+
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        {renderActiveSection()}
+      </div>
+
+      {/* Add the new components here */}
+      <OverviewTrigger onClick={() => setIsPanelOpen(true)} />
+      <MethodologyOverviewPanel isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} />
+      <BackToTopButton />
     </>
   );
 }
