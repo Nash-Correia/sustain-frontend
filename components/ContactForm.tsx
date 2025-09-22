@@ -1,10 +1,6 @@
 "use client";
 import { useState } from "react";
-
-// A simple reusable Input component for consistency
-const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
-    <input {...props} className="mt-1 w-full h-12 rounded-md border border-gray-300 bg-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-green-light" />
-);
+import { motion } from "framer-motion";
 
 export default function ContactForm() {
   const [submitting, setSubmitting] = useState(false);
@@ -17,93 +13,99 @@ export default function ContactForm() {
     setOk(null);
     setErr(null);
 
-    // ===== SIMULATED API CALL =====
-    // We'll wait for 1 second (1000 milliseconds) to mimic a real network request.
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Simulate a successful response
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     setOk("Thanks! We'll get back within 2–3 business days.");
-    (e.target as HTMLFormElement).reset(); // Clear the form on success
-
-    // To test the error state, you could uncomment the line below
-    // setErr("Something went wrong. Please try again.");
-
+    (e.target as HTMLFormElement).reset();
     setSubmitting(false);
-
-
-    /*
-    // ===== REAL API CALL (for later) =====
-    // When the backend is ready, you will uncomment this part and delete the simulation above.
-    try {
-      const fd = new FormData(e.currentTarget);
-      const payload = {
-        name: String(fd.get("name") || "").trim(),
-        email: String(fd.get("email") || "").trim(),
-        company: String(fd.get("company") || "").trim(),
-        subject: String(fd.get("subject") || "").trim(),
-        message: String(fd.get("message") || "").trim(),
-      };
-      
-      const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
-      const res = await fetch(`${BASE_URL}/api/contact`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error(`Contact failed: ${res.status}`);
-      
-      setOk("Thanks! We'll get back within 2–3 business days.");
-      (e.target as HTMLFormElement).reset();
-
-    } catch (error: any) {
-      setErr(error?.message || "Something went wrong. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
-    */
   }
 
+  // Shapes with larger sizes
+  const shapes = [
+    { className: "bg-green-500/20 rounded-full", top: "5%", left: "7%", width: 80, height: 80, duration: 8 },
+    { className: "bg-blue-500/10 rounded-lg", top: "20%", right: "10%", width: 100, height: 100, duration: 9 },
+    { className: "bg-purple-500/20", top: "70%", left: "25%", clip: "polygon(50% 0%, 0% 100%, 100% 100%)", width: 90, height: 90, duration: 10 },
+    { className: "bg-yellow-500/20 rounded-full", top: "5%", left: "50%", width: 100, height: 100, duration: 7 },
+    { className: "bg-red-500/10 rounded-lg", bottom: "20%", right: "33%", width: 90, height: 90, duration: 9 },
+    { className: "bg-pink-500/15 rounded-full", top: "10%", right: "40%", width: 110, height: 110, duration: 8 },
+    { className: "bg-indigo-500/15 rounded-lg", bottom: "15%", left: "10%", width: 80, height: 80, duration: 9 },
+    { className: "bg-teal-500/20 rounded-full", top: "60%", right: "20%", width: 100, height: 100, duration: 7 },
+    { className: "bg-orange-500/10 rounded-lg", bottom: "5%", left: "50%", width: 120, height: 120, duration: 10 },
+    { className: "bg-cyan-500/20", top: "30%", left: "10%", clip: "polygon(50% 0%, 0% 100%, 100% 100%)", width: 100, height: 100, duration: 8 },
+  ];
+
   return (
-    <section id="contact" className="bg-brand-surface">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
-        <div className="mx-auto max-w-4xl">
-            <h2 className="text-3xl font-bold text-center text-brand-dark">Get in Touch</h2>
-            <form onSubmit={onSubmit} className="mt-8 bg-white text-gray-900 rounded-large p-8 shadow-sm space-y-6" noValidate>
-                {/* ... form fields remain the same */}
-                <div className="grid sm:grid-cols-2 gap-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700" htmlFor="name">Name</label>
-                        <Input id="name" name="name" type="text" required />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700" htmlFor="email">Email</label>
-                        <Input id="email" name="email" type="email" required />
-                    </div>
-                </div>
-                <div className="grid sm:grid-cols-2 gap-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700" htmlFor="company">Company</label>
-                        <Input id="company" name="company" type="text" />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700" htmlFor="subject">Subject</label>
-                        <Input id="subject" name="subject" type="text" />
-                    </div>
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-gray-700" htmlFor="message">Message</label>
-                    <textarea id="message" name="message" rows={5} className="mt-1 w-full rounded-md border border-gray-300 bg-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-green-light" />
-                </div>
-                <div className="text-center pt-4">
-                    <button disabled={submitting} type="submit" className="rounded-md bg-brand-dark px-10 py-3 text-white text-lg font-semibold hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-dark disabled:opacity-60 transition-colors">
-                        {submitting ? "Submitting…" : "Submit"}
-                    </button>
-                    {ok && <p className="mt-4 text-sm text-green-700">{ok}</p>}
-                    {err && <p className="mt-4 text-sm text-red-600">{err}</p>}
-                </div>
-            </form>
-        </div>
+    <section className="relative bg-white py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      {/* --- Animated Shapes --- */}
+      {shapes.map((shape, idx) => (
+        <motion.div
+          key={idx}
+          className={`absolute z-0 ${shape.className}`}
+          style={{
+            top: shape.top,
+            bottom: shape.bottom,
+            left: shape.left,
+            right: shape.right,
+            width: `${shape.width}px`,
+            height: `${shape.height}px`,
+            clipPath: shape.clip || "none",
+          }}
+          animate={{
+            x: [-30, 30, -30],
+            y: [-30, 30, -30],
+            rotate: [0, 360],
+          }}
+          transition={{
+            repeat: Infinity,
+            duration: shape.duration,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+
+      {/* --- Contact Form --- */}
+      <div className="relative z-10 mx-auto max-w-4xl bg-white/50 backdrop-blur-md p-8 rounded-2xl shadow-lg">
+        <h2 className="text-3xl font-bold text-center text-gray-900">Get in Touch</h2>
+        <form onSubmit={onSubmit} className="mt-8 space-y-6">
+          <div className="grid sm:grid-cols-2 gap-6">
+            <input
+              type="text"
+              name="name"
+              placeholder="Name"
+              required
+              className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+            />
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              required
+              className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+            />
+          </div>
+          <input
+            type="text"
+            name="subject"
+            placeholder="Subject"
+            className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+          <textarea
+            name="message"
+            rows={5}
+            placeholder="Message"
+            className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+          <div className="text-center">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="rounded-md bg-green-600 px-10 py-3 text-white font-semibold hover:bg-green-700 transition-colors disabled:opacity-60"
+            >
+              {submitting ? "Submitting…" : "Submit"}
+            </button>
+            {ok && <p className="mt-4 text-sm text-green-700">{ok}</p>}
+            {err && <p className="mt-4 text-sm text-red-600">{err}</p>}
+          </div>
+        </form>
       </div>
     </section>
   );

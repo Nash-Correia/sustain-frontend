@@ -137,7 +137,7 @@ export default function SearchHero() {
                   <h3 className="text-sm font-medium text-gray-700 mb-3">
                     Popular searches
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-0">
                     {[
                       "ESG compliance",
                       "Corporate governance",

@@ -7,9 +7,13 @@
   --color-brand-surface: #EAF3F0;
   --color-brand-bg-light: #F7F7F7;
   --color-login-btn: #22C55E;
+  --color-teal-btn: #8FBCC4 ;
+
+
 
   /* NEW: Added a specific teal for headers based on your original design */
   --color-brand-teal-dark: #195D5D;
+
 
   /* ... existing rating colors ... */
   --color-rating-a-plus: #196B24;
