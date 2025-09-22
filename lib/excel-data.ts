@@ -1,22 +1,28 @@
 import Excel from 'exceljs';
 
-// Updated interface to include the NSE Symbol and correct the data types
+// Interface for company data from Sheet1
 export interface CompanyDataRow {
   companyName: string;
-  nseSymbol: string;
-  isin: string;
   sector: string;
-  marketCap: number;
-  esgRating: string;
+  e_score: number;
+  s_score: number;
+  g_score: number;
+  screen: number;
+  controversy_screen: number;
+  grade: string;
+  isin: string;
   esgScore: number;
 }
+
+// Interface for fund data from Sheet2
 export interface FundDataRow {
   fundName: string;
   score: number;
   percentage: string;
   grade: string;
 }
-// PortfolioCompany interface remains the same
+
+// Kept from old implementation, seems useful for custom portfolio
 export interface PortfolioCompany {
   isin: string;
   aum: number;
@@ -24,9 +30,13 @@ export interface PortfolioCompany {
   companyName: string;
 }
 
+/**
+ * Fetches and parses company data from Sheet1 of the Excel file.
+ * @returns {Promise<CompanyDataRow[]>} A promise that resolves to an array of company data.
+ */
 export async function getCompanyData(): Promise<CompanyDataRow[]> {
   try {
-    const response = await fetch('/data.xlsm'); // Assuming the file is renamed
+    const response = await fetch('/data.xlsm');
     if (!response.ok) {
       throw new Error(`Failed to fetch Excel file: ${response.statusText}`);
     }
@@ -34,44 +44,58 @@ export async function getCompanyData(): Promise<CompanyDataRow[]> {
     const workbook = new Excel.Workbook();
     await workbook.xlsx.load(buffer);
 
-    const worksheet1 = workbook.getWorksheet('Sheet1');
-    if (!worksheet1) {
+    const worksheet = workbook.getWorksheet('Sheet1'); // Explicitly using Sheet1
+    if (!worksheet) {
       throw new Error("Worksheet 'Sheet1' not found.");
     }
     
-
     const data: CompanyDataRow[] = [];
-    let headerSkipped = false;
+    // Assuming headers are in the first row and data starts from the second
+    worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+      if (rowNumber === 1) return; // Skip header row
 
-    worksheet1.eachRow((row) => {
-      if (!headerSkipped) {
-        headerSkipped = true;
-        return;
-      }
+      // COLUMN MAPPING based on new schema
+      const companyName = String(row.getCell('A').value || '');
+      const e_score = +(row.getCell('E').value || 0);
+      const s_score = +(row.getCell('F').value || 0);
+      const g_score = +(row.getCell('G').value || 0);
+      const screen = +(row.getCell('H').value || '');
+      const controversy_screen = +(row.getCell('I').value || '');
+      const sector = String(row.getCell('D').value || '');
+      const grade = String(row.getCell('K').value || '');
+      const isin = String(row.getCell('C').value || ''); // Assuming ISIN is here
+      const esgScore = +(row.getCell('J').value || 0); // Assuming composite score is here
 
-      //COLUMN MAPPING
-      const companyName = row.getCell('A').value as string;
-      const nseSymbol = row.getCell('B').value as string; // Reading NSE Symbol from Column B
-      const isin = row.getCell('C').value as string;      // Reading ISIN from Column C
-      const sector = row.getCell('D').value as string;
-      const marketCap = parseFloat(row.getCell('E').value as string);
-      const esgRating = row.getCell('K').value as string;
-      const esgScore = parseInt(row.getCell('J').value as string);
-
-      if (companyName && isin && !isNaN(esgScore)) {
-        data.push({ companyName, nseSymbol, isin, sector, marketCap, esgRating, esgScore });
+      if (companyName && sector && grade) {
+        data.push({ 
+            companyName, 
+            sector, 
+            e_score, 
+            s_score, 
+            g_score, 
+            screen,  
+            controversy_screen, 
+            grade,
+            isin,
+            esgScore
+        });
       }
     });
 
     return data;
   } catch (error) {
-    console.error("Failed to load or parse the Excel file:", error);
+    console.error("Failed to load or parse company data from Excel:", error);
     return [];
   }
 }
+
+/**
+ * Fetches and parses fund data from Sheet2 of the Excel file.
+ * @returns {Promise<FundDataRow[]>} A promise that resolves to an array of fund data.
+ */
 export async function getFundData(): Promise<FundDataRow[]> {
   try {
-    const response = await fetch('/data.xlsm'); // Assuming the file is renamed
+    const response = await fetch('/data.xlsm');
     if (!response.ok) {
       throw new Error(`Failed to fetch Excel file: ${response.statusText}`);
     }
@@ -79,26 +103,21 @@ export async function getFundData(): Promise<FundDataRow[]> {
     const workbook = new Excel.Workbook();
     await workbook.xlsx.load(buffer);
 
-    const worksheet2 = workbook.getWorksheet('Sheet1');
-    if (!worksheet2) {
-      throw new Error("Worksheet 'Sheet1' not found.");
+    const worksheet = workbook.getWorksheet('Sheet2'); // Explicitly using Sheet2
+    if (!worksheet) {
+      throw new Error("Worksheet 'Sheet2' not found.");
     }
     
-
     const data: FundDataRow[] = [];
-    let headerSkipped = false;
-
-    worksheet2.eachRow((row) => {
-      if (!headerSkipped) {
-        headerSkipped = true;
-        return;
-      }
+    // Assuming headers are in the first row and data starts from the second
+    worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+      if (rowNumber === 1) return; // Skip header row
 
       //COLUMN MAPPING
-      const fundName = row.getCell('A').value as string;
-      const score = row.getCell('B').value as number 
-      const percentage = row.getCell('C').value as string;      
-      const grade = row.getCell('D').value as string;
+      const fundName = String(row.getCell('A').value || '');
+      const score = +(row.getCell('B').value || 0);
+      const percentage = String(row.getCell('C').value || '');      
+      const grade = String(row.getCell('D').value || '');
 
       if (fundName && !isNaN(score)) {
         data.push({ fundName, score, percentage, grade});
@@ -107,7 +126,8 @@ export async function getFundData(): Promise<FundDataRow[]> {
 
     return data;
   } catch (error) {
-    console.error("Failed to load or parse the Excel file:", error);
+    console.error("Failed to load or parse fund data from Excel:", error);
     return [];
   }
 }
+

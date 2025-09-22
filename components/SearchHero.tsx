@@ -69,7 +69,7 @@ export default function SearchHero() {
             <div
               className={`relative flex items-center overflow-hidden rounded-xl border-2 bg-white shadow-sm transition-all duration-200 ${
                 isFocused
-                  ? "shadow-lg ring-4 ring-opacity-20"
+                  ? "shadow-lg ring-1 ring-opacity-20"
                   : "border-gray-200 hover:border-gray-300"
               }`}
               style={isFocused ? {

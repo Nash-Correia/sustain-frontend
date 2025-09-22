@@ -21,7 +21,7 @@ export default function Page(){
       <StatsGrid />
       <Insights />
       <ContactForm />
-      <Subscribe /> {/* Add the new component here */}
+      <Subscribe />
     </>
   )
 }
