@@ -1,25 +1,32 @@
 "use client";
 
+// Import necessary hooks and types from React and your project files.
 import { useState, useEffect, useMemo } from 'react';
-import { getCompanyData, getFundData, CompanyDataRow, FundDataRow, PortfolioCompany } from '../../../lib/excel-data';
+// CORRECTED: Using path aliases for robust imports.
+import { getCompanyData, getFundData, CompanyDataRow, FundDataRow } from '@/lib/excel-data';
 
-// Import all the necessary components
-import GreenRatingGauge from "../../../components/product/GreenRatingGauge";
-import RatingLegend from "../../../components/product/RatingLegend";
-import FundsComparisonTable from "../../../components/product/FundsComparisonTable";
-import CustomListComponent from "../../../components/product/CustomListComponent";
-import SummaryScorecard from "../../../components/product/SummaryScorecard";
-import Subscribe from "../../../components/Subscribe";
-import TabbedSearch from '../../../components/product/TabbedSearch';
+// Import existing and new components.
+import GreenRatingGauge from "@/components/product/GreenRatingGauge";
+import RatingLegend from "@/components/product/RatingLegend";
+import Subscribe from "@/components/Subscribe";
+import TabbedSearch from '@/components/product/TabbedSearch';
+import DetailedInfoTable from '@/components/product/DetailedInfoTable';
+import CompanyInfoCard from '@/components/product/CompanyInfoCard';
+import FundSectorAnalysis from '@/components/product/FundSectorAnalysis';
+
+// Define a type for the selected item to keep track of both the name and the category.
+type SelectedItem = {
+  name: string;
+  type: 'Funds' | 'Companies' | 'Sectors';
+} | null;
 
 export default function ProductAPage() {
+  // STATE MANAGEMENT
   const [allCompanyData, setAllCompanyData] = useState<CompanyDataRow[]>([]);
   const [allFundData, setAllFundData] = useState<FundDataRow[]>([]);
-  
-  const [selectedItem, setSelectedItem] = useState<{name: string, type: 'Funds' | 'Companies' | 'Sectors'} | null>(null);
+  const [selectedItem, setSelectedItem] = useState<SelectedItem>(null);
 
-  const [portfolio, setPortfolio] = useState<PortfolioCompany[]>([]);
-
+  // DATA FETCHING
   useEffect(() => {
     async function loadData() {
       const companyData = await getCompanyData();
@@ -30,6 +37,7 @@ export default function ProductAPage() {
     loadData();
   }, []);
 
+  // DATA MEMOIZATION AND DERIVATION
   const { companyOptions, fundOptions, sectorOptions } = useMemo(() => {
     const companies = allCompanyData.map(c => c.companyName).filter(Boolean);
     const funds = allFundData.map(f => f.fundName).filter(Boolean);
@@ -37,17 +45,11 @@ export default function ProductAPage() {
     return { companyOptions: companies, fundOptions: funds, sectorOptions: sectors };
   }, [allCompanyData, allFundData]);
 
-
-  const handleSelection = (value: string, type: 'Funds' | 'Companies' | 'Sectors') => {
-      setSelectedItem({ name: value, type });
-  };
-  
-  const { score, rating, name } = useMemo(() => {
+  const gaugeData = useMemo(() => {
     if (!selectedItem) {
         return { score: 0, rating: 'X', name: 'Select an item' };
     }
-
-    if (selectedItem.type === 'Funds') {
+     if (selectedItem.type === 'Funds') {
         const fund = allFundData.find(f => f.fundName === selectedItem.name);
         return {
             score: fund?.score ?? 0,
@@ -55,7 +57,6 @@ export default function ProductAPage() {
             name: fund?.fundName ?? ''
         };
     }
-
     if (selectedItem.type === 'Companies') {
         const company = allCompanyData.find(c => c.companyName === selectedItem.name);
         return {
@@ -64,7 +65,6 @@ export default function ProductAPage() {
             name: company?.companyName ?? ''
         };
     }
-    
     if (selectedItem.type === 'Sectors') {
         const companiesInSector = allCompanyData.filter(c => c.sector === selectedItem.name);
         if (companiesInSector.length === 0) {
@@ -87,39 +87,97 @@ export default function ProductAPage() {
             name: `${selectedItem.name} (Sector Average)`
         };
     }
-    
     return { score: 0, rating: 'X', name: 'Select an item' };
   }, [selectedItem, allFundData, allCompanyData]);
 
-
-  const { portfolioEsgScore, totalAum } = useMemo(() => {
-    if (portfolio.length === 0) {
-      return { portfolioEsgScore: 0, totalAum: 0 };
-    }
-    const totalWeightedScore = portfolio.reduce((acc, company) => acc + (company.esgScore * (company.aum / 100)), 0);
-    const totalAumValue = portfolio.reduce((acc, company) => acc + company.aum, 0);
-    
-    // Avoid division by zero and ensure the logic is correct for weighted average
-    const finalScore = totalAumValue > 0 ? totalWeightedScore : 0;
-
-    return { portfolioEsgScore: Math.round(finalScore), totalAum: Math.round(totalAumValue) };
-  }, [portfolio]);
-
-  const handleRemoveFromPortfolio = (isinToRemove: string) => {
-    setPortfolio(portfolio.filter(p => p.isin !== isinToRemove));
+  // HANDLER FUNCTIONS
+  const handleSelection = (value: string, type: 'Funds' | 'Companies' | 'Sectors') => {
+      setSelectedItem({ name: value, type });
   };
+  
+  // RENDER LOGIC
+  const renderDetailedContent = () => {
+    if (!selectedItem) {
+      return <div className="p-8 text-center text-gray-500 rounded-large border border-dashed">Please select an item to see details.</div>;
+    }
 
-  const showCustomListBuilder = selectedItem?.type === 'Companies' || selectedItem?.type === 'Sectors';
-  const customListCompanies = useMemo(() => {
-      if (!selectedItem || selectedItem.type === 'Companies') {
-          return allCompanyData;
-      }
-      if (selectedItem.type === 'Sectors') {
-          return allCompanyData.filter(c => c.sector === selectedItem.name);
-      }
-      return allCompanyData;
-  }, [selectedItem, allCompanyData]);
+    // A helper function to perform analysis on a list of companies.
+    const analyzeCompanies = (companies: CompanyDataRow[]) => {
+        if (companies.length === 0) {
+            return { bestInSector: [], overallBest: 'N/A', averageScore: 0, highestScore: 0, lowestScore: 0 };
+        }
 
+        // Group companies by sector
+        const groupedBySector: { [key: string]: CompanyDataRow[] } = {};
+        companies.forEach(company => {
+            if (!groupedBySector[company.sector]) {
+                groupedBySector[company.sector] = [];
+            }
+            groupedBySector[company.sector].push(company);
+        });
+
+        // Find the best company in each sector
+        const bestInSector = Object.entries(groupedBySector).map(([sector, sectorCompanies]) => {
+            const bestCompany = sectorCompanies.reduce((best, current) => current.esgScore > best.esgScore ? current : best);
+            return { sector, company: bestCompany.companyName };
+        });
+
+        // Find overall best company and calculate scores
+        const scores = companies.map(c => c.esgScore);
+        const overallBest = companies.reduce((best, current) => current.esgScore > best.esgScore ? current : best);
+        const totalScore = scores.reduce((sum, score) => sum + score, 0);
+
+        return {
+            bestInSector,
+            overallBest: overallBest.companyName,
+            averageScore: Math.round(totalScore / companies.length),
+            highestScore: Math.max(...scores),
+            lowestScore: Math.min(...scores),
+        };
+    };
+
+    switch (selectedItem.type) {
+      // CASE 1: A FUND IS SELECTED
+      case 'Funds': {
+        // NOTE: The current data structure does not link funds to specific companies.
+        // Using a random subset of 15 companies as a placeholder for demonstration.
+        // In a real application, you would fetch the holdings for the selected fund.
+        const companiesInFund: CompanyDataRow[] = allCompanyData.slice(5, 20); // Placeholder data
+        const analysisData = analyzeCompanies(companiesInFund);
+
+        return (
+          <div className="space-y-8">
+            <DetailedInfoTable title={`Companies in ${selectedItem.name}`} companies={companiesInFund} />
+            <FundSectorAnalysis title="Fund Analysis" data={analysisData} />
+          </div>
+        );
+      }
+
+      // CASE 2: A COMPANY IS SELECTED
+      case 'Companies': {
+        const companyData = allCompanyData.find(c => c.companyName === selectedItem.name);
+        return companyData ? <CompanyInfoCard company={companyData} /> : null;
+      }
+
+      // CASE 3: A SECTOR IS SELECTED
+      case 'Sectors': {
+        const companiesInSector = allCompanyData.filter(c => c.sector === selectedItem.name);
+        const analysisData = analyzeCompanies(companiesInSector);
+        // Best in sector is not relevant when viewing a single sector
+        analysisData.bestInSector = []; 
+
+        return (
+          <div className="space-y-8">
+            <DetailedInfoTable title={`Companies in ${selectedItem.name} Sector`} companies={companiesInSector} />
+            <FundSectorAnalysis title="Sector Analysis" data={analysisData} />
+          </div>
+        );
+      }
+
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="bg-brand-bg-light">
@@ -135,25 +193,13 @@ export default function ProductAPage() {
           />
 
           <GreenRatingGauge 
-            score={score}
-            rating={rating}
-            fundName={name}
+            score={gaugeData.score}
+            rating={gaugeData.rating}
+            fundName={gaugeData.name}
           />
           <RatingLegend />
           
-          
-            <>
-              <CustomListComponent 
-                allCompanyData={customListCompanies}
-                portfolio={portfolio}
-                setPortfolio={setPortfolio}
-              />
-              <FundsComparisonTable portfolio={portfolio} onRemove={handleRemoveFromPortfolio} />
-              <SummaryScorecard 
-                esgScore={portfolioEsgScore} 
-                aumCovered={totalAum} 
-              />
-            </>
+          {renderDetailedContent()}
         </div>
       </div>
       <Subscribe />
