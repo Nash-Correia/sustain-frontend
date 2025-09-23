@@ -139,10 +139,6 @@ export default function Subscribe() {
                 {status === 'submitting' ? "..." : "Subscribe"}
               </button>
             </form>
-
-            <Link href="/#contact" className="h-14 rounded-full bg-white px-8 font-semibold text-brand-dark inline-flex items-center hover:bg-white/90 transition-colors">
-              Contact Us
-            </Link>
           </div>
 
           <div className="h-6 mt-4 text-sm">

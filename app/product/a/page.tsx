@@ -13,6 +13,7 @@ import DetailedInfoTable from '@/components/product/DetailedInfoTable';
 import CompanyInfoCard from '@/components/product/CompanyInfoCard';
 import FundSectorAnalysis from '@/components/product/FundSectorAnalysis';
 import FundsComparisonTable from '@/components/product/FundsComparisonTable';
+import RatingLegend from '@/components/product/RatingLegend';
 
 // Define a type for the selected item to keep track of both the name and the category.
 type SelectedItem = {
@@ -273,15 +274,18 @@ export default function ProductAPage() {
                 </div>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+<table className="w-full text-sm">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="text-left p-3 font-semibold text-gray-700">Company</th>
-                      <th className="text-left p-3 font-semibold text-gray-700">Sector</th>
-                      <th className="text-center p-3 font-semibold text-gray-700">ESG Score</th>
-                      <th className="text-center p-3 font-semibold text-gray-700">Screen</th>
-                      <th className="text-center p-3 font-semibold text-gray-700">Controversy</th>
-                      <th className="text-center p-3 font-semibold text-gray-700">Grade</th>
+                      <th className="text-left p-3 font-bold  text-gray-700">Company</th>
+                      <th className="text-left p-3 font-bold text-gray-700">Sector</th>
+                      <th className="text-center p-3 font-bold text-gray-700">E-Score</th>
+                      <th className="text-center p-3 font-bold text-gray-700">S-Score</th>
+                      <th className="text-center p-3 font-bold text-gray-700">G-Score</th>
+                      <th className="text-center p-3 font-bold text-gray-700">Screen</th>
+                      <th className="text-center p-3 font-bold text-gray-700">Controversy</th>
+                      <th className="text-center p-3 font-bold text-gray-700">ESG Score</th>
+                      {/* <th className="text-center p-3 font-semibold text-gray-700">Grade</th> */}
                     </tr>
                   </thead>
                   <tbody>
@@ -289,26 +293,37 @@ export default function ProductAPage() {
                       <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                         <td className="p-3 font-medium text-gray-800">{company.companyName}</td>
                         <td className="p-3 text-left text-gray-600">{company.sector}</td>
-                        <td className={`p-3 text-center font-semibold transition-colors duration-300 rounded-md ${getCellClass('esgScore', company.esgScore, pageStats)}`}>
-                          {formatNumber(company.esgScore)}
+                        <td className={`p-3 text-center transition-colors duration-300 rounded-md ${getCellClass('e_score', company.e_score, pageStats)}`}>
+                          {formatNumber(company.e_score)}
                         </td>
-                        <td className={`p-3 text-center transition-colors duration-300 rounded-md ${getCellClass('screen', company.screen, pageStats)}`}>
+                        <td className={`p-3 text-center transition-colors duration-300 rounded-md ${getCellClass('s_score', company.s_score, pageStats)}`}>
+                          {formatNumber(company.s_score)}
+                        </td>
+                        <td className={`p-3 text-center transition-colors duration-300 rounded-md ${getCellClass('g_score', company.g_score, pageStats)}`}>
+                          {formatNumber(company.g_score)}
+                        </td>
+                        <td className={`p-3 text-center transition-colors duration-300 rounded-md`}>
                           {formatNumber(company.screen)}
                         </td>
-                        <td className={`p-3 text-center transition-colors duration-300 rounded-md ${getCellClass('controversy_screen', company.controversy_screen, pageStats)}`}>
+                        <td className={`p-3 text-center transition-colors duration-300 rounded-md`}>
                           {formatNumber(company.controversy_screen)}
                         </td>
-                        <td className="p-3 text-center">
+                                                <td className={`p-3 text-center font-semibold transition-colors duration-300 rounded-md ${getCellClass('esgScore', company.esgScore, pageStats)}`}>
+                          {formatNumber(company.esgScore)}
+                        </td>
+                        {/* <td className="p-3 text-center">
                           <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
                             {company.grade}
                           </span>
-                        </td>
+                        </td> */}
                       </tr>
                     ))}
                     {/* Empty rows to maintain consistent table height */}
                     {emptyRows.map((_, index) => (
                       <tr key={`empty-${index}`} className="border-b border-gray-100">
                         <td className="p-3" style={{ height: '53px' }}>&nbsp;</td>
+                        <td className="p-3">&nbsp;</td>
+                        <td className="p-3">&nbsp;</td>
                         <td className="p-3">&nbsp;</td>
                         <td className="p-3">&nbsp;</td>
                         <td className="p-3">&nbsp;</td>
@@ -342,9 +357,7 @@ export default function ProductAPage() {
                 <p className="text-sm text-gray-600 mt-1">Company • {company.sector} Sector</p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="px-4 py-2 rounded-full text-sm font-semibold bg-green-100 text-green-800">
-                  Grade {company.grade}
-                </span>
+
                 <button 
                   onClick={() => handleAddToPortfolio(company)}
                   className="px-4 py-2 bg-brand-action text-white rounded-lg text-sm font-medium hover:bg-brand-action/90 transition-colors"
@@ -353,7 +366,9 @@ export default function ProductAPage() {
                 </button>
               </div>
             </div>
-
+            <div className='space-y-1'>
+                        <RatingLegend></RatingLegend>
+            </div>
             {/* Company ESG Breakdown */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
@@ -433,9 +448,7 @@ export default function ProductAPage() {
                 <h3 className="text-2xl font-bold text-brand-dark">{selectedItem.name} Sector</h3>
                 <p className="text-sm text-gray-600 mt-1">Sector Analysis • {totalCompanies} companies</p>
               </div>
-              <span className="px-4 py-2 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
-                Avg Grade {sectorGrade}
-              </span>
+
             </div>
 
             {/* Sector Overview Stats */}
@@ -477,28 +490,20 @@ export default function ProductAPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="text-left p-3 font-semibold text-gray-700">Company</th>
-                      <th className="text-center p-3 font-semibold text-gray-700">ESG Score</th>
-                      <th className="text-center p-3 font-semibold text-gray-700">Grade</th>
-                      <th className="text-center p-3 font-semibold text-gray-700">E-Score</th>
-                      <th className="text-center p-3 font-semibold text-gray-700">S-Score</th>
-                      <th className="text-center p-3 font-semibold text-gray-700">G-Score</th>
-                      <th className="text-center p-3 font-semibold text-gray-700">Screen</th>
-                      <th className="text-center p-3 font-semibold text-gray-700">Controversy</th>
+                      <th className="text-left p-3 font-bold text-gray-700">Company</th>
+                      <th className="text-center p-3 font-bold text-gray-700">E-Score</th>
+                      <th className="text-center p-3 font-bold text-gray-700">S-Score</th>
+                      <th className="text-center p-3 font-bold text-gray-700">G-Score</th>
+                      <th className="text-center p-3 font-bold text-gray-700">Screen</th>
+                      <th className="text-center p-3 font-bold text-gray-700">Controversy</th>
+                      <th className="text-center p-3 font-bold text-gray-700">ESG Score</th>
+                      {/* <th className="text-center p-3 font-semibold text-gray-700">Grade</th> */}
                     </tr>
                   </thead>
                   <tbody>
                     {paginatedCompanies.map((company, index) => (
                       <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                         <td className="p-3 font-medium text-gray-800">{company.companyName}</td>
-                        <td className={`p-3 text-center font-semibold transition-colors duration-300 rounded-md ${getCellClass('esgScore', company.esgScore, pageStats)}`}>
-                          {formatNumber(company.esgScore)}
-                        </td>
-                        <td className="p-3 text-center">
-                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-                            {company.grade}
-                          </span>
-                        </td>
                         <td className={`p-3 text-center transition-colors duration-300 rounded-md ${getCellClass('e_score', company.e_score, pageStats)}`}>
                           {formatNumber(company.e_score)}
                         </td>
@@ -508,12 +513,20 @@ export default function ProductAPage() {
                         <td className={`p-3 text-center transition-colors duration-300 rounded-md ${getCellClass('g_score', company.g_score, pageStats)}`}>
                           {formatNumber(company.g_score)}
                         </td>
-                        <td className={`p-3 text-center transition-colors duration-300 rounded-md ${getCellClass('screen', company.screen, pageStats)}`}>
+                        <td className={`p-3 text-center transition-colors duration-300 rounded-md`}>
                           {formatNumber(company.screen)}
                         </td>
-                        <td className={`p-3 text-center transition-colors duration-300 rounded-md ${getCellClass('controversy_screen', company.controversy_screen, pageStats)}`}>
+                        <td className={`p-3 text-center transition-colors duration-300 rounded-md`}>
                           {formatNumber(company.controversy_screen)}
                         </td>
+                        <td className={`p-3 text-center font-semibold transition-colors duration-300 rounded-md ${getCellClass('esgScore', company.esgScore, pageStats)}`}>
+                          {formatNumber(company.esgScore)}
+                        </td>
+                        {/* <td className="p-3 text-center">
+                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                            {company.grade}
+                          </span>
+                        </td> */}
                       </tr>
                     ))}
                     {/* Empty rows to maintain consistent table height */}
@@ -531,6 +544,7 @@ export default function ProductAPage() {
                     ))}
                   </tbody>
                 </table>
+                
               </div>
               
               <PaginationControls 
@@ -581,8 +595,6 @@ export default function ProductAPage() {
           lowestScore: 0,
           totalCompanies: 0,
           sectorBreakdown: {},
-          riskAnalysis: { high: 0, medium: 0, low: 0 },
-          screeningCompliance: 0
         };
       }
 
@@ -682,7 +694,7 @@ export default function ProductAPage() {
         <h3 className="text-2xl font-bold text-brand-dark mb-6">{cardTitle}</h3>
 
         {/* Key Metrics Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
           <StatCard 
             label="Total Companies" 
             value={analysisData.totalCompanies}
@@ -698,11 +710,6 @@ export default function ProductAPage() {
             value={analysisData.highestScore}
             trend="up"
             description="Highest ESG score"
-          />
-          <StatCard 
-            label="Screening Pass Rate" 
-            value={`${formatNumber(analysisData.screeningCompliance)}%`}
-            description="Compliance rate"
           />
         </div>
 
@@ -865,7 +872,7 @@ export default function ProductAPage() {
           {selectedItem && renderAnalysisCard()}
 
           {/* 4. GAUGE AND RATING LEGEND */}
-          <div className="grid lg:grid-cols-2 gap-8">
+          {/* <div className="grid lg:grid-cols-2 gap-8">
             <GreenRatingGauge 
               score={gaugeData.score}
               rating={gaugeData.rating}
@@ -873,7 +880,7 @@ export default function ProductAPage() {
             />
             <div className="flex items-center">
             </div>
-          </div>
+          </div> */}
           
           {/* 5. DETAILED INFO TABLE */}
           
@@ -885,7 +892,6 @@ export default function ProductAPage() {
           />
         </div>
       </div>
-      <Subscribe />
     </div>
   );
 }

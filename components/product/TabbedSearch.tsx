@@ -161,17 +161,18 @@ export default function TabbedSearch({
               Funds
             </TabButton>
             <TabButton 
-              active={activeTab === 'Companies'} 
-              onClick={() => handleTabSwitch('Companies')}
-            >
-              Companies
-            </TabButton>
-            <TabButton 
               active={activeTab === 'Sectors'} 
               onClick={() => handleTabSwitch('Sectors')}
             >
               Sectors
             </TabButton>
+            <TabButton 
+              active={activeTab === 'Companies'} 
+              onClick={() => handleTabSwitch('Companies')}
+            >
+              Companies
+            </TabButton>
+
           </nav>
         </div>
 
@@ -207,13 +208,13 @@ export default function TabbedSearch({
       </div>
 
       {/* Rating Legend - Now separate and conditional */}
-      <RatingLegend 
+      {/* <RatingLegend 
         selectedGrade={currentEntityData?.grade}
         selectedEntity={currentEntityData ? {
           name: currentEntityData.name,
           type: currentEntityData.type
         } : undefined}
-      />
+      /> */}
     </div>
   );
 }

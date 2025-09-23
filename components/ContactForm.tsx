@@ -21,11 +21,11 @@ export default function ContactForm() {
 
   // Shapes with larger sizes
   const shapes = [
-    { className: "bg-green-500/20 rounded-full", top: "5%", left: "7%", width: 80, height: 80, duration: 8 },
-    { className: "bg-blue-500/10 rounded-lg", top: "20%", right: "10%", width: 100, height: 100, duration: 9 },
+    { className: "bg-green-500/20 rounded-full", top: "5%", left: "7%", width: 300, height: 300, duration: 8 },
+    { className: "bg-blue-500/10 rounded-lg", top: "20%", right: "10%", width: 150, height: 150, duration: 9 },
     { className: "bg-purple-500/20", top: "70%", left: "25%", clip: "polygon(50% 0%, 0% 100%, 100% 100%)", width: 90, height: 90, duration: 10 },
-    { className: "bg-yellow-500/20 rounded-full", top: "5%", left: "50%", width: 100, height: 100, duration: 7 },
-    { className: "bg-red-500/10 rounded-lg", bottom: "20%", right: "33%", width: 90, height: 90, duration: 9 },
+    { className: "bg-yellow-500/20 rounded-full", top: "5%", left: "70%", width: 200, height: 200, duration: 7 },
+    { className: "bg-red-500/10 rounded-lg", bottom: "50%", right: "50%", width: 180, height: 180, duration: 9 },
     { className: "bg-pink-500/15 rounded-full", top: "10%", right: "40%", width: 110, height: 110, duration: 8 },
     { className: "bg-indigo-500/15 rounded-lg", bottom: "15%", left: "10%", width: 80, height: 80, duration: 9 },
     { className: "bg-teal-500/20 rounded-full", top: "60%", right: "20%", width: 100, height: 100, duration: 7 },
@@ -66,34 +66,78 @@ export default function ContactForm() {
       <div className="relative z-10 mx-auto max-w-4xl bg-white/50 backdrop-blur-md p-8 rounded-2xl shadow-lg">
         <h2 className="text-3xl font-bold text-center text-gray-900">Get in Touch</h2>
         <form onSubmit={onSubmit} className="mt-8 space-y-6">
+          
+          {/* Name & Company */}
           <div className="grid sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <input
+                type="text"
+                name="Name"
+                placeholder="Enter Name"
+                required
+                className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
+              <input
+                type="text"
+                name="Company"
+                placeholder="Enter company name"
+                required
+                className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+              />
+            </div>
+          </div>
+
+          {/* Email & Contact */}
+          <div className="grid sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                name="Email"
+                placeholder="Enter email"
+                required
+                className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Contact No.</label>
+              <input
+                type="text"
+                name="Contact"
+                placeholder="Enter Contact no."
+                required
+                className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+              />
+            </div>
+          </div>
+
+          {/* Subject */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
             <input
               type="text"
-              name="name"
-              placeholder="Name"
-              required
-              className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400"
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              required
+              name="subject"
+              placeholder="Subject"
               className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400"
             />
           </div>
-          <input
-            type="text"
-            name="subject"
-            placeholder="Subject"
-            className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400"
-          />
-          <textarea
-            name="message"
-            rows={5}
-            placeholder="Message"
-            className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400"
-          />
+
+          {/* Message */}
+          {/* <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+            <textarea
+              name="message"
+              rows={5}
+              placeholder="Write your message here..."
+              className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400"
+            />
+          </div> */}
+
+          {/* Submit Button */}
           <div className="text-center">
             <button
               type="submit"
