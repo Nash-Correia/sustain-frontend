@@ -149,7 +149,7 @@ export default function TabbedSearch({
     <div className="space-y-6">
       {/* Search Section */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 sm:p-8">
-        <h2 className="text-2xl font-bold text-brand-dark mb-6">ESG Comparison</h2>
+        <h2 className="text-2xl font-bold text-brand-dark mb-6">ESG Rating Comparison</h2>
         
         {/* Tab Navigation */}
         <div className="border-b border-gray-200 mb-6">

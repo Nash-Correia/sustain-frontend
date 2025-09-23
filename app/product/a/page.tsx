@@ -852,9 +852,7 @@ export default function ProductAPage() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         
         {/* 1. GREEN RATING - Top Center */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-brand-dark">Green Rating</h1>
-        </div>
+    
         
         <div className="space-y-8">
           {/* 2. TABBED SEARCH */}

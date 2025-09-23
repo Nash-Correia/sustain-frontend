@@ -1,20 +1,20 @@
+// lib/excel-data.ts
 import Excel from 'exceljs';
 
-// Interface for company data from Sheet1
 export interface CompanyDataRow {
   companyName: string;
   sector: string;
   e_score: number;
   s_score: number;
   g_score: number;
-  screen: number;
-  controversy_screen: number;
+  positive: string;
+  negative: string;
+  controversy: string;
   grade: string;
   isin: string;
   esgScore: number;
 }
 
-// Interface for fund data from Sheet2
 export interface FundDataRow {
   fundName: string;
   score: number;
@@ -22,7 +22,6 @@ export interface FundDataRow {
   grade: string;
 }
 
-// Kept from old implementation, seems useful for custom portfolio
 export interface PortfolioCompany {
   isin: string;
   aum: number;
@@ -30,104 +29,105 @@ export interface PortfolioCompany {
   companyName: string;
 }
 
-/**
- * Fetches and parses company data from Sheet1 of the Excel file.
- * @returns {Promise<CompanyDataRow[]>} A promise that resolves to an array of company data.
- */
+function headerIndexMap(worksheet: Excel.Worksheet) {
+  const map: Record<string, number> = {};
+  const headerRow = worksheet.getRow(1);
+  headerRow.eachCell((cell, colNumber) => {
+    const text = (cell.value ?? '').toString().trim();
+    if (text) map[text] = colNumber;
+  });
+  return map;
+}
+
 export async function getCompanyData(): Promise<CompanyDataRow[]> {
   try {
-    const response = await fetch('/data.xlsm');
-    if (!response.ok) {
-      throw new Error(`Failed to fetch Excel file: ${response.statusText}`);
-    }
+    const response = await fetch('/data.xlsx');
+    if (!response.ok) throw new Error(`Failed to fetch Excel file: ${response.statusText}`);
     const buffer = await response.arrayBuffer();
     const workbook = new Excel.Workbook();
     await workbook.xlsx.load(buffer);
 
-    const worksheet = workbook.getWorksheet('Sheet1'); // Explicitly using Sheet1
-    if (!worksheet) {
-      throw new Error("Worksheet 'Sheet1' not found.");
-    }
-    
+    const worksheet = workbook.getWorksheet('Sheet-1');
+    if (!worksheet) throw new Error("Worksheet 'Sheet-1' not found.");
+
+    const idx = headerIndexMap(worksheet);
+
+    const get = (row: Excel.Row, headerName: string) => {
+      const col = idx[headerName];
+      if (!col) return '';
+      const v = row.getCell(col).value;
+      // handle Excel types (rich text / numbers / null)
+      return v === null || v === undefined ? '' : v;
+    };
+
     const data: CompanyDataRow[] = [];
-    // Assuming headers are in the first row and data starts from the second
     worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-      if (rowNumber === 1) return; // Skip header row
+      if (rowNumber === 1) return; // skip header
 
-      // COLUMN MAPPING based on new schema
-      const companyName = String(row.getCell('A').value || '');
-      const e_score = +(row.getCell('E').value || 0);
-      const s_score = +(row.getCell('F').value || 0);
-      const g_score = +(row.getCell('G').value || 0);
-      const screen = +(row.getCell('H').value || '');
-      const controversy_screen = +(row.getCell('I').value || '');
-      const sector = String(row.getCell('D').value || '');
-      const grade = String(row.getCell('K').value || '');
-      const isin = String(row.getCell('C').value || ''); // Assuming ISIN is here
-      const esgScore = +(row.getCell('J').value || 0); // Assuming composite score is here
+      const companyName = String(get(row, 'Company Name') || '').trim();
+      const sector = String(get(row, 'Sector') || '').trim();
+      const e_score = Number(get(row, 'E Pillar') || 0) || 0;
+      const s_score = Number(get(row, 'S Pillar') || 0) || 0;
+      const g_score = Number(get(row, 'G Pillar') || 0) || 0;
+      const positive = String(get(row, 'Positive Screen') || '').trim();
+      const negative = String(get(row, 'Negative Screen') || '').trim();
+      const controversy = String(get(row, 'Controversy Rating') || '').trim();
+      const grade = String(get(row, 'ESG Rating') || '').trim();
+      const isin = String(get(row, 'ISIN') || '').trim();
+      const esgScore = Number(get(row, 'Composite Rating') || 0) || 0;
 
-      if (companyName && sector && grade) {
-        data.push({ 
-            companyName, 
-            sector, 
-            e_score, 
-            s_score, 
-            g_score, 
-            screen,  
-            controversy_screen, 
-            grade,
-            isin,
-            esgScore
+      // Use same inclusion logic as before
+      if (companyName) {
+        data.push({
+          companyName,
+          sector,
+          e_score,
+          s_score,
+          g_score,
+          positive,
+          negative,
+          controversy,
+          grade,
+          isin,
+          esgScore,
         });
       }
     });
 
     return data;
   } catch (error) {
-    console.error("Failed to load or parse company data from Excel:", error);
+    console.error('Failed to load or parse company data from Excel:', error);
     return [];
   }
 }
 
-/**
- * Fetches and parses fund data from Sheet2 of the Excel file.
- * @returns {Promise<FundDataRow[]>} A promise that resolves to an array of fund data.
- */
 export async function getFundData(): Promise<FundDataRow[]> {
   try {
-    const response = await fetch('/data.xlsm');
-    if (!response.ok) {
-      throw new Error(`Failed to fetch Excel file: ${response.statusText}`);
-    }
+    const response = await fetch('/data.xlsx');
+    if (!response.ok) throw new Error(`Failed to fetch Excel file: ${response.statusText}`);
     const buffer = await response.arrayBuffer();
     const workbook = new Excel.Workbook();
     await workbook.xlsx.load(buffer);
 
-    const worksheet = workbook.getWorksheet('Sheet2'); // Explicitly using Sheet2
-    if (!worksheet) {
-      throw new Error("Worksheet 'Sheet2' not found.");
-    }
-    
+    const worksheet = workbook.getWorksheet('Sheet-2');
+    if (!worksheet) throw new Error("Worksheet 'Sheet-2' not found.");
+
+    const idx = headerIndexMap(worksheet);
     const data: FundDataRow[] = [];
-    // Assuming headers are in the first row and data starts from the second
+
     worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-      if (rowNumber === 1) return; // Skip header row
+      if (rowNumber === 1) return;
+      const fundName = String(row.getCell(idx['Fund Name'] || 1).value || '').trim();
+      const score = Number(row.getCell(idx['Score'] || 2).value || 0) || 0;
+      const percentage = String(row.getCell(idx['Percentage'] || 3).value || '').trim();
+      const grade = String(row.getCell(idx['Grade'] || 4).value || '').trim();
 
-      //COLUMN MAPPING
-      const fundName = String(row.getCell('A').value || '');
-      const score = +(row.getCell('B').value || 0);
-      const percentage = String(row.getCell('C').value || '');      
-      const grade = String(row.getCell('D').value || '');
-
-      if (fundName && !isNaN(score)) {
-        data.push({ fundName, score, percentage, grade});
-      }
+      if (fundName) data.push({ fundName, score, percentage, grade });
     });
 
     return data;
   } catch (error) {
-    console.error("Failed to load or parse fund data from Excel:", error);
+    console.error('Failed to load or parse fund data from Excel:', error);
     return [];
   }
 }
-
