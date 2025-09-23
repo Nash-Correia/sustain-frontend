@@ -131,7 +131,7 @@ export default function Header() {
         <div className="flex h-20 items-center justify-between">
           <Link href={ROUTES.home} className="flex items-center gap-2">
             <img
-              src="/logos/iias-sustain-logo.png"
+              src="/logo/iias-sustain-logo.png"
               alt="My Site Logo"
               className="h-18 w-22"
             />
