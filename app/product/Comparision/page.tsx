@@ -115,7 +115,7 @@ export default function ProductAPage() {
           <FundDetails
             fund={fund}
             allCompanyData={allCompanyData}
-            gaugeData={gaugeData}
+
           />
         );
       }
@@ -163,11 +163,11 @@ export default function ProductAPage() {
               allCompanyData={allCompanyData}
             />
           )}
-
+{/* 
           <FundsComparisonTable
             portfolio={portfolio}
             onRemove={handleRemoveFromPortfolio}
-          />
+          /> */}
         </div>
       </div>
     </div>

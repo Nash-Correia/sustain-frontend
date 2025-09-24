@@ -76,8 +76,8 @@ export default function AnalysisCard({
     }
 
     const scores = companies.map((c) => Number(c.esgScore || 0));
-    const controversyScores = companies.map((c) => Number(c.controversy_screen || 0));
-    const screenScores = companies.map((c) => Number(c.screen || 0));
+    const controversyScores = companies.map((c) => Number(c.controversy || 0));
+    const screenScores = companies.map((c) => Number(c.positive || 0));
 
     // safe reduces using first element as initial
     const bestCompanyRow = companies.reduce((best, current) =>
