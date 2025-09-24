@@ -1,7 +1,7 @@
 // components/product/productUtils.ts
 export const formatNumber = (value: number | string): string => {
   const num = typeof value === "string" ? parseFloat(value) : value;
-  return isNaN(num) ? "0.00" : num.toFixed(2);
+  return isNaN(num) ? "0.00" : num.toFixed(0);
 };
 
 export const getColumnStats = (data: any[], columns: string[]) => {
