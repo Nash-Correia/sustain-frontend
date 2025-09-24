@@ -13,6 +13,7 @@ export interface CompanyDataRow {
   grade: string;
   isin: string;
   esgScore: number;
+  composite:number;
 }
 
 export interface FundDataRow {
@@ -74,7 +75,8 @@ export async function getCompanyData(): Promise<CompanyDataRow[]> {
       const controversy = String(get(row, 'Controversy Rating') || '').trim();
       const grade = String(get(row, 'ESG Rating') || '').trim();
       const isin = String(get(row, 'ISIN') || '').trim();
-      const esgScore = Number(get(row, 'Composite Rating') || 0) || 0;
+      const esgScore = Number(get(row, 'ESG Pillar') || 0) || 0;
+      const composite = Number(get(row, 'Composite Rating') || 0) || 0;
 
       // Use same inclusion logic as before
       if (companyName) {
@@ -90,6 +92,7 @@ export async function getCompanyData(): Promise<CompanyDataRow[]> {
           grade,
           isin,
           esgScore,
+          composite,
         });
       }
     });

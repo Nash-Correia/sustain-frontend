@@ -15,7 +15,7 @@ const SocialIcon = () => ( 	<svg width="36" height="36" viewBox="0 0 24 24" fill
         <circle cx="9" cy="7" r="4" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M23 21v-2a4 4 0 0 0-3-3.87" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M16 3.13a4 4 0 0 1 0 7.75" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>);
+    </svg>); 
 const GovIcon = () => (<svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3zM12 13c3.866 0 7 1.79 7 4v1H5v-1c0-2.21 3.134-4 7-4z" stroke="#D69E2E" strokeWidth="1.5" fill="#FEFCBF"/></svg>);
 const PositiveIcon = () => (<svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3" stroke="#38A169" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>);
 const NegativeIcon = () => (<svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="#E53E3E" strokeWidth="2.5"/><path d="M15 9l-6 6M9 9l6 6" stroke="#E53E3E" strokeWidth="2.5" strokeLinecap="round"/></svg>);

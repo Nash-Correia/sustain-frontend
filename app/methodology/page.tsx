@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 
 // Import all the necessary components
-import InteractiveMethodologyDiagram from '@/components/methodology/InteractiveMethodologyDiagram';
+import InteractiveMethodologyDiagram from '@/components/methodology/InteractiveFlowchart';
 import BackToTopButton from '@/components/ui/BackToTopButton';
 import PillarScoreCard from '@/components/methodology/cards/PillarScoreCard';
 import EnvironmentalPillarCard from '@/components/methodology/cards/EnvironmentalPillarCard';

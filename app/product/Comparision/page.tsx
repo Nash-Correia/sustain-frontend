@@ -28,7 +28,7 @@ export default function ProductAPage() {
   const [selectedItem, setSelectedItem] = useState<SelectedItem>(null);
   const [portfolio, setPortfolio] = useState<PortfolioCompany[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage =10;
 
   // DATA FETCHING
   useEffect(() => {
@@ -121,7 +121,7 @@ export default function ProductAPage() {
   // Helper function to format numbers to 2 decimal places
   const formatNumber = (value: number | string): string => {
     const num = typeof value === 'string' ? parseFloat(value) : value;
-    return isNaN(num) ? '0.00' : num.toFixed(2);
+    return isNaN(num) ? '0.00' : num.toFixed(0);
   };
 
   // Helper function to calculate column statistics and determine cell styling
@@ -171,7 +171,7 @@ export default function ProductAPage() {
       currentPage: number;
       onPageChange: (page: number) => void;
     }) => {
-      const totalPages = Math.ceil(totalItems / itemsPerPage);
+      const totalPages = Math.ceil(totalItems);
       
       if (totalPages <= 1) return null;
 
@@ -246,8 +246,8 @@ export default function ProductAPage() {
             {/* Fund Overview Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-                <p className="text-sm text-blue-600 font-medium">ESG Score</p>
-                <p className="text-3xl font-bold text-blue-800">{formatNumber(fund.score)}</p>
+                <p className="text-sm text-blue-600 font-medium">ESG Composite Score</p>
+                <p className="text-3xl font-bold text-blue-800">{fund.score}</p>
               </div>
               <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
                 <p className="text-sm text-green-600 font-medium">Grade</p>
@@ -273,51 +273,59 @@ export default function ProductAPage() {
                   </div>
                 </div>
               </div>
-              <div className="overflow-x-auto">
-<table className="w-full text-sm">
-                  <thead className="bg-gray-50">
+              <div className="relative h-[600px] overflow-auto rounded-lg border border-gray-200">
+                <table className="w-full text-sm">
+                  <thead className="sticky top-0 z-10 bg-gray-50 ">
                     <tr>
                       <th className="text-left p-3 font-bold  text-gray-700">Company</th>
                       <th className="text-left p-3 font-bold text-gray-700">Sector</th>
-                      <th className="text-center p-3 font-bold text-gray-700">E-Score</th>
-                      <th className="text-center p-3 font-bold text-gray-700">S-Score</th>
-                      <th className="text-center p-3 font-bold text-gray-700">G-Score</th>
-                      <th className="text-center p-3 font-bold text-gray-700">Screen</th>
+                      <th className="text-center p-3 font-bold text-gray-700">E-Pillar Score</th>
+                      <th className="text-center p-3 font-bold text-gray-700">S-Pillar Score</th>
+                      <th className="text-center p-3 font-bold text-gray-700">G-Pillar Score</th>
+                      <th className="text-center p-3 font-bold text-gray-700">Positive</th>
+                      <th className="text-center p-3 font-bold text-gray-700">Negative</th>
                       <th className="text-center p-3 font-bold text-gray-700">Controversy</th>
-                      <th className="text-center p-3 font-bold text-gray-700">ESG Score</th>
-                      {/* <th className="text-center p-3 font-semibold text-gray-700">Grade</th> */}
+                      <th className="text-center p-3 font-bold text-gray-700">ESG Composite Score</th>
+                      <th className="text-center p-3 font-bold text-gray-700">ESG Rating</th>
+                      <th className="text-center p-3 font-semibold text-gray-700">Grade</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedCompanies.map((company, index) => (
+                    {paginatedCompanies.map((company, index) => 
                       <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                         <td className="p-3 font-medium text-gray-800">{company.companyName}</td>
                         <td className="p-3 text-left text-gray-600">{company.sector}</td>
                         <td className={`p-3 text-center transition-colors duration-300 rounded-md ${getCellClass('e_score', company.e_score, pageStats)}`}>
-                          {formatNumber(company.e_score)}
+                          {company.e_score}
                         </td>
                         <td className={`p-3 text-center transition-colors duration-300 rounded-md ${getCellClass('s_score', company.s_score, pageStats)}`}>
-                          {formatNumber(company.s_score)}
+                          {company.s_score}
                         </td>
                         <td className={`p-3 text-center transition-colors duration-300 rounded-md ${getCellClass('g_score', company.g_score, pageStats)}`}>
-                          {formatNumber(company.g_score)}
+                          {company.g_score}
                         </td>
                         <td className={`p-3 text-center transition-colors duration-300 rounded-md`}>
-                          {formatNumber(company.screen)}
+                          {company.positive}
                         </td>
                         <td className={`p-3 text-center transition-colors duration-300 rounded-md`}>
-                          {formatNumber(company.controversy_screen)}
+                          {company.negative}
                         </td>
-                                                <td className={`p-3 text-center font-semibold transition-colors duration-300 rounded-md ${getCellClass('esgScore', company.esgScore, pageStats)}`}>
-                          {formatNumber(company.esgScore)}
+                        <td className={`p-3 text-center transition-colors duration-300 rounded-md`}>
+                          {company.controversy}
                         </td>
-                        {/* <td className="p-3 text-center">
+                        <td className={`p-3 text-center transition-colors duration-300 rounded-md`}>
+                          {company.composite}
+                        </td>
+                        <td className={`p-3 text-center font-semibold transition-colors duration-300 rounded-md ${getCellClass('esgScore', company.esgScore, pageStats)}`}>
+                          {company.esgScore}
+                        </td>
+                        <td className="p-3 text-center">
                           <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
                             {company.grade}
                           </span>
-                        </td> */}
+                        </td>
                       </tr>
-                    ))}
+                    )}
                     {/* Empty rows to maintain consistent table height */}
                     {emptyRows.map((_, index) => (
                       <tr key={`empty-${index}`} className="border-b border-gray-100">
@@ -334,12 +342,6 @@ export default function ProductAPage() {
                   </tbody>
                 </table>
               </div>
-              
-              <PaginationControls 
-                totalItems={totalCompanies}
-                currentPage={currentPage}
-                onPageChange={setCurrentPage}
-              />
             </div>
           </div>
         );
@@ -367,7 +369,6 @@ export default function ProductAPage() {
               </div>
             </div>
             <div className='space-y-1'>
-                        <RatingLegend></RatingLegend>
             </div>
             {/* Company ESG Breakdown */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -387,14 +388,24 @@ export default function ProductAPage() {
                 <p className="text-xs text-purple-600 mt-1">G-Score</p>
               </div>
               <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200">
-                <p className="text-sm text-orange-600 font-medium">Screen Score</p>
-                <p className="text-3xl font-bold text-orange-800">{formatNumber(company.screen)}</p>
-                <p className="text-xs text-orange-600 mt-1">Screening</p>
+                <p className="text-sm text-orange-600 font-medium">Positive Screen Score</p>
+                <p className="text-3xl font-bold text-orange-800">{company.positive}</p>
+                <p className="text-xs text-orange-600 mt-1">Positive</p>
+              </div>
+              <div className="text-center p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-lg border border-red-200">
+                <p className="text-sm text-red-600 font-medium">Negative Screen score</p>
+                <p className="text-3xl font-bold text-red-800">{company.negative}</p>
+                <p className="text-xs text-red-600 mt-1">Negative</p>
               </div>
               <div className="text-center p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-lg border border-red-200">
                 <p className="text-sm text-red-600 font-medium">Controversy</p>
-                <p className="text-3xl font-bold text-red-800">{formatNumber(company.controversy_screen)}</p>
+                <p className="text-3xl font-bold text-red-800">{company.controversy}</p>
                 <p className="text-xs text-red-600 mt-1">Risk Level</p>
+              </div>
+              <div className="text-center p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-lg border border-red-200">
+                <p className="text-sm text-red-600 font-medium">Composite</p>
+                <p className="text-3xl font-bold text-red-800">{formatNumber(company.composite)}</p>
+                <p className="text-xs text-red-600 mt-1">Composite</p>
               </div>
             </div>
 
@@ -420,7 +431,7 @@ export default function ProductAPage() {
         const companiesInSector = allCompanyData.filter(c => c.sector === selectedItem.name);
         const totalCompanies = companiesInSector.length;
         const startIndex = (currentPage - 1) * itemsPerPage;
-        const paginatedCompanies = companiesInSector.slice(startIndex, startIndex + itemsPerPage);
+        const paginatedCompanies = companiesInSector.slice(startIndex, totalCompanies);
         
         // Calculate statistics for all numeric columns in the current page
         const numericColumns = ['esgScore', 'e_score', 's_score', 'g_score', 'screen', 'controversy_screen'];
@@ -494,10 +505,12 @@ export default function ProductAPage() {
                       <th className="text-center p-3 font-bold text-gray-700">E-Score</th>
                       <th className="text-center p-3 font-bold text-gray-700">S-Score</th>
                       <th className="text-center p-3 font-bold text-gray-700">G-Score</th>
-                      <th className="text-center p-3 font-bold text-gray-700">Screen</th>
+                      <th className="text-center p-3 font-bold text-gray-700">Positive </th>
+                      <th className="text-center p-3 font-bold text-gray-700">Negative</th>
                       <th className="text-center p-3 font-bold text-gray-700">Controversy</th>
+                      <th className="text-center p-3 font-bold text-gray-700">Compsite Score</th>
                       <th className="text-center p-3 font-bold text-gray-700">ESG Score</th>
-                      {/* <th className="text-center p-3 font-semibold text-gray-700">Grade</th> */}
+                      <th className="text-center p-3 font-semibold text-gray-700">Grade</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -514,19 +527,25 @@ export default function ProductAPage() {
                           {formatNumber(company.g_score)}
                         </td>
                         <td className={`p-3 text-center transition-colors duration-300 rounded-md`}>
-                          {formatNumber(company.screen)}
+                          {company.positive}
                         </td>
                         <td className={`p-3 text-center transition-colors duration-300 rounded-md`}>
-                          {formatNumber(company.controversy_screen)}
+                          {company.negative}
+                        </td>
+                        <td className={`p-3 text-center transition-colors duration-300 rounded-md`}>
+                          {company.controversy}
+                        </td>
+                        <td className={`p-3 text-center transition-colors duration-300 rounded-md`}>
+                          {formatNumber(company.composite)}
                         </td>
                         <td className={`p-3 text-center font-semibold transition-colors duration-300 rounded-md ${getCellClass('esgScore', company.esgScore, pageStats)}`}>
                           {formatNumber(company.esgScore)}
                         </td>
-                        {/* <td className="p-3 text-center">
+                        <td className="p-3 text-center">
                           <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
                             {company.grade}
                           </span>
-                        </td> */}
+                        </td>
                       </tr>
                     ))}
                     {/* Empty rows to maintain consistent table height */}
@@ -599,9 +618,10 @@ export default function ProductAPage() {
       }
 
       const scores = companies.map(c => c.esgScore);
-      const controversyScores = companies.map(c => c.controversy_screen || 0);
-      const screenScores = companies.map(c => c.screen || 0);
-      
+      const controversyScores = companies.map(c => c.controversy || '');
+      const PositiveScores = companies.map(c => c.positive || '');
+      const NegativeScores = companies.map(c => c.negative || '');
+
       const bestCompany = companies.reduce((best, current) => 
         current.esgScore > best.esgScore ? current : best
       );
@@ -627,15 +647,10 @@ export default function ProductAPage() {
       });
 
       // Risk analysis based on controversy scores
-      const riskAnalysis = {
-        high: controversyScores.filter(score => score > 70).length,
-        medium: controversyScores.filter(score => score >= 40 && score <= 70).length,
-        low: controversyScores.filter(score => score < 40).length
-      };
+
 
       // Screening compliance
-      const passedScreening = screenScores.filter(score => score > 60).length;
-      const screeningCompliance = (passedScreening / companies.length) * 100;
+
 
       return {
         bestCompany: bestCompany.companyName,
@@ -645,8 +660,6 @@ export default function ProductAPage() {
         lowestScore: Math.min(...scores),
         totalCompanies: companies.length,
         sectorBreakdown,
-        riskAnalysis,
-        screeningCompliance
       };
     };
 
@@ -722,7 +735,7 @@ export default function ProductAPage() {
               <div className="space-y-3">
                 <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-green-700">🏆 Top Performer</span>
+                    <span className="text-sm font-medium text-green-700">🏆 Top ESG Performer</span>
                     <span className="text-lg font-bold text-green-800">{formatNumber(analysisData.highestScore)}</span>
                   </div>
                   <p className="text-green-900 font-semibold mt-1">{analysisData.bestCompany}</p>
@@ -747,7 +760,7 @@ export default function ProductAPage() {
             {/* Sector Performance (if applicable) */}
             {sectorEntries.length > 1 && (
               <div>
-                <h4 className="font-semibold text-gray-700 mb-4">Sector Performance</h4>
+                <h4 className="font-semibold text-gray-700 mb-4">Sectoral ESG Performance</h4>
                 <div className="space-y-2">
                   {sectorEntries.map(([sector, data], index) => (
                     <div key={sector} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
