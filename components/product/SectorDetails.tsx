@@ -1,18 +1,26 @@
+// components/product/SectorDetails.tsx
 "use client";
 
 import { useState } from "react";
 import { CompanyDataRow } from "@/lib/excel-data";
 import { formatNumber, getColumnStats, getCellClass } from "./productUtils";
 
+type GaugeData = { score: number; rating: string; name: string };
+
 const SectorDetails = ({
   sectorName,
   allCompanyData,
-  gaugeData,
+  gaugeData, // unused for now
 }: {
   sectorName: string;
   allCompanyData: CompanyDataRow[];
-  gaugeData: { score: number; rating: string; name: string };
+  gaugeData: GaugeData;
 }) => {
+  // ⛔ Guard: no sector selected → render nothing
+  if (!sectorName || !sectorName.trim()) {
+    return null;
+  }
+
   const [isExpanded, setIsExpanded] = useState(false);
 
   const companiesInSector = allCompanyData.filter(
@@ -20,21 +28,22 @@ const SectorDetails = ({
   );
   const totalCompanies = companiesInSector.length;
 
-  const numericColumns = [
-    "esgScore",
-    "e_score",
-    "s_score",
-    "g_score",
-    "screen",
-    "controversy_screen",
-  ];
-  const pageStats = getColumnStats(companiesInSector, numericColumns);
+  // ⛔ Guard: no rows → render nothing (prevents empty table shell)
+  if (totalCompanies === 0) {
+    return null;
+  }
+
+  const numericColumns = ["esgScore", "e_score", "s_score", "g_score"] as const;
+  const pageStats = getColumnStats(
+    companiesInSector,
+    numericColumns as unknown as string[]
+  );
 
   const totalScore = companiesInSector.reduce(
-    (acc, c) => acc + (c.esgScore || 0),
+    (acc, c) => acc + (c.esgScore ?? 0),
     0
   );
-  const avgScore = totalScore / companiesInSector.length;
+  const avgScore = totalCompanies > 0 ? totalScore / totalCompanies : 0;
 
   let sectorGrade = "D";
   if (avgScore > 75) sectorGrade = "A+";
@@ -74,7 +83,9 @@ const SectorDetails = ({
           <p className="text-3xl font-bold text-cyan-800">{sectorGrade}</p>
         </div>
       </div>
-      <div className="flex items-right mb-6">
+
+      {/* Expand control */}
+      <div className="flex justify-end mb-6">
         <button
           onClick={() => setIsExpanded((v) => !v)}
           aria-expanded={isExpanded}
@@ -83,26 +94,43 @@ const SectorDetails = ({
           {isExpanded ? "Hide Details" : "Show Details"}
         </button>
       </div>
+
       {/* Companies table */}
       <div className="relative h-[400px] overflow-y-auto overflow-x-hidden rounded-lg border border-gray-200 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-600">
         <table className="w-full text-sm table-fixed">
           <thead className="sticky top-0 bg-gray-100">
             <tr>
-              {/* Initially visible columns */}
               <th className="text-left p-3 font-bold text-gray-700">Company</th>
-              <th className="text-center p-3 font-bold text-gray-700">ESG Score</th>
-              <th className="text-center p-3 font-bold text-gray-700">Composite Score</th>
-              <th className="text-center p-3 font-bold text-gray-700">Rating</th>
+              <th className="text-center p-3 font-bold text-gray-700">
+                ESG Score
+              </th>
+              <th className="text-center p-3 font-bold text-gray-700">
+                Composite Score
+              </th>
+              <th className="text-center p-3 font-bold text-gray-700">
+                Rating
+              </th>
 
-              {/* Expandable details */}
               {isExpanded && (
                 <>
-                  <th className="text-center p-3 font-bold text-gray-700">E-Score</th>
-                  <th className="text-center p-3 font-bold text-gray-700">S-Score</th>
-                  <th className="text-center p-3 font-bold text-gray-700">G-Score</th>
-                  <th className="text-center p-3 font-bold text-gray-700">Positive</th>
-                  <th className="text-center p-3 font-bold text-gray-700">Negative</th>
-                  <th className="text-center p-3 font-bold text-gray-700">Controversy</th>
+                  <th className="text-center p-3 font-bold text-gray-700">
+                    E-Score
+                  </th>
+                  <th className="text-center p-3 font-bold text-gray-700">
+                    S-Score
+                  </th>
+                  <th className="text-center p-3 font-bold text-gray-700">
+                    G-Score
+                  </th>
+                  <th className="text-center p-3 font-bold text-gray-700">
+                    Positive
+                  </th>
+                  <th className="text-center p-3 font-bold text-gray-700">
+                    Negative
+                  </th>
+                  <th className="text-center p-3 font-bold text-gray-700">
+                    Controversy
+                  </th>
                 </>
               )}
             </tr>
@@ -110,37 +138,69 @@ const SectorDetails = ({
 
           <tbody>
             {companiesInSector.map((company, index) => (
-              <tr
-                key={index}
-                className="border-b border-gray-100 hover:bg-gray-50"
-              >
-                {/* Default visible */}
-                <td className="p-3 font-medium text-gray-800">{company.companyName}</td>
-                <td className={`p-3 text-center ${getCellClass("esgScore", company.esgScore, pageStats)}`}>
-                  {formatNumber(company.esgScore)}
+              <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                <td className="p-3 font-medium text-gray-800">
+                  {company.companyName}
                 </td>
-                <td className="p-2 text-center">{formatNumber(company.composite)}</td>
+
+                <td
+                  className={`p-3 text-center ${getCellClass(
+                    "esgScore",
+                    company.esgScore,
+                    pageStats
+                  )}`}
+                >
+                  {formatNumber(company.esgScore ?? 0)}
+                </td>
+
+                <td className="p-2 text-center">
+                  {formatNumber(company.composite ?? 0)}
+                </td>
+
                 <td className="p-3 text-center">
                   <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-                    {company.grade}
+                    {company.grade ?? "-"}
                   </span>
                 </td>
 
-                {/* Hidden until expanded */}
                 {isExpanded && (
                   <>
-                    <td className={`p-3 text-center ${getCellClass("e_score", company.e_score, pageStats)}`}>
-                      {formatNumber(company.e_score)}
+                    <td
+                      className={`p-3 text-center ${getCellClass(
+                        "e_score",
+                        company.e_score,
+                        pageStats
+                      )}`}
+                    >
+                      {formatNumber(company.e_score ?? 0)}
                     </td>
-                    <td className={`p-3 text-center ${getCellClass("s_score", company.s_score, pageStats)}`}>
-                      {formatNumber(company.s_score)}
+                    <td
+                      className={`p-3 text-center ${getCellClass(
+                        "s_score",
+                        company.s_score,
+                        pageStats
+                      )}`}
+                    >
+                      {formatNumber(company.s_score ?? 0)}
                     </td>
-                    <td className={`p-3 text-center ${getCellClass("g_score", company.g_score, pageStats)}`}>
-                      {formatNumber(company.g_score)}
+                    <td
+                      className={`p-3 text-center ${getCellClass(
+                        "g_score",
+                        company.g_score,
+                        pageStats
+                      )}`}
+                    >
+                      {formatNumber(company.g_score ?? 0)}
                     </td>
-                    <td className="p-3 text-center">{company.positive}</td>
-                    <td className="p-3 text-center">{company.negative}</td>
-                    <td className="p-3 text-center">{company.controversy}</td>
+                    <td className="p-3 text-center">
+                      {company.positive || "-"}
+                    </td>
+                    <td className="p-3 text-center">
+                      {company.negative || "-"}
+                    </td>
+                    <td className="p-3 text-center">
+                      {company.controversy || "-"}
+                    </td>
                   </>
                 )}
               </tr>
