@@ -1,35 +1,60 @@
+// app/product-b/page.tsx (or wherever your route lives)
+"use client";
+
+import { useEffect, useState } from "react";
 import ProductHero from "@/components/product/ProductHero";
 import RatingsClient from "@/components/product/RatingsClient";
 import { RatingRow } from "@/components/product/RatingTable";
+import { getCompanyData } from "@/lib/excel-data";
 
 export default function ProductBPage() {
-  const data: RatingRow[] = [
-    { company: "Chennai Petroleum Corporation Limited", sector: "Oil, Gas & Consumable Fuels", rating: "C+", year: 2024, reportUrl: "#" },
-    { company: "Colgate Palmolive (India) Limited", sector: "Fast Moving Consumer Goods", rating: "A+", year: 2024, reportUrl: "#" },
-    { company: "Dr. Reddy's Laboratories Limited", sector: "Healthcare", rating: "A+", year: 2024, reportUrl: "#" },
-    { company: "Infosys Limited", sector: "Information Technology", rating: "A+", year: 2024, reportUrl: "#" },
-    { company: "Jio Financial Services Limited", sector: "Financial Services", rating: "B", year: 2024, reportUrl: "#" },
-    { company: "Lloyds Metals And Energy Limited", sector: "Metals & Mining", rating: "C", year: 2024, reportUrl: "#" },
-    { company: "Pidilite Industries Limited", sector: "Chemicals", rating: "B+", year: 2024, reportUrl: "#" },
-    { company: "Railtel Corporation Of India Limited", sector: "Telecommunication", rating: "D", year: 2024, reportUrl: "#" },
-    { company: "Sun TV Network Limited", sector: "Media, Entertainment & Publication", rating: "C+", year: 2024, reportUrl: "#" },
-    { company: "ZF Commercial Vehicle Control Systems India Limited", sector: "Automobile and Auto Components", rating: "A", year: 2024, reportUrl: "#" },
-    // (Optionally add some 2023 rows to see the year filter working)
-    { company: "Infosys Limited", sector: "Information Technology", rating: "A", year: 2023, reportUrl: "#" },
+  const [rows, setRows] = useState<RatingRow[]>([]);
 
-    //extra for testing 
-    { company: "ZF Commercial Vehicle Control Systems India Limited", sector: "Automobile and Auto Components", rating: "A", year: 2024, reportUrl: "#" },
-    { company: "ZF Commercial Vehicle Control Systems India Limited", sector: "Automobile and Auto Components", rating: "A", year: 2024, reportUrl: "#" },
-    { company: "ZF Commercial Vehicle Control Systems India Limited", sector: "Automobile and Auto Components", rating: "A", year: 2024, reportUrl: "#" },
-    { company: "ZF Commercial Vehicle Control Systems India Limited", sector: "Automobile and Auto Components", rating: "A", year: 2024, reportUrl: "#" },
-    { company: "ZF Commercial Vehicle Control Systems India Limited", sector: "Automobile and Auto Components", rating: "A", year: 2024, reportUrl: "#" },
-  ];
+  useEffect(() => {
+    (async () => {
+      const companies = await getCompanyData();
+
+      // Map real Excel data → 2024 rows
+      const mapped2024: RatingRow[] = companies
+        .filter((c) => !!c.companyName && !!c.grade) // ensure essential fields
+        .map((c) => ({
+          company: c.companyName,
+          sector: c.sector || "—",
+          rating: c.grade, // from Excel 'ESG Rating'
+          year: 2024,
+          reportUrl: "#", // TODO: wire to your report route if available
+        }));
+
+      // De-duplicate by company+year (in case Excel has dupes)
+      const seen = new Set<string>();
+      const deduped2024 = mapped2024.filter((r) => {
+        const key = `${r.company}|${r.year}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      // Ensure ONE 2023 sample row for demo (prefer Infosys if present)
+      const preferred =
+        deduped2024.find(
+          (r) => r.company.toLowerCase() === "infosys limited"
+        ) || deduped2024[0];
+
+      const rowsWith2023 =
+        preferred != null
+          ? [...deduped2024, { ...preferred, year: 2023 }]
+          : deduped2024;
+
+      setRows(rowsWith2023);
+    })();
+  }, []);
 
   return (
     <>
-      <ProductHero heading="EGS Reports" sub="Over xxxx Companies Listed" />
+      {/* keeping your original heading/sub copy */}
+      <ProductHero heading="EGS Reports" sub={`Over ${rows.length} Companies Listed`} />
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-10">
-        <RatingsClient initial={data} />
+        <RatingsClient initial={rows} />
       </section>
     </>
   );

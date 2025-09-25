@@ -27,7 +27,7 @@ export default function AnalysisCard({
   selectedItem: SelectedItem;
   allCompanyData: CompanyDataRow[];
 }) {
-  // NEW: hard guard — if no selection or blank name, render nothing
+  // Guard — if no selection or blank name, render nothing
   if (!selectedItem || !selectedItem.name || !selectedItem.name.trim()) {
     return null;
   }
@@ -46,9 +46,9 @@ export default function AnalysisCard({
           sectionTitle: "text-brand-dark",
           infoBg: "bg-brand-surface",
           subtitle: "",
-          avgLabel: "Average ESG",
-          bestLabel: "Top ESG score ",
-          passLabel: "Screening pass",
+          avgLabel: "Fund Average",
+          bestLabel: "Top ESG Composite Score",
+          passLabel: "",
           selectionHighlightsTitle: "Fund highlights",
         };
       case "Sectors":
@@ -62,9 +62,9 @@ export default function AnalysisCard({
           sectionTitle: "text-brand-teal-dark",
           infoBg: "bg-cyan-50",
           subtitle: "All companies mapped to this sector.",
-          avgLabel: "Sectoral Average ESG ",
-          bestLabel: "Sectoral Top ESG score",
-          passLabel: "Screening pass",
+          avgLabel: "Sectoral Average",
+          bestLabel: "Sectoral Top ESG Composite Score",
+          passLabel: "",
           selectionHighlightsTitle: "Sector highlights",
         };
       case "Companies":
@@ -77,10 +77,10 @@ export default function AnalysisCard({
           badCard: "bg-stone-50 border-stone-200 text-stone-900",
           sectionTitle: "text-brand-dark",
           infoBg: "bg-yellow-50",
-          subtitle: "Peer comparison within the same sector .",
-          avgLabel: "Sectoral Average ESG ",
-          bestLabel: "Sectoral Top ESG score ",
-          passLabel: "Screening pass ",
+          subtitle: "Peer comparison within the same sector.",
+          avgLabel: "Sectoral Average ESG Composite Score",
+          bestLabel: "Sectoral Top ESG Composite Score",
+          passLabel: "",
           selectionHighlightsTitle: "Peer highlights",
         };
     }
@@ -88,7 +88,7 @@ export default function AnalysisCard({
 
   const variant = getVariant(selectedItem.type);
 
-  // Stat card
+  // Small stat card
   const StatCard = ({
     label,
     value,
@@ -132,7 +132,7 @@ export default function AnalysisCard({
     </div>
   );
 
-  // Analysis
+  // ---- Analysis using COMPOSITE scores ----
   const analyzeData = (companies: CompanyDataRow[]): AnalysisResult => {
     if (!companies || companies.length === 0) {
       return {
@@ -147,7 +147,7 @@ export default function AnalysisCard({
       };
     }
 
-    const scores = companies.map((c) => Number(c.esgScore ?? 0));
+    const scores = companies.map((c) => Number(c.composite ?? 0));
 
     const isEmptyOrNA = (s?: string) =>
       !s || s.trim().length === 0 || s.trim().toUpperCase() === "NA";
@@ -157,26 +157,24 @@ export default function AnalysisCard({
     const screeningCompliance = (passedScreening / companies.length) * 100;
 
     const bestCompanyRow = companies.reduce(
-      (best, current) => (current.esgScore > best.esgScore ? current : best),
+      (best, current) => (Number(current.composite ?? 0) > Number(best.composite ?? 0) ? current : best),
       companies[0]
     );
     const worstCompanyRow = companies.reduce(
-      (worst, current) => (current.esgScore < worst.esgScore ? current : worst),
+      (worst, current) => (Number(current.composite ?? 0) < Number(worst.composite ?? 0) ? current : worst),
       companies[0]
     );
 
-    const sectorBreakdown: Record<string, { count: number; avgScore: number }> =
-      {};
+    const sectorBreakdown: Record<string, { count: number; avgScore: number }> = {};
     companies.forEach((c) => {
       const sector = c.sector || "Unknown";
-      if (!sectorBreakdown[sector])
-        sectorBreakdown[sector] = { count: 0, avgScore: 0 };
+      if (!sectorBreakdown[sector]) sectorBreakdown[sector] = { count: 0, avgScore: 0 };
       sectorBreakdown[sector].count++;
     });
     Object.keys(sectorBreakdown).forEach((sector) => {
       const list = companies.filter((c) => (c.sector || "Unknown") === sector);
       const avg =
-        list.reduce((s, c) => s + Number(c.esgScore ?? 0), 0) /
+        list.reduce((s, c) => s + Number(c.composite ?? 0), 0) /
         Math.max(1, list.length);
       sectorBreakdown[sector].avgScore = avg;
     });
@@ -208,7 +206,7 @@ export default function AnalysisCard({
 
   switch (selectedItem.type) {
     case "Funds": {
-      selectionCompanies = allCompanyData.slice(5, 20); // TODO replace with ISINs
+      selectionCompanies = allCompanyData.slice(5, 20); // TODO: replace with actual fund holdings (by ISINs)
       selectionAnalysis = analyzeData(selectionCompanies);
       cardTitle = `${selectedItem.name} — Fund Analysis`;
       break;
@@ -243,9 +241,9 @@ export default function AnalysisCard({
   const sectorEntries = hasSelection
     ? (Object.entries(
         selectionAnalysis!.sectorBreakdown
-      ) as [string, { count: number; avgScore: number }][])
-        .sort((a, b) => b[1].avgScore - a[1].avgScore)
-        .slice(0, 5)
+      ) as [string, { count: number; avgScore: number }][]).sort(
+        (a, b) => b[1].avgScore - a[1].avgScore
+      ).slice(0, 5)
     : [];
 
   return (
@@ -256,7 +254,7 @@ export default function AnalysisCard({
           IIAS rated universe
         </h3>
         <p className="text-sm text-ui-text-secondary mb-4">
-          Top and lowest ESG performers across all covered companies.
+          Top and lowest <b>ESG Composite</b> performers across all covered companies.
         </p>
 
         <div className="grid sm:grid-cols-2 gap-4">
@@ -264,7 +262,7 @@ export default function AnalysisCard({
           <div className="p-4 border border-green-200 bg-green-50 rounded-lg">
             <div className="flex items-center justify-between">
               <span className="text-m font-medium text-green-700">
-                Top ESG performer 
+                Top ESG Performer
               </span>
               <span className="text-lg font-bold text-green-900">
                 {formatNumber(globalAnalysis.highestScore)}
@@ -279,7 +277,7 @@ export default function AnalysisCard({
           <div className="p-4 border border-red-200 bg-red-50 rounded-lg">
             <div className="flex items-center justify-between">
               <span className="text-m font-medium text-red-700">
-                Lowest ESG performer 
+                Need Improvement
               </span>
               <span className="text-lg font-bold text-red-900">
                 {formatNumber(globalAnalysis.lowestScore)}
@@ -301,8 +299,8 @@ export default function AnalysisCard({
 
         {hasSelection ? (
           <>
-            {/* 1) Stats always come first */}
-            <div className="order-1 grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {/* Stats */}
+            <div className="order-1 grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
               <StatCard
                 label="Total Companies"
                 value={selectionAnalysis!.totalCompanies}
@@ -311,7 +309,7 @@ export default function AnalysisCard({
               <StatCard
                 label={variant.avgLabel}
                 value={selectionAnalysis!.averageScore}
-                description="simple mean of ESG scores"
+                description="ESG Composite Score"
               />
               <StatCard
                 label={variant.bestLabel}
@@ -319,14 +317,14 @@ export default function AnalysisCard({
                 trend="up"
                 description={`Best: ${selectionAnalysis!.bestCompany}`}
               />
-              <StatCard
+              {/* <StatCard
                 label="Screening Pass Rate"
                 value={`${formatNumber(selectionAnalysis!.screeningCompliance)}%`}
                 description={variant.passLabel}
-              />
+              /> */}
             </div>
 
-            {/* 2) Highlights below the stats */}
+            {/* Highlights + Sector performance */}
             <div className="grid lg:grid-cols-2 gap-8">
               <div className="order-2 space-y-6">
                 <h4 className={`font-semibold ${variant.sectionTitle} mb-4`}>
@@ -335,7 +333,7 @@ export default function AnalysisCard({
                 <div className="space-y-3">
                   <div className={`p-4 border rounded-lg ${variant.goodCard}`}>
                     <div className="flex items-center justify-between">
-                      <span className="text-m font-medium">🏅 Top ESG performer</span>
+                      <span className="text-m font-medium">🏅 Top ESG Performer</span>
                       <span className="text-lg font-bold">
                         {formatNumber(selectionAnalysis!.highestScore)}
                       </span>
@@ -347,7 +345,7 @@ export default function AnalysisCard({
 
                   <div className={`p-4 border rounded-lg ${variant.badCard}`}>
                     <div className="flex items-center justify-between">
-                      <span className="text-m font-medium">⚠ Lowest ESG performer</span>
+                      <span className="text-m font-medium">⚠ Needs Improvement</span>
                       <span className="text-lg font-bold">
                         {formatNumber(selectionAnalysis!.lowestScore)}
                       </span>
@@ -364,7 +362,7 @@ export default function AnalysisCard({
                 {sectorEntries.length > 0 && (
                   <div>
                     <h4 className={`font-semibold ${variant.sectionTitle} mb-4`}>
-                      Sectoral ESG Performance
+                      Sectoral ESG Composite Performance
                     </h4>
                     <div className="space-y-2">
                       {sectorEntries.map(([sector, data], index) => (
@@ -397,7 +395,6 @@ export default function AnalysisCard({
             </div>
           </>
         ) : (
-          // We keep this branch in case a valid selection exists but yields zero peers (e.g., single-company sector).
           <div className="border border-ui-border rounded-lg p-6 bg-ui-fill text-ui-text-secondary">
             No companies available in this selection.
           </div>

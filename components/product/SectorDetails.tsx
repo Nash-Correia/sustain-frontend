@@ -11,12 +11,18 @@ const SectorDetails = ({
   sectorName,
   allCompanyData,
   gaugeData, // unused for now
+  /** Optional: handle "Add to list" for this sector */
+  onAddSector,
+  /** Optional: if you have a fixed navbar, pass its height (e.g., 64) */
+  stickyTopOffsetPx = 0,
 }: {
   sectorName: string;
   allCompanyData: CompanyDataRow[];
   gaugeData: GaugeData;
+  onAddSector?: (sectorName: string) => void;
+  stickyTopOffsetPx?: number;
 }) => {
-  // ⛔ Guard: no sector selected → render nothing
+  // Guard: no sector selected
   if (!sectorName || !sectorName.trim()) {
     return null;
   }
@@ -28,41 +34,73 @@ const SectorDetails = ({
   );
   const totalCompanies = companiesInSector.length;
 
-  // ⛔ Guard: no rows → render nothing (prevents empty table shell)
+  // Guard: no rows
   if (totalCompanies === 0) {
     return null;
   }
 
-  const numericColumns = ["esgScore", "e_score", "s_score", "g_score"] as const;
-  const pageStats = getColumnStats(
-    companiesInSector,
-    numericColumns as unknown as string[]
-  );
+  const numericColumns: string[] = [
+    "composite",
+    "esgScore",
+    "e_score",
+    "s_score",
+    "g_score",
+  ];
+  const pageStats = getColumnStats(companiesInSector, numericColumns);
 
-  const totalScore = companiesInSector.reduce(
-    (acc, c) => acc + (c.esgScore ?? 0),
+  // Compute averages
+  const totalComposite = companiesInSector.reduce(
+    (acc, c) => acc + (c.composite ?? 0),
     0
   );
-  const avgScore = totalCompanies > 0 ? totalScore / totalCompanies : 0;
+  const avgComposite =
+    totalCompanies > 0 ? totalComposite / totalCompanies : 0;
 
   let sectorGrade = "D";
-  if (avgScore > 75) sectorGrade = "A+";
-  else if (avgScore >= 70) sectorGrade = "A";
-  else if (avgScore >= 65) sectorGrade = "B+";
-  else if (avgScore >= 60) sectorGrade = "B";
-  else if (avgScore >= 55) sectorGrade = "C+";
-  else if (avgScore >= 50) sectorGrade = "C";
+  if (avgComposite > 75) sectorGrade = "A+";
+  else if (avgComposite >= 70) sectorGrade = "A";
+  else if (avgComposite >= 65) sectorGrade = "B+";
+  else if (avgComposite >= 60) sectorGrade = "B";
+  else if (avgComposite >= 55) sectorGrade = "C+";
+  else if (avgComposite >= 50) sectorGrade = "C";
 
   return (
     <div className="bg-white border border-gray-200 rounded-large p-6 sm:p-8">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h3 className="text-2xl font-bold text-brand-dark">
-            {sectorName} Sector
-          </h3>
-          <p className="text-sm text-gray-600 mt-1">
-            Sector Analysis • {totalCompanies} companies
-          </p>
+      {/* === Header with sticky sector name & normal Add button === */}
+      <div
+        className="
+          grid grid-cols-[1fr_auto]
+          items-center
+          gap-3
+          mb-6
+        "
+      >
+        {/* LEFT: Sticky sector name ONLY */}
+        <div
+          className="
+            -mx-6 px-6 py-2
+            bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/70
+          "
+          style={{ top: stickyTopOffsetPx }}
+        >
+          <div className="min-w-0">
+            <h3 className="text-2xl font-bold text-brand-dark truncate">
+              {sectorName} Sector
+            </h3>
+          </div>
+        </div>
+
+        {/* RIGHT: Add button (same style as CompanyDetails) */}
+        <div className="justify-end">
+          {onAddSector && (
+            <button
+              onClick={() => onAddSector(sectorName)}
+              aria-label={`Add ${sectorName} sector to list`}
+              className="px-4 py-2 bg-brand-action text-white rounded-lg text-sm font-medium hover:bg-brand-action/90 transition-colors"
+            >
+              Add to List
+            </button>
+          )}
         </div>
       </div>
 
@@ -70,12 +108,16 @@ const SectorDetails = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="text-center p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg border border-indigo-200">
           <p className="text-sm text-indigo-600 font-medium">Total Companies</p>
-          <p className="text-3xl font-bold text-indigo-800">{totalCompanies}</p>
+          <p className="text-3xl font-bold text-indigo-800">
+            {totalCompanies}
+          </p>
         </div>
         <div className="text-center p-4 bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg border border-teal-200">
-          <p className="text-sm text-teal-600 font-medium">Average ESG Score</p>
+          <p className="text-sm text-teal-600 font-medium">
+            Average ESG Composite Score
+          </p>
           <p className="text-3xl font-bold text-teal-800">
-            {formatNumber(avgScore)}
+            {formatNumber(avgComposite)}
           </p>
         </div>
         <div className="text-center p-4 bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg border border-cyan-200">
@@ -105,11 +147,9 @@ const SectorDetails = ({
                 ESG Score
               </th>
               <th className="text-center p-3 font-bold text-gray-700">
-                Composite Score
+                ESG Composite Score
               </th>
-              <th className="text-center p-3 font-bold text-gray-700">
-                Rating
-              </th>
+              <th className="text-center p-3 font-bold text-gray-700">Rating</th>
 
               {isExpanded && (
                 <>
@@ -138,7 +178,10 @@ const SectorDetails = ({
 
           <tbody>
             {companiesInSector.map((company, index) => (
-              <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+              <tr
+                key={index}
+                className="border-b border-gray-100 hover:bg-gray-50"
+              >
                 <td className="p-3 font-medium text-gray-800">
                   {company.companyName}
                 </td>
@@ -153,7 +196,13 @@ const SectorDetails = ({
                   {formatNumber(company.esgScore ?? 0)}
                 </td>
 
-                <td className="p-2 text-center">
+                <td
+                  className={`p-2 text-center ${getCellClass(
+                    "composite",
+                    company.composite,
+                    pageStats
+                  )}`}
+                >
                   {formatNumber(company.composite ?? 0)}
                 </td>
 
