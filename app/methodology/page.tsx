@@ -13,6 +13,7 @@ import PositiveScreenCard from '@/components/methodology/cards/PositiveScreenCar
 import NegativeScreenCard from '@/components/methodology/cards/NegativeScreenCard';
 import ControversyCard from '@/components/methodology/cards/ControversyCard';
 import CompositeRatingCard from '@/components/methodology/cards/CompositeRatingCard';
+import FinalRatingCard from '@/components/methodology/cards/FinalRatingCard';
 import MethodologyOverviewPanel from '@/components/methodology/MethodologyOverviewPanel'; // <-- Import new panel
 import OverviewTrigger from '@/components/methodology/OverviewTrigger'; // <-- Import new trigger
 
@@ -46,6 +47,7 @@ export default function MethodologyPage() {
       case 'negative': return <NegativeScreenCard />;
       case 'controversy': return <ControversyCard />;
       case 'compositeRating': return <CompositeRatingCard />;
+      case 'finalRating': return <FinalRatingCard />;
       default: return null;
     }
   };

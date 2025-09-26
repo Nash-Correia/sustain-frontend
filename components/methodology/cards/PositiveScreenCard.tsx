@@ -29,21 +29,68 @@ export default function PositiveScreenCard() {
       
       <div className="mt-8 grid md:grid-cols-1 gap-8">
         <InfoCard icon={<FrameworkIcon />} title="Assessment Framework">
-          <p>Companies are scored on a scale of <strong className="text-green-700">0/Low/Medium/High</strong> based on their level of commitment and implementation of global best practices.</p>
+          <p>Companies are scored on a scale of <strong>0</strong>/<strong className="text-green-400">Low</strong>/<strong className="text-green-500">Medium</strong>/<strong className="text-green-800">High</strong> based on their level of commitment and implementation of global best practices.</p>
         </InfoCard>
 
         <InfoCard icon={<ComponentsIcon />} title="Key Components Evaluated">
           <p>We assess a company's formal commitment to and reporting on key global principles and initiatives, including:</p>
-          <ul className="list-disc list-inside space-y-2 mt-4">
-            <li><strong>UN Global Compact:</strong> Commitment to human rights, labor, environment, and anti-corruption principles.</li>
-            <li><strong>Science-Based Targets (SBTi):</strong> Climate targets that are in line with climate science.</li>
-            <li><strong>RE100:</strong> Commitment to 100% renewable electricity.</li>
-            <li><strong>Task Force on Climate-related Financial Disclosures (TCFD):</strong> Framework for disclosing climate-related risks.</li>
+          <ul className="list-disc list-inside space-y-6 mt-4">
+            <li>
+              <strong>UN Sustainable Development Goals (UNSDG):</strong>
+              <p className="mt-2 ml-6">A universal call to action to end poverty, protect the planet, and ensure prosperity. Companies demonstrate how their operations contribute to achieving these 17 global goals.</p>
+            </li>
+            
+            <li>
+              <strong>Carbon Disclosure Project (CDP):</strong>
+              <p className="mt-2 ml-6">A global disclosure system for environmental impacts. Companies report detailed data on climate change, water security, and deforestation risks, enabling investors to assess environmental performance.</p>
+            </li>
+            
+            <li>
+              <strong>Global Reporting Initiative (GRI):</strong>
+              <p className="mt-2 ml-6">The most widely adopted sustainability reporting framework. Provides comprehensive guidelines for companies to report their economic, environmental, and social impacts in a standardized format.</p>
+            </li>
+            
+            <li>
+              <strong>International Sustainability Standards Board (ISSB):</strong>
+              <p className="mt-2 ml-6">Develops global baseline sustainability disclosure standards to meet investors' information needs. Helps create consistency and comparability in sustainability reporting worldwide.</p>
+            </li>
+            
+            <li>
+              <strong>Sustainability Accounting Standards Board (SASB):</strong>
+              <p className="mt-2 ml-6">Industry-specific standards that identify financially material sustainability topics. Helps companies disclose sustainability information that is most relevant to their business model and industry.</p>
+            </li>
+            
+            <li>
+              <strong>UN Global Compact:</strong>
+              <p className="mt-2 ml-6">World's largest corporate sustainability initiative. Provides a principles-based framework for businesses, focusing on human rights, labor, environment, and anti-corruption.</p>
+            </li>
+            
+            <li>
+              <strong>Science-Based Targets (SBTi):</strong>
+              <p className="mt-2 ml-6">Helps companies set emissions reduction targets aligned with climate science to prevent the worst impacts of climate change. Provides a clearly defined pathway to reduce greenhouse gas emissions.</p>
+            </li>
+            
+            <li>
+              <strong>RE100:</strong>
+              <p className="mt-2 ml-6">Global corporate renewable energy initiative. Companies commit to sourcing 100% of their electricity from renewable sources, demonstrating leadership in the clean energy transition.</p>
+            </li>
+            
+            <li>
+              <strong>Task Force on Climate-related Financial Disclosures (TCFD):</strong>
+              <p className="mt-2 ml-6">Framework for companies to assess and report climate-related risks and opportunities. Helps investors understand how climate change might impact business value.</p>
+            </li>
           </ul>
         </InfoCard>
 
         <InfoCard icon={<BenefitsIcon />} title="Benefits for Companies">
-            <p>Adhering to these principles enhances credibility, increases stakeholder confidence, improves risk management, and can provide better access to markets and ESG-conscious investors.</p>
+          <p>Adhering to these global principles and standards delivers multiple strategic advantages:</p>
+          <ul className="list-disc list-inside space-y-2 mt-4">
+            <li><strong>Enhanced Credibility:</strong> Demonstrates transparent and standardized ESG reporting practices</li>
+            <li><strong>Stakeholder Trust:</strong> Builds confidence among investors, customers, and employees through verified commitments</li>
+            <li><strong>Risk Management:</strong> Better identification and mitigation of ESG-related risks and opportunities</li>
+            <li><strong>Market Access:</strong> Improved access to sustainable finance and ESG-focused investment portfolios</li>
+            <li><strong>Competitive Edge:</strong> Strengthened position in an increasingly sustainability-conscious market</li>
+          </ul>
         </InfoCard>
       </div>
     </InfoSection>

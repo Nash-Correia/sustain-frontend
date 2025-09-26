@@ -132,10 +132,9 @@ const CompanyDetails = ({
 
       {/* KPI ribbon (very compact) */}
       <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6">
-        <Kpi label="Composite" value={compositeVal} emphasize />
-        <Kpi label="ESG Score" value={esgScoreVal} />
-        <Kpi label="Grade" value={company.grade || "-"} />
-        <Kpi label="ISIN" value={company.isin || "-"} />
+        <Kpi label="Composite ESG Score " value={compositeVal} emphasize />
+        <Kpi label="ESG Score" value={esgScoreVal} emphasize />
+        <Kpi label="ESG Rating" value={company.grade || "-"} emphasize />
       </div>
 
       {/* Compact progress group with DISTINCT gradients */}
@@ -157,13 +156,6 @@ const CompanyDetails = ({
           value={gVal}
           gradient={gradients.governance}
           dotClass="bg-amber-500"
-        />
-        <div className="pt-1 border-t border-gray-100" />
-        <ProgressRow
-          label="Composite"
-          value={compositeVal}
-          gradient={gradients.composite}
-          dotClass="bg-teal-600"
         />
       </div>
 

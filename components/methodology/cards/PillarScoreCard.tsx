@@ -36,10 +36,10 @@ export default function PillarScoreCard() {
         <div className="bg-gray-50 p-6 rounded-lg">
           <h3 className="font-bold text-xl text-brand-dark mb-4">Key Features</h3>
           <ul className="space-y-4">
-            <FeatureListItem icon={<CoverageIcon />} title="Comprehensive Coverage" description="270+ parameters assessed per company." />
-            <FeatureListItem icon={<SectorIcon />} title="Sector-Weighted Scoring" description="Performance evaluated within industry context." />
+            <FeatureListItem icon={<CoverageIcon />} title="Comprehensive Coverage" description="270+ sustainability parameters assessed per company." />
+            <FeatureListItem icon={<SectorIcon />} title="Sector-Weighted Scoring" description="E, S, G attributes weighted withing ESG sector context." />
             <FeatureListItem icon={<BrsrIcon />} title="BRSR Core Integration" description="Emphasizes disclosed BRSR Core parameters focusing on 9 ESG attributes." />
-            <FeatureListItem icon={<TransitionIcon />} title="Transition Focus" description='Special emphasis on "Parivartan/Transition" parameters measuring progress.' />
+            <FeatureListItem icon={<TransitionIcon />} title="Transition Focus" description='Incorporates "Parivartan/Transition" parameters measuring intertemporal progress.' />
           </ul>
         </div>
         <div className="bg-gray-50 p-6 rounded-lg">
@@ -47,8 +47,8 @@ export default function PillarScoreCard() {
           <ul className="space-y-4">
             <FeatureListItem icon={<ScaleIcon />} title="Rating Scale" description="0/1/2 reflecting quality of disclosures and adherence to global best practices." />
             <FeatureListItem icon={<BinaryIcon />} title="Binary Questions" description="Yes/No responses (2 points for positive, 0 for negative)." />
-            <FeatureListItem icon={<NaIcon />} title='"Not Applicable" Options' description="Available for manufacturing/services categories." />
-            <FeatureListItem icon={<NoInfoIcon />} title="No Information" description="Zero points awarded when information isn't publicly observable." />
+            <FeatureListItem icon={<NaIcon />} title='"Not Applicable" Options' description="Applicability of options in sectoral context." />
+            <FeatureListItem icon={<NoInfoIcon />} title="No Information" description="Company maybe penalised for not making a mandatory disclosure or Not Disclosed." />
           </ul>
         </div>
       </div>
@@ -58,27 +58,27 @@ export default function PillarScoreCard() {
         The differential weighting recognizes that manufacturing companies typically have higher environmental impact, while services companies have greater social interaction.
       </p>
       <div className="overflow-x-auto mt-4">
-        <table className="min-w-full border-collapse">
+        <table className="min-w-full border-collapse border-b border-gray-300">
           <thead className="bg-gray-100">
             <tr>
-              <th className="p-4 text-left text-sm font-semibold text-gray-700 rounded-tl-lg">Category</th>
-              <th className="p-4 text-left text-sm font-semibold text-gray-700">Environment</th>
-              <th className="p-4 text-left text-sm font-semibold text-gray-700">Social</th>
-              <th className="p-4 text-left text-sm font-semibold text-gray-700 rounded-tr-lg">Governance</th>
+              <th className="p-4 text-left text-lg font-bold text-gray-700 rounded-tl-lg border-b-2 border-gray-300">Category</th>
+              <th className="p-4 text-left text-lg font-bold text-gray-700 border-b-2 border-gray-300">Environment</th>
+              <th className="p-4 text-left text-lg font-bold text-gray-700 border-b-2 border-gray-300">Social</th>
+              <th className="p-4 text-left text-lg font-bold text-gray-700 rounded-tr-lg border-b-2 border-gray-300">Governance</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-300">
             <tr className="bg-white">
-              <td className="p-4 font-semibold border-t">Manufacturing</td>
-              <td className="p-4 border-t">30%</td>
-              <td className="p-4 border-t">30%</td>
-              <td className="p-4 border-t">40%</td>
+              <td className="p-4 font-semibold">Manufacturing</td>
+              <td className="p-4">30%</td>
+              <td className="p-4">30%</td>
+              <td className="p-4">40%</td>
             </tr>
             <tr className="bg-gray-50">
-              <td className="p-4 font-semibold border-t rounded-bl-lg">Services</td>
-              <td className="p-4 border-t">20%</td>
-              <td className="p-4 border-t">40%</td>
-              <td className="p-4 border-t rounded-br-lg">40%</td>
+              <td className="p-4 font-semibold">Services</td>
+              <td className="p-4">20%</td>
+              <td className="p-4">40%</td>
+              <td className="p-4">40%</td>
             </tr>
           </tbody>
         </table>

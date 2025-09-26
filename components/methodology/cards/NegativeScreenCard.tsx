@@ -28,26 +28,26 @@ export default function NegativeScreenCard() {
 
       <div className="mt-8 grid md:grid-cols-1 gap-8">
         <InfoCard icon={<FrameworkIcon />} title="Assessment Framework">
-          <p>The score is based on a classification of <strong className="text-red-700">None / Polluting / Sin</strong>. This approach acknowledges the inherent ESG challenges and risks (regulatory, reputational) in certain industries.</p>
+          <p>The score is based on a classification of <strong>None</strong> / <strong className="text-orange-400">Polluting</strong> / <strong className="text-red-600">Sin</strong>. This approach acknowledges the inherent ESG challenges and risks (regulatory, reputational) in certain industries.</p>
         </InfoCard>
 
         <InfoCard icon={<CategoriesIcon />} title="Negative List Categories">
           <div className="overflow-x-auto mt-4">
-            <table className="min-w-full border-collapse">
+            <table className="min-w-full border-collapse border-b border-gray-800">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="p-4 text-left text-sm font-semibold text-gray-700 rounded-tl-lg">Category</th>
-                  <th className="p-4 text-left text-sm font-semibold text-gray-700 rounded-tr-lg">Sectors (Indicative, not exhaustive)</th>
+                  <th className="p-3 text-left text-lg font-bold text-gray-700 rounded-tl-lg">Category</th>
+                  <th className="p-3 text-left text-lg font-bold text-gray-700 rounded-tr-lg">Sectors (Indicative, not exhaustive)</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="text-base">
                 <tr className="bg-white">
-                  <td className="p-4 font-semibold text-red-800 align-top border-t">Sin Sectors</td>
-                  <td className="p-4 border-t">Alcohol, Tobacco, Gambling, Adult Entertainment</td>
+                  <td className="p-3 font-semibold text-red-400 align-top border-t border-gray-600">Sin Sectors</td>
+                  <td className="p-3 border-t border-gray-600 text-gray-800">Alcohol, Tobacco, Gambling, Adult Entertainment</td>
                 </tr>
                 <tr className="bg-gray-50">
-                  <td className="p-4 font-semibold text-orange-800 align-top border-t rounded-bl-lg">Polluting Sectors</td>
-                  <td className="p-4 border-t rounded-br-lg">Oil, Cement, Iron & Steel, Coal, Mining, Chemicals, Fertilizer & Pesticides, Thermal Power</td>
+                  <td className="p-3 font-semibold text-orange-400 align-top border-t border-gray-600">Polluting Sectors</td>
+                  <td className="p-3 border-t border-gray-600 text-gray-800">Oil, Cement, Iron & Steel, Coal, Mining, Chemicals, Fertilizer & Pesticides, Thermal Power</td>
                 </tr>
               </tbody>
             </table>
