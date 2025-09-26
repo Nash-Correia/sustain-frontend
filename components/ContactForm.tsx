@@ -13,13 +13,51 @@ export default function ContactForm() {
     setOk(null);
     setErr(null);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setOk("Thanks! We'll get back within 2–3 business days.");
-    (e.target as HTMLFormElement).reset();
-    setSubmitting(false);
+    try {
+      const form = e.currentTarget;
+      const fd = new FormData(form);
+
+      // REQUIRED: your Web3Forms Access Key (expose via NEXT_PUBLIC_)
+      const accessKey = process.env.NEXT_PUBLIC_WEB3FORMS_KEY || "bd18762e-3479-41e1-a4c0-021ea39a5d6f";
+      fd.append("access_key", accessKey);
+
+      // Optional: set reply-to so email replies go to the user
+      const email = String(fd.get("Email") || "");
+      if (email) fd.append("replyto", email);
+
+      // Optional: set a custom from_name/subject for nicer emails
+      const name = String(fd.get("Name") || "");
+      const company = String(fd.get("Company") || "");
+      const subj = String(fd.get("subject") || "");
+      if (name) fd.append("from_name", name);
+      if (subj) fd.set("subject", subj || `New contact from ${name} (${company})`);
+
+      // Optional: if your Web3Forms plan supports it, you can force recipient:
+      // fd.append("to", "solutions@iias.in");
+
+      // Optional: redirect after success (leave commented to stay on page)
+      // fd.append("redirect", "https://yourdomain.com/thanks");
+
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: fd,
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setOk("Thanks! We'll get back within a business days.");
+        form.reset();
+      } else {
+        setErr(data.message || "Submission failed. Please try again.");
+      }
+    } catch (e: any) {
+      setErr(e?.message || "Something went wrong.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
-  // Shapes with larger sizes
+  // Animated shapes (unchanged)
   const shapes = [
     { className: "bg-green-500/20 rounded-full", top: "5%", left: "7%", width: 300, height: 300, duration: 8 },
     { className: "bg-blue-500/10 rounded-lg", top: "20%", right: "10%", width: 150, height: 150, duration: 9 },
@@ -35,38 +73,31 @@ export default function ContactForm() {
 
   return (
     <section className="relative bg-white py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      {/* --- Animated Shapes --- */}
       {shapes.map((shape, idx) => (
         <motion.div
           key={idx}
           className={`absolute z-0 ${shape.className}`}
           style={{
-            top: shape.top,
-            bottom: shape.bottom,
-            left: shape.left,
-            right: shape.right,
+            top: (shape as any).top,
+            bottom: (shape as any).bottom,
+            left: (shape as any).left,
+            right: (shape as any).right,
             width: `${shape.width}px`,
             height: `${shape.height}px`,
-            clipPath: shape.clip || "none",
+            clipPath: (shape as any).clip || "none",
           }}
-          animate={{
-            x: [-30, 30, -30],
-            y: [-30, 30, -30],
-            rotate: [0, 360],
-          }}
-          transition={{
-            repeat: Infinity,
-            duration: shape.duration,
-            ease: "easeInOut",
-          }}
+          animate={{ x: [-30, 30, -30], y: [-30, 30, -30], rotate: [0, 360] }}
+          transition={{ repeat: Infinity, duration: shape.duration, ease: "easeInOut" }}
         />
       ))}
 
-      {/* --- Contact Form --- */}
-      <div className="relative z-10 mx-auto max-w-4xl bg-white/50 backdrop-blur-md p-8 rounded-2xl shadow-lg">
+      <div className="relative z-10 mx-auto max-w-4xl bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-lg">
         <h2 className="text-3xl font-bold text-center text-gray-900">Get in Touch</h2>
+
         <form onSubmit={onSubmit} className="mt-8 space-y-6">
-          
+          {/* Honeypot for bots */}
+          <input type="text" name="botcheck" className="hidden" tabIndex={-1} autoComplete="off" />
+
           {/* Name & Company */}
           <div className="grid sm:grid-cols-2 gap-6">
             <div>
@@ -126,18 +157,7 @@ export default function ContactForm() {
             />
           </div>
 
-          {/* Message */}
-          {/* <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
-            <textarea
-              name="message"
-              rows={5}
-              placeholder="Write your message here..."
-              className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400"
-            />
-          </div> */}
-
-          {/* Submit Button */}
+          {/* Submit */}
           <div className="text-center">
             <button
               type="submit"

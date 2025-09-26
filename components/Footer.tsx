@@ -8,15 +8,15 @@ const footerSections = [
     title: "Links",
     links: [
       { text: "About IiAS", href: ROUTES.about },
-      { text: "Company Profile", href: "#" }, // Placeholder link
-      { text: "Board of Directors", href: "#" }, // Added new link
+      { text: "Company Profile", href: ROUTES.about }, // Placeholder link
+      { text: "Board of Directors", href: ROUTES.about }, // Added new link
     ],
   },
   {
     title: "Products",
     links: [
-      { text: "Voting Advisory", href: "#" }, // Placeholder link
-      { text: "Voting Analytics", href: "#" }, // Placeholder link
+      { text: "ESG Rating Comparison", href: ROUTES.productA }, // Placeholder link
+      { text: "ESG Rating Reports", href: ROUTES.productB }, // Placeholder link
       { text: "Compayre", href: "#" }, // Placeholder link
       { text: "Governance Scorecard", href: "#" }, // Placeholder link
       { text: "ESG Advisory", href: ROUTES.productB },
@@ -25,10 +25,10 @@ const footerSections = [
   {
     title: "Company",
     links: [
-      { text: "Privacy Policy", href: "#" }, // Placeholder link
-      { text: "Terms of Use", href: "#" }, // Placeholder link
-      { text: "Disclaimer", href: "#" }, // Placeholder link
-      { text: "Return and refund policy", href: "#" }, // Placeholder link
+      { text: "Privacy Policy", href: ROUTES.about }, // Placeholder link
+      { text: "Terms of Use", href: ROUTES.about }, // Placeholder link
+      { text: "Disclaimer", href: ROUTES.about }, // Placeholder link
+      { text: "Return and refund policy", href: ROUTES.about }, // Placeholder link
     ],
   },
 ];
