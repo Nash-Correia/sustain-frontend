@@ -52,7 +52,7 @@ export default function ProductBPage() {
   return (
     <>
       {/* keeping your original heading/sub copy */}
-      <ProductHero heading="EGS Reports" sub={`Over ${rows.length} Companies Listed`} />
+
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-10">
         <RatingsClient initial={rows} />
       </section>

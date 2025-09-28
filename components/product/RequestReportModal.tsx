@@ -1,6 +1,5 @@
-
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Modal from "@/components/ui/Modal";
 import MultiSelect from "@/components/product/MultiSelect";
 
@@ -9,16 +8,20 @@ const EMAIL_RE = /^(?:[a-zA-Z0-9_'^&/+-])+(?:\.(?:[a-zA-Z0-9_'^&/+-])+)*@(?:(?:[
 export type RequestModalProps = {
   open: boolean;
   onClose: () => void;
-  // when user clicked Download on a specific company row
   defaultCompany?: string;
-  year: number; // 2024 or 2023
-  loggedIn?: boolean; // if true → hide personal fields
-  companyOptions: string[]; // for multi-select
+  year: number;
+  loggedIn?: boolean;
+  companyOptions: string[];
 };
 
 export default function RequestReportModal({ open, onClose, defaultCompany, year, loggedIn = false, companyOptions }: RequestModalProps) {
   const [isSubscriber, setIsSubscriber] = useState(true);
-  const [companies, setCompanies] = useState<string[]>(defaultCompany ? [defaultCompany] : []);
+  const [companies, setCompanies] = useState<string[]>([]);
+
+  // Update companies when defaultCompany changes
+  useEffect(() => {
+    setCompanies(defaultCompany ? [defaultCompany] : []);
+  }, [defaultCompany]);
 
   // personal fields (only when NOT logged in)
   const [name, setName] = useState("");
@@ -41,33 +44,45 @@ export default function RequestReportModal({ open, onClose, defaultCompany, year
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setErr(null); setOk(null);
+    setErr(null);
+    setOk(null);
     if (!valid) return;
     setSubmitting(true);
+
     try {
-      const payload = {
-        isSubscriber,
-        year,
-        companies,
-        name: loggedIn ? undefined : name,
-        email: loggedIn ? undefined : email,
-        organization: loggedIn ? undefined : org,
-        phone: loggedIn ? undefined : phone,
-        country: loggedIn ? undefined : country,
-      };
+      // 1. Construct the email body from the form state
+      let body = `Dear IiAS Team,\n\nPlease find below a request for an ESG report based on the following details:\n\n`;
+      body += `--- Request Details ---\n`;
+      body += `Report Year: ${year}\n`;
+      body += `Companies Requested:\n${companies.map(c => `- ${c}`).join('\n')}\n\n`;
 
-      // ===== BACKEND PREP: uncomment below to connect
-      // const BASE = process.env.NEXT_PUBLIC_API_BASE_URL || '';
-      // const res = await fetch(`${BASE}/api/request-report`, {
-      //   method: 'POST', headers: { 'Content-Type': 'application/json' },
-      //   credentials: 'include', body: JSON.stringify(payload)
-      // });
-      // if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      // 2. Add user information if they are not logged in
+      if (!loggedIn) {
+        body += `--- User Information ---\n`;
+        body += `Subscriber/Investor: ${isSubscriber ? 'Yes' : 'No'}\n`;
+        body += `Full Name: ${name}\n`;
+        body += `Email: ${email}\n`;
+        body += `Organization: ${org || 'N/A'}\n`;
+        body += `Phone: ${phone}\n`;
+        body += `Country: ${country || 'N/A'}\n`;
+      } else {
+        body += `--- User Information ---\n`;
+        body += `The user submitted this request while logged into their account.\n`
+      }
 
-      await new Promise((r) => setTimeout(r, 400)); // simulate
-      setOk("Request received. We will email you shortly.");
+      body += `\nThank you.`
+
+      // 3. Define the subject and recipient
+      const subject = "Request for Report";
+      const recipient = "nash.correia@iias.in"; // Changed for testing purposes
+
+      // 4. Construct the mailto link and trigger the user's email client
+      const mailtoLink = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.location.href = mailtoLink;
+
+      setOk("Your email client has been opened to send the request.");
     } catch (e: any) {
-      setErr(e?.message || "Something went wrong.");
+      setErr(e?.message || "Could not open your email client. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -78,7 +93,7 @@ export default function RequestReportModal({ open, onClose, defaultCompany, year
       <form onSubmit={submit} className="p-6">
         {/* Top checkbox */}
         <label className="inline-flex items-center gap-2 text-[14px] text-gray-700">
-          <input type="checkbox" checked={isSubscriber} onChange={(e)=>setIsSubscriber(e.target.checked)} />
+          <input type="checkbox" checked={isSubscriber} onChange={(e) => setIsSubscriber(e.target.checked)} />
           I am a Subscriber/Investor
         </label>
 
@@ -87,23 +102,23 @@ export default function RequestReportModal({ open, onClose, defaultCompany, year
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-[13px] text-gray-700">Full Name *</label>
-              <input value={name} onChange={(e)=>setName(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 placeholder-gray-400 text-gray-900" placeholder="Enter Name" />
+              <input value={name} onChange={(e) => setName(e.target.value)} required className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 placeholder-gray-400 text-gray-900" placeholder="Enter Name" />
             </div>
             <div>
               <label className="block text-[13px] text-gray-700">Email *</label>
-              <input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 placeholder-gray-400 text-gray-900" placeholder="Enter Email" />
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 placeholder-gray-400 text-gray-900" placeholder="Enter Email" />
             </div>
             <div>
               <label className="block text-[13px] text-gray-700">Organization</label>
-              <input value={org} onChange={(e)=>setOrg(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 placeholder-gray-400 text-gray-900" placeholder="Enter Name" />
+              <input value={org} onChange={(e) => setOrg(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 placeholder-gray-400 text-gray-900" placeholder="Enter Organization" />
             </div>
             <div>
               <label className="block text-[13px] text-gray-700">Phone *</label>
-              <input value={phone} onChange={(e)=>setPhone(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 placeholder-gray-400 text-gray-900" placeholder="Enter Phone" />
+              <input value={phone} onChange={(e) => setPhone(e.target.value)} required className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 placeholder-gray-400 text-gray-900" placeholder="Enter Phone" />
             </div>
             <div className="sm:col-span-2">
               <label className="block text-[13px] text-gray-700">Country</label>
-              <input value={country} onChange={(e)=>setCountry(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 placeholder-gray-400 text-gray-900" placeholder="Enter Country" />
+              <input value={country} onChange={(e) => setCountry(e.target.value)} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 placeholder-gray-400 text-gray-900" placeholder="Enter Country" />
             </div>
           </div>
         )}
@@ -122,7 +137,7 @@ export default function RequestReportModal({ open, onClose, defaultCompany, year
 
         {/* Terms checkbox */}
         <label className="mt-4 block text-[12px] text-gray-700">
-          <input type="checkbox" className="mr-2 align-middle" checked={agree} onChange={(e)=>setAgree(e.target.checked)} />
+          <input type="checkbox" className="mr-2 align-middle" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
           By checking the box below, I confirm that I have read, understood, and agree to all the terms and
           conditions presented. I acknowledge that I am responsible for providing accurate and complete
           information and that my use of this service is subject to these terms.
@@ -144,3 +159,4 @@ export default function RequestReportModal({ open, onClose, defaultCompany, year
     </Modal>
   );
 }
+
