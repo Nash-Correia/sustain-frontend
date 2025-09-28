@@ -6,7 +6,7 @@ interface DetailedInfoTableProps {
   companies: CompanyDataRow[];
 }
 
-const numericColumns: (keyof CompanyDataRow)[] = ['e_score', 's_score', 'g_score', 'screen', 'controversy_screen'];
+const numericColumns: (keyof CompanyDataRow)[] = ['e_score', 's_score', 'g_score', 'positive', 'controversy'];
 
 export default function DetailedInfoTable({ title, companies }: DetailedInfoTableProps) {
   

@@ -1,6 +1,8 @@
 // lib/excel-data.ts
 import Excel from 'exceljs';
 
+
+
 export interface CompanyDataRow {
   companyName: string;
   sector: string;

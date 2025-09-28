@@ -26,8 +26,9 @@ export default function CompanyInfoCard({ company }: CompanyInfoCardProps) {
         <ScoreItem label="E-Score" value={company.e_score} />
         <ScoreItem label="S-Score" value={company.s_score} />
         <ScoreItem label="G-Score" value={company.g_score} />
-        <ScoreItem label="Screen" value={company.screen} />
-        <ScoreItem label="Controversy" value={company.controversy_screen} />
+        <ScoreItem label="Positive" value={company.positive} />
+        <ScoreItem label="Negative" value={company.negative} />
+        <ScoreItem label="Controversy" value={company.controversy} />
       </div>
     </div>
   );

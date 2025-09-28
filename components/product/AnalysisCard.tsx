@@ -106,13 +106,16 @@ function StatCard({
 }) {
   return (
     <div className={`bg-gradient-to-br ${bgFrom} ${bgTo} border ${border} p-4 rounded-lg text-center hover:shadow-sm transition`}>
-      <p className="text-[11px] font-medium text-ui-text-secondary uppercase tracking-wide mb-1">
+      {/* Increased label size slightly for readability on small screens */}
+      <p className="text-xs sm:text-sm font-medium text-ui-text-secondary uppercase tracking-wide mb-1">
         {label}
       </p>
-      <p className={`text-3xl font-bold ${valueClass}`}>
+      {/* Increased main number font size for stronger visual hierarchy */}
+      <p className={`text-4xl sm:text-5xl leading-tight font-extrabold ${valueClass}`}>
         {typeof value === "number" ? formatNumber(value) : value}
       </p>
-      {description && <p className="text-xs text-ui-text-secondary mt-1">{description}</p>}
+      {/* Slight bump to description size */}
+      {description && <p className="text-sm text-ui-text-secondary mt-1">{description}</p>}
       {trend && (
         <div
           className={`text-xs mt-1 ${
@@ -384,10 +387,10 @@ function SectorsSection({
               />
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-8">
+            <div >
               <div className="space-y-6">
                 <h4 className="font-semibold text-brand-teal-dark mb-4">Sector highlights</h4>
-                <div className="space-y-3">
+                <div className="grid lg:grid-cols-2 gap-8 ">
                   <div className="p-4 border rounded-lg bg-emerald-50 border-emerald-200 text-emerald-900">
                     <div className="flex items-center justify-between">
                       <span className="text-m font-medium">🏅 Top ESG Performer</span>
@@ -405,7 +408,7 @@ function SectorsSection({
                 </div>
               </div>
 
-              <SectorPerformanceList entries={sectorEntries} titleClass="text-brand-teal-dark" />
+              {/* <SectorPerformanceList entries={sectorEntries} titleClass="text-brand-teal-dark" /> */}
             </div>
           </>
         ) : (
@@ -490,10 +493,10 @@ function CompaniesSection({
               />
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-8">
+            <div >
               <div className="space-y-6">
                 <h4 className="font-semibold text-brand-dark mb-4">Peer highlights</h4>
-                <div className="space-y-3">
+                <div className="grid lg:grid-cols-2 gap-8 ">
                   <div className="p-4 border rounded-lg bg-amber-50 border-amber-200 text-amber-900">
                     <div className="flex items-center justify-between">
                       <span className="text-m font-medium">🏅 Top ESG Performer</span>
@@ -511,7 +514,7 @@ function CompaniesSection({
                 </div>
               </div>
 
-              <SectorPerformanceList entries={sectorEntries} titleClass="text-brand-dark" />
+              {/* <SectorPerformanceList entries={sectorEntries} titleClass="text-brand-dark" /> */}
             </div>
           </>
         ) : (
