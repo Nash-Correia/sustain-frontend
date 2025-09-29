@@ -100,8 +100,8 @@ export default function GreenRatingGauge({ score, rating, fundName }: GreenRatin
           )}
 
           {/* Center grade text */}
-          <div className="absolute top-31 left-1/2 -translate-x-1/2 -translate-y-1/3 text-center">
-            <span className={clsx("text-5xl font-bold", showData ? color : "text-black-300")}>
+          <div className="absolute top-28 left-1/2 -translate-x-1/2 -translate-y-1/3 text-center">
+            <span className={clsx("text-7xl font-bold", showData ? color : "text-black-300")}>
               {showData ? rating : ""}
             </span>
           </div>

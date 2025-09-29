@@ -1,145 +1,256 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import Subscribe from "@/components/Subscribe";
 
-/* ---------- Reusable ---------- */
+/* ---------- Reusable: Section Title ---------- */
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
   <h2 className="text-3xl font-bold text-center text-brand-dark mb-12">{children}</h2>
 );
 
+/* ---------- Reusable: Scroll-reveal wrapper ---------- */
+function FadeIn({
+  children,
+  className = "",
+  from = "up", // "up" | "down" | "left" | "right" | "none"
+  delay = 0,
+  as: Tag = "div",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  from?: "up" | "down" | "left" | "right" | "none";
+  delay?: number;
+  as?: any;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.15 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  const hiddenMap: Record<string, string> = {
+    up: "opacity-0 translate-y-4",
+    down: "opacity-0 -translate-y-4",
+    left: "opacity-0 -translate-x-4",
+    right: "opacity-0 translate-x-4",
+    none: "opacity-0",
+  };
+
+  return (
+    <Tag
+      ref={ref}
+      style={{ transitionDelay: `${delay}ms` }}
+      className={[
+        "transition-all duration-700 ease-out will-change-transform",
+        visible ? "opacity-100 translate-x-0 translate-y-0" : hiddenMap[from],
+        className,
+      ].join(" ")}
+    >
+      {children}
+    </Tag>
+  );
+}
+
+/* ---------- Reusable: Floating animated shapes (background) ---------- */
+function FloatingShapes({
+  color = "white",
+  opacity = 0.3,
+  border = true,
+}: {
+  color?: string; // any valid CSS color
+  opacity?: number; // 0..1
+  border?: boolean; // use stroked outlines
+}) {
+  const stroke = border ? `${color}` : "transparent";
+  const fill = border ? "transparent" : color;
+  const base = { opacity };
+
+  return (
+    <>
+      {/* Big circle (top-left) */}
+      <motion.div
+        className="pointer-events-none absolute -top-20 -left-20 w-80 h-80 rounded-full"
+        style={{
+          border: border ? `4px solid ${stroke}` : undefined,
+          backgroundColor: !border ? fill : undefined,
+          opacity: base.opacity,
+        }}
+        animate={{
+          scale: [0.92, 1.06, 0.92],
+          x: [0, 18, 0],
+          y: [0, 18, 0],
+          opacity: [opacity * 0.7, opacity, opacity * 0.7],
+        }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* Big circle (bottom-right) */}
+      <motion.div
+        className="pointer-events-none absolute -bottom-24 -right-16 w-80 h-80 rounded-full"
+        style={{
+          border: border ? `4px solid ${stroke}` : undefined,
+          backgroundColor: !border ? fill : undefined,
+          opacity: base.opacity,
+        }}
+        animate={{
+          scale: [1.06, 0.92, 1.06],
+          x: [0, -18, 0],
+          y: [0, -18, 0],
+          opacity: [opacity * 0.7, opacity, opacity * 0.7],
+        }}
+        transition={{ duration: 10.5, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* Square/diamond */}
+      <motion.div
+        className="pointer-events-none absolute top-1/3 left-1/2 w-40 h-40"
+        style={{
+          border: border ? `4px solid ${stroke}80` : undefined,
+          backgroundColor: !border ? `${fill}33` : undefined,
+          opacity: base.opacity * 0.7,
+        }}
+        animate={{
+          rotate: [0, 35, 0],
+          scale: [0.85, 1.1, 0.85],
+          x: [-28, 28, -28],
+          y: [-18, 18, -18],
+          opacity: [opacity * 0.4, opacity * 0.7, opacity * 0.4],
+        }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* Curvy line */}
+      <motion.svg
+        className="pointer-events-none absolute -top-10 right-1/3 w-56 h-56"
+        viewBox="0 0 100 100"
+        fill="none"
+        stroke={stroke}
+        strokeWidth="2"
+        strokeOpacity={opacity}
+        animate={{
+          rotate: [0, 12, -12, 0],
+          x: [0, 14, -14, 0],
+          y: [0, -10, 10, 0],
+        }}
+        transition={{ duration: 13, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <path d="M10 50 Q25 10, 50 50 T90 50" />
+      </motion.svg>
+    </>
+  );
+}
+
 /* ---------- Icons ---------- */
-const IndependenceIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
-  </svg>
-);
-const TransparencyIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-  </svg>
-);
-const AccountabilityIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
 const ReadPolicyIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-5 w-5"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
   </svg>
 );
 
-/* ---------- Lightweight PDF Modal (embedded viewer) ---------- */
-function PdfModal({
-  open,
-  title,
-  src,
-  onClose,
-}: {
-  open: boolean;
-  title: string;
-  src: string;
-  onClose: () => void;
-}) {
-  if (!open) return null;
-  // Encode the URL safely (spaces, punctuation)
-  const encoded = encodeURI(src);
-
-  return (
-    <div className="fixed inset-0 z-[100]">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]" onClick={onClose} />
-      <div className="absolute inset-x-0 top-8 mx-auto w-[95vw] max-w-5xl rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-gray-200 px-4 sm:px-6 h-14 rounded-t-2xl">
-          <h3 className="truncate text-base font-semibold text-gray-900">{title}</h3>
-          <div className="flex items-center gap-2">
-            <a
-              href={encoded}
-              target="_blank"
-              rel="noreferrer"
-              className="hidden sm:inline text-sm text-[#1D7AEA] hover:underline"
-            >
-              Open in new tab
-            </a>
-            <button
-              onClick={onClose}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-        <div className="rounded-b-2xl overflow-hidden">
-          <iframe
-            src={encoded}
-            title={title}
-            className="block h-[75vh] w-full"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ---------- Sections ---------- */
 
-const AboutHero = () => (
-  <section className="bg-brand-surface">
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 text-center">
-      <h1 className="text-4xl sm:text-5xl font-bold text-brand-dark">About</h1>
-      <p className="mt-4 text-lg text-gray-700 max-w-3xl mx-auto">
-        Institutional Investor Advisory Services India Limited (IiAS) is an advisory firm, dedicated to providing participants in the Indian market with independent opinions, research and data on corporate governance and ESG issues as well as voting recommendations on shareholder resolutions.
-      </p>
-    </div>
-  </section>
-);
-
-const OurPurpose = () => (
-  <section className="px-6 sm:px-10 lg:px-16 py-20">
-    <div className="grid md:grid-cols-2 gap-12 items-center">
-      <div className="order-2 md:order-1 space-y-4 text-gray-700 text-lg">
-        <h2 className="text-3xl font-bold text-brand-dark mb-4">Our Purpose</h2>
-        <p>
-          IiAS provides bespoke research and assists institutions in their engagement with company managements and their boards. It runs two cloud-based platforms: SMART, to help investors with reporting on their stewardship activities, and ADRIAN, a repository of resolutions and institutional voting patterns.
-        </p>
-        <p>
-          IiAS has worked with some of India's largest hedge funds, alternate investment funds, and PE Funds to guide them in their ESG assessments and integrate ESG into their investment decisions.
-        </p>
-      </div>
-      <div className="order-1 md:order-2">
-        {/* Replace with a real image placed at public/images/about/our-purpose.jpg */}
-        <div className="w-full h-80 rounded-2xl overflow-hidden border border-gray-200">
-          <img
-            src="/images/about/our-purpose.jpg"
-            alt="Our Purpose"
-            className="w-full h-full object-cover"
-          />
-        </div>
-      </div>
-    </div>
-  </section>
-);
-
-const OurCommitment = () => {
-  const commitments = [
-    { icon: <IndependenceIcon />, title: "Independence", description: "Our research and recommendations are driven by data and an unbiased assessment of corporate governance practices." },
-    { icon: <TransparencyIcon />, title: "Transparency", description: "We believe in clear, open communication and provide detailed insights into our methodologies and voting guidelines." },
-    { icon: <AccountabilityIcon />, title: "Accountability", description: "We hold ourselves to the highest standards of integrity and are committed to promoting accountability in the Indian market." },
+const WhoWeAre = () => {
+  const keyStrengths = [
+    {
+      title: "Governance & Research",
+      description:
+        "Independent opinions, research, and data on corporate governance and ESG issues.",
+      icon: (
+        <svg className="w-8 h-8 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+      ),
+    },
+    {
+      title: "Technology Platforms",
+      description: "Cloud-based platforms like SMART and ADRIAN for stewardship and data analysis.",
+      icon: (
+        <svg className="w-8 h-8 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 21a9 9 0 100-18 9 9 0 000 18z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l2 1" />
+        </svg>
+      ),
+    },
+    {
+      title: "ESG Integration",
+      description:
+        "Guiding hedge funds, AIFs, and PE Funds in their ESG assessments and investment decisions.",
+      icon: (
+        <svg className="w-8 h-8 text-brand-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      ),
+    },
   ];
 
   return (
-    <section className="bg-gray-50 py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionTitle>Our Commitment</SectionTitle>
-        <div className="grid md:grid-cols-3 gap-8">
-          {commitments.map((item) => (
-            <div key={item.title} className="bg-white p-8 rounded-lg shadow-md hover:shadow-xl transition-shadow text-center">
-              <div className="flex-shrink-0 w-20 h-20 mx-auto mb-6 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center">
-                {item.icon}
-              </div>
-              <h3 className="text-2xl font-bold text-brand-dark">{item.title}</h3>
-              <p className="mt-4 text-gray-600">{item.description}</p>
+    <section className="relative py-24 bg-white overflow-hidden">
+      {/* Soft gradient panel */}
+      <div aria-hidden="true" className="absolute inset-0 -z-10">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-bl from-gray-50 to-white" />
+      </div>
+      {/* Floating shapes (white strokes) */}
+      <FloatingShapes color="rgba(13,148,136,0.9)" opacity={0.25} />
+
+      <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          {/* Left Column: Main Text */}
+          <FadeIn from="up" className="space-y-6">
+            <h2 className="text-3xl font-bold text-brand-dark tracking-tight sm:text-4xl">Who We Are</h2>
+            <div className="text-lg text-gray-600 space-y-4">
+              <p>
+                Institutional Investor Advisory Services India Limited (IiAS) is an advisory firm, dedicated to
+                providing participants in the Indian market with independent opinions, research and data on corporate
+                governance and ESG issues as well as voting recommendations on shareholder resolutions for about 1000
+                companies that account for over 95% of market capitalization.
+              </p>
+              <p>
+                More recently, IiAS has extended its analysis to ESG – Environment, Social and Governance. We have
+                worked with some of India’s largest hedge funds, alternate investment funds and PE Funds to guide them
+                in their ESG assessments and integrate ESG into their investment decisions.
+              </p>
             </div>
-          ))}
+            <p className="text-sm text-gray-500 pt-4 border-t border-gray-200">
+              IiAS is a SEBI registered entity (proxy advisor registration number: INH000000024).
+            </p>
+          </FadeIn>
+
+          {/* Right Column: Key Strengths */}
+          <div className="space-y-8">
+            {keyStrengths.map((strength, i) => (
+              <FadeIn key={strength.title} from="right" delay={100 * i} className="flex items-start">
+                <div className="flex-shrink-0">
+                  <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-brand-surface text-brand-primary shadow-sm">
+                    {strength.icon}
+                  </div>
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-brand-dark">{strength.title}</h3>
+                  <p className="mt-1 text-base text-gray-600">{strength.description}</p>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -147,34 +258,139 @@ const OurCommitment = () => {
 };
 
 const OurPeople = () => {
-  // IMPORTANT: remove "/public" from paths; files live under /public and are served from "/"
-  const team = [
-    { name: "Amit Tandon", title: "Founder & Managing Director", imageUrl: "/images/team/amit-tandon.jpeg" },
-    { name: "Hetal Dalal", title: "President & COO", imageUrl: "/images/team/hetal-dalal.jpg" },
-    { name: "Anil Singhvi", title: "Founder, Non-Executive Director", imageUrl: "/images/team/anil-singhvi.jpeg" },
-    { name: "Deven Sharma", title: "Non-Executive Director", imageUrl: "/images/team/deven-sharma.jpeg" },
-    { name: "V. Srinivasan", title: "Independent Non-Executive Director", imageUrl: "/images/team/v-srinivasan.png" },
-    { name: "Dr. Shubhada Rao", title: "Independent Non-Executive Director", imageUrl: "/images/team/shubhada-rao.jpg" },
-    { name: "Alok Vajpeyi", title: "Independent Non-Executive Director", imageUrl: "/images/team/alok-vajpeyi.png" },
+  const management = [
+    {
+      name: "Hetal Dalal",
+      title: "President and Chief Operating Officer",
+      imageUrl: "/about/team/hetal-dalal.jpg",
+      description:
+        "Prior to joining IiAS, Hetal Dalal was Director, Ratings Business Development at CRISIL Limited. She held leadership roles across several business verticals during her stint at CRISIL. Her experience spans analytics, operations, and business development. Hetal holds an MMS (Finance) degree from NMIMS and is a Chartered Accountant.",
+    },
+    {
+      name: "Amit Tandon",
+      title: "Founder and Managing Director",
+      imageUrl: "/about/team/amit-tandon.jpeg",
+      description:
+        "Prior to starting IiAS, Amit was the Managing Director of Fitch Ratings (till June 2011), where he was responsible for its Indian and Sri Lankan businesses. While at Fitch he was closely associated with the development of the debt market. Prior to joining Fitch, Amit was Senior Vice President and Head of Corporate Banking at ICICI Securities. He has a Bachelors in Economics from St. Stephens College, MBA from FMS Delhi, and an MPhil from the University of Cambridge.",
+    },
+  ];
+
+  const boardOfDirectors = [
+    {
+      name: "Anil Singhvi",
+      title: "Founder, Non-Executive Director",
+      imageUrl: "/about/team/anil-singhvi.jpeg",
+      description:
+        "Chairman, ICAN Investments Advisors Private Limited, with 30+ years of corporate experience, including as MD & CEO at Ambuja Cements. Founder Director at FLAME University and associated with several NGOs.",
+    },
+    {
+      name: "Deven Sharma",
+      title: "Non-Executive Director",
+      imageUrl: "/about/team/deven-sharma.jpeg",
+      description:
+        "Former President of Standard & Poor’s; previously a partner at Booz Allen Hamilton. Holds degrees from BITS Pilani, University of Wisconsin-Milwaukee, and a Doctorate from Ohio State University.",
+    },
+    {
+      name: "Amit Tandon",
+      title: "Founder and Managing Director",
+      imageUrl: "/about/team/amit-tandon.jpeg",
+      description:
+        "Led Fitch Ratings in India & Sri Lanka; prior leadership roles at ICICI Securities across capital markets, M&A, and advisory businesses.",
+    },
+    {
+      name: "V. Srinivasan",
+      title: "Independent Non-Executive Director",
+      imageUrl: "/about/team/v-srinivasan.png",
+      description:
+        "Banking veteran; ex-Deputy MD at Axis Bank; held senior roles at J.P. Morgan. Served on RBI committees and chaired FIMMDA & PDAI. Engineer (Anna University) and MBA (IIM Calcutta).",
+    },
+    {
+      name: "Dr. Shubhada Rao",
+      title: "Independent, Non-Executive Director",
+      imageUrl: "/about/team/shubhada-rao.jpg",
+      description:
+        "Founder of QuantEco; ex-Chief Economist at YES Bank. Renowned for forward-looking economic commentary. Gold medalist and PhD in Economics, University of Mumbai.",
+    },
+    {
+      name: "Alok Vajpeyi",
+      title: "Independent Non-Executive Director",
+      imageUrl: "/about/team/alok-vajpeyi.png",
+      description:
+        "40 years across UK/Asia/India in global markets, investment & wealth management; senior roles at SBC, Barclays, DSP Merrill Lynch, BlackRock, Daiwa. Advisor, entrepreneur, investor and board director.",
+    },
   ];
 
   return (
-    <section className="py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionTitle>Our People</SectionTitle>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {team.map((member) => (
-            <div key={member.name} className="text-center group">
-              <div className="w-48 h-48 mx-auto rounded-full bg-gray-100 mb-4 overflow-hidden transform group-hover:scale-105 transition-transform border border-gray-200">
+    <section className="relative py-20 bg-gray-50 overflow-hidden">
+      {/* Subtle dot grid already present earlier — add floating shapes with lighter opacity */}
+      <FloatingShapes color="rgba(13,148,136,0.9)" opacity={0.18} />
+
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <FadeIn from="up" className="text-center">
+          <h2 className="text-3xl font-bold text-brand-dark tracking-tight sm:text-4xl">Our People</h2>
+        </FadeIn>
+
+        {/* Management */}
+        <div className="mt-16">
+          <FadeIn from="left">
+            <h3 className="text-2xl font-semibold text-brand-dark mb-8">Management</h3>
+          </FadeIn>
+          <div className="space-y-8">
+            {management.map((member, i) => (
+              <FadeIn
+                key={member.name}
+                from="up"
+                delay={100 * i}
+                className="bg-white p-6 rounded-lg border border-gray-200 transition
+                           hover:shadow-lg hover:-translate-y-0.5 active:translate-y-[1px]
+                           grid md:grid-cols-12 gap-6 items-center"
+              >
+                <div className="md:col-span-3 flex justify-center">
+                  <img
+                    src={member.imageUrl}
+                    alt={member.name}
+                    className="w-36 h-36 rounded-full object-cover ring-1 ring-gray-200"
+                  />
+                </div>
+                <div className="md:col-span-9">
+                  <h4 className="text-xl font-bold text-brand-dark">{member.name}</h4>
+                  <p className="text-md font-medium text-gray-600 mb-3">{member.title}</p>
+                  <p className="text-gray-600 leading-relaxed text-sm">{member.description}</p>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+
+        {/* Board of Directors */}
+        <div className="mt-16">
+          <FadeIn from="left">
+            <h3 className="text-2xl font-semibold text-brand-dark mb-8">Board of Directors</h3>
+          </FadeIn>
+        </div>
+        <div className="space-y-8">
+          {boardOfDirectors.map((member, i) => (
+            <FadeIn
+              key={member.name}
+              from="up"
+              delay={100 * i}
+              className="bg-white p-6 rounded-lg border border-gray-200 transition
+                         hover:shadow-lg hover:-translate-y-0.5 active:translate-y-[1px]
+                         grid md:grid-cols-12 gap-6 items-center"
+            >
+              <div className="md:col-span-3 flex justify-center">
                 <img
                   src={member.imageUrl}
                   alt={member.name}
-                  className="w-full h-full object-cover"
+                  className="w-36 h-36 rounded-full object-cover ring-1 ring-gray-200"
                 />
               </div>
-              <h3 className="text-xl font-semibold text-brand-dark">{member.name}</h3>
-              <p className="text-gray-600">{member.title}</p>
-            </div>
+              <div className="md:col-span-9">
+                <h4 className="text-xl font-bold text-brand-dark">{member.name}</h4>
+                <p className="text-md font-medium text-gray-600 mb-3">{member.title}</p>
+                <p className="text-gray-600 leading-relaxed text-sm">{member.description}</p>
+              </div>
+            </FadeIn>
           ))}
         </div>
       </div>
@@ -185,37 +401,36 @@ const OurPeople = () => {
 type Policy = { title: string; description: string; href: string };
 
 const Policies = () => {
-  // IMPORTANT: remove "/public" from hrefs; public files are served at "/..."
   const policies: Policy[] = [
     {
       title: "IiAS Voting Recommendations' Methodology and Process",
       description:
-        "A brief note outlining the method and process that IiAS' analysts follow in arriving at voting recommendations.",
+        "A brief note outlining the method and process that IiAS’ analysts follow in arriving at voting recommendations.",
       href: "/about/policies/IiAS Voting Recommendations’ Methodology and Process.pdf",
     },
     {
       title: "Securities Trading Policy",
       description:
-        "Our voting advisory reports recommend how investors should vote on shareholder resolutions – these do not carry any buy or sell recommendations.",
+        "IiAS is a proxy advisory firm dedicated to providing market participants with data, research and opinions on corporate governance issues. Our voting advisory reports recommend how investors should vote on shareholder resolutions – these do not carry any buy or sell recommendations.",
       href: "/about/policies/Securities Trading Policy.pdf",
     },
     {
       title: "Anti-Money Laundering Policy",
       description:
-        "IiAS has adopted this AML Policy, which is commensurate with the nature of its business, organizational structure and type of clients and transactions.",
+        "As per SEBI AML guidelines, IiAS has adopted this AML Policy, commensurate with its business and clients.",
       href: "/about/policies/Anti-Money Laundering Policy.pdf",
     },
     {
       title: "Website Privacy Policy",
-      description: "In general, this Website may be visited without revealing information about yourself.",
+      description:
+        "In general, this Website may be visited without revealing information about yourself. Some features may require limited personal information.",
       href: "/about/policies/Website Privacy Policy.pdf",
     },
     {
-      title:
-        "Policy on dealing with Complaints and Grievances received from Market Participants",
+      title: "Policy on dealing with Complaints and Grievances received from Market Participants",
       description:
-        "A brief note outlining the process that will be followed in dealing with complaints and grievances received from market participants.",
-      href: "/about/policies/Complaints and Grievances Policy.pdf",
+        "The process to be followed in dealing with complaints and grievances received from market participants.",
+      href: "/about/policies/Policy on dealing with Complaints and Grievances received from Market Participants.pdf",
     },
     {
       title: "Review and Oversight Committee",
@@ -224,11 +439,10 @@ const Policies = () => {
       href: "/about/policies/Review and Oversight Committee.pdf",
     },
     {
-      title:
-        "Policy on Communication with Investors, Companies, Media and Regulators",
+      title: "Policy on Communication with Investors, Companies, Media and Regulators",
       description:
-        "This policy lays down the basis of IiAS' communication with such stakeholders, with specific context to its voting advisory and engagement services.",
-      href: "/about/policies/Communication Policy.pdf",
+        "The basis of IiAS’ communication with such stakeholders, with specific context to its voting advisory and engagement services.",
+      href: "/about/policies/Policy on Communication with Investors, Companies, Media and Regulators.pdf",
     },
     {
       title: "Policy on Prevention of Sexual Harassment",
@@ -239,96 +453,156 @@ const Policies = () => {
     {
       title: "Code of Conduct",
       description:
-        "IiAS' employees and others performing work for IiAS or on its behalf are expected to act lawfully, honestly, ethically, and in the best interests of the company.",
-      href: "../public/about/policies/Code of Conduct.pdf",
+        "Guidelines for business conduct required of IiAS’ personnel.",
+      href: "/about/policies/Code of Conduct.pdf",
+    },
+    {
+      title: "Nomination and Remuneration Policy",
+      description:
+        "Guide on appointment, remuneration, removal and evaluation of performance of Directors, KMP and employees.",
+      href: "/about/policies/Nomination and Remuneration Policy.pdf",
+    },
+    {
+      title: "Investor Charter in respect of Research Analyst (RA)",
+      description:
+        "Investor Charter in respect of Research Analyst (RA) with reference to SEBI Circular dated 13 December 2021.",
+      href: "/about/policies/Investor Charter in respect of Research Analyst (RA).pdf",
+    },
+    {
+      title: "Management of Conflicts of Interest Policy",
+      description:
+        "Preserving research integrity and preventing conflicts of interest related to IiAS’ voting advisory services.",
+      href: "/about/policies/Management of Conflicts of Interest Policy.pdf",
     },
   ];
 
-  const [viewer, setViewer] = useState<{ open: boolean; title: string; href: string }>({
-    open: false,
-    title: "",
-    href: "",
-  });
-
   return (
-    <section className="bg-gray-50 py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionTitle>Policies</SectionTitle>
+    <section className="relative py-20 bg-white overflow-hidden">
+      {/* Soft left arc */}
+      <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1/3 -z-10">
+        <div className="h-full bg-gray-50 rounded-r-full" />
+      </div>
+      {/* Floating shapes with subtle gray/teal blend */}
+      <FloatingShapes color="rgba(14,165,233,0.9)" opacity={0.22} />
+
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <FadeIn from="up">
+          <SectionTitle>Policies</SectionTitle>
+        </FadeIn>
+
         <div className="max-w-4xl mx-auto">
           <div className="space-y-4">
-            {policies.map((policy) => {
+            {policies.map((policy, i) => {
               const encoded = encodeURI(policy.href);
               return (
-                <div key={policy.title} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <FadeIn
+                  key={policy.title}
+                  from="up"
+                  delay={80 * i}
+                  className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm transition
+                             hover:shadow-md hover:-translate-y-0.5"
+                >
                   <h3 className="text-lg font-semibold text-brand-dark">{policy.title}</h3>
                   <p className="mt-2 text-gray-600">{policy.description}</p>
-
-                  <div className="mt-4 flex flex-wrap gap-3">
-                    {/* View in-site (modal) */}
-                    <button
-                      type="button"
-                      onClick={() => setViewer({ open: true, title: policy.title, href: encoded })}
-                      className="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                    >
-                      View PDF
-                    </button>
-                    {/* Open in new tab (direct link) */}
+                  <div className="mt-4">
                     <a
                       href={encoded}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center text-teal-600 font-semibold hover:underline"
+                      className="group inline-flex items-center text-teal-700 font-semibold"
                     >
-                      Read Policy <ReadPolicyIcon />
+                      Read Policy
+                      <span className="ml-1 inline-flex transform transition-transform group-hover:translate-x-0.5">
+                        <ReadPolicyIcon />
+                      </span>
                     </a>
                   </div>
-                </div>
+                </FadeIn>
               );
             })}
           </div>
         </div>
       </div>
-
-      {/* PDF Viewer Modal */}
-      <PdfModal
-        open={viewer.open}
-        title={viewer.title}
-        src={viewer.href}
-        onClose={() => setViewer({ open: false, title: "", href: "" })}
-      />
     </section>
   );
 };
 
-/* ---------- Disclosure (after Policies) ---------- */
-const Disclosure = () => {
+type DisclosureItem = {
+  title: string;
+  description: string;
+  href?: string;
+};
+
+const Disclosures = () => {
+  const disclosures: DisclosureItem[] = [
+    {
+      title: "IiAS Securities Holding Statement",
+      description:
+        "IiAS may, from time to time, own nominal shares in companies that form a part of its coverage list for its voting advisory services. Holdings are generally one equity share per listed company under coverage; quantities may vary due to corporate actions. The holdings are updated at regular intervals.",
+      href: "/about/disclosures/IiAS Securities Holding Statement.pdf",
+    },
+    {
+      title: "Appointment Letter for Independent Directors",
+      description: "Letter of appointment issued to independent directors.",
+      href: "/about/disclosures/Appointment Letter for Independent Directors.pdf",
+    },
+    {
+      title: "IiAS Shareholders",
+      description:
+        "Our shareholders include: Aditya Birla Sunlife AMC Limited, Axis Bank, Fitch Group Inc., HDFC Bank, ICICI Prudential Life Insurance, Kotak Mahindra Bank, RBL Bank, Tata Investment Corporation, UTI Asset Management and Yes Bank. In addition, the following individuals own equity shares in the company: Amit Tandon, Anil Singhvi, Deven Sharma, Hetal Dalal, and R Jayakumar.",
+    },
+    {
+      title: "Annual Return",
+      description:
+        "Annual return required pursuant to sub-section (1) of section 92 of Companies Act, 2013 and sub-rule (1) of rule 11 of the Companies (Management and Administration) Rules, 2014.",
+    },
+    {
+      title: "Disclosure relating to complaints received",
+      description:
+        "Investors complaints data disclosed monthly under SEBI circular no. SEBI/HO/IMD/IMD-II CIS/P/CIR/2021/0685.",
+      href: "/about/disclosures/Disclosure relating to complaints received.pdf",
+    },
+  ];
+
   return (
-    <section className="py-16">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <SectionTitle>Disclosure</SectionTitle>
+    <section className="relative bg-gray-50 py-20 overflow-hidden">
+      {/* Floating shapes (even lighter so text stands out) */}
+      <FloatingShapes color="rgba(20,184,166,0.9)" opacity={0.16} />
 
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 space-y-4 text-gray-700">
-          <p>
-            IiAS Sustain provides independent research and voting recommendations based on publicly available
-            information, company disclosures, and our proprietary methodology. Our opinions are not investment
-            advice or an offer to buy/sell securities. While care is taken to ensure accuracy, IiAS does not
-            guarantee completeness and will not be liable for losses arising from reliance on this material.
-          </p>
-          <p>
-            Conflicts of interest are managed via documented policies and oversight by the Review and Oversight
-            Committee. Employees are subject to a Code of Conduct and Securities Trading Policy.
-          </p>
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <FadeIn from="up">
+          <SectionTitle>Disclosures</SectionTitle>
+        </FadeIn>
 
-          {/* Optional: downloadable disclosure PDF if you have one */}
-          <div className="pt-2">
-            <a
-              href={encodeURI("/about/policies/Disclosure.pdf")}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-            >
-              View Full Disclosure (PDF)
-            </a>
+        <div className="max-w-4xl mx-auto">
+          <div className="space-y-4">
+            {disclosures.map((item, i) => (
+              <FadeIn
+                key={item.title}
+                from="up"
+                delay={80 * i}
+                className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm transition
+                           hover:shadow-md hover:-translate-y-0.5"
+              >
+                <h3 className="text-lg font-semibold text-brand-dark">{item.title}</h3>
+                <p className="mt-2 text-gray-600">{item.description}</p>
+                {item.href && (
+                  <div className="mt-4">
+                    <a
+                      href={encodeURI(item.href)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="group inline-flex items-center text-teal-700 font-semibold"
+                    >
+                      Read More
+                      <span className="ml-1 inline-flex transform transition-transform group-hover:translate-x-0.5">
+                        <ReadPolicyIcon />
+                      </span>
+                    </a>
+                  </div>
+                )}
+              </FadeIn>
+            ))}
           </div>
         </div>
       </div>
@@ -340,12 +614,11 @@ const Disclosure = () => {
 export default function AboutPage() {
   return (
     <>
-      <AboutHero />
-      <OurPurpose />
-      <OurCommitment />
+      <WhoWeAre />
       <OurPeople />
       <Policies />
-      <Disclosure />
+      <Disclosures />\
+      <Subscribe/>
     </>
   );
 }
