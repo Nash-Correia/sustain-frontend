@@ -148,32 +148,69 @@ function MenuAction({
   );
 }
 
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
 export default function Header() {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const mobileMenuRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
-  const { user, signOut } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  // Check for user on mount and when localStorage changes
+  useEffect(() => {
+    const checkUser = () => {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      } else {
+        setUser(null);
+      }
+    };
+
+    // Check on mount
+    checkUser();
+
+    // Listen for storage events (when user logs in/out in another tab)
+    window.addEventListener("storage", checkUser);
+
+    return () => {
+      window.removeEventListener("storage", checkUser);
+    };
+  }, []);
+
+  // Handle sign out
+  const signOut = () => {
+    localStorage.removeItem("user");
+    setUser(null);
+  };
 
   useEffect(() => setMobileOpen(false), [pathname]);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
-        setMobileOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   // Base classes for top nav links
   const navLinkClasses =
     "relative px-2 py-2 text-xl font-medium text-gray-900 hover:text-gray-700 transition-colors after:content-[''] after:absolute after:left-2 after:right-2 after:bottom-0 after:h-0.5 after:bg-teal-600 after:transform after:scale-x-0 after:transition-transform after:duration-300 hover:after:scale-x-100 focus-visible:after:scale-x-100";
 
-  // One auth button: either "Login" or "User" with dropdown
-  const authLabel = !user ? "Login" : "User";
+  // Auth button text: "Login" or user's name
+  const authLabel = !user ? "Login" : user.name.split(" ")[0]; // Display first name only
+
   const authButtonClasses =
     "px-5 py-3 bg-login-btn hover:bg-opacity-90 text-white font-bold text-lg rounded-md shadow-sm transition-colors";
+
+  // Dropdown items based on authentication state
+  const authDropdownItems = !user ? (
+    <>
+      <MenuItem href="/auth/login">Login</MenuItem>
+      <MenuItem href="/auth/signup">Sign Up</MenuItem>
+    </>
+  ) : (
+    <>
+      <MenuItem href="/account">My Account</MenuItem>
+      <MenuAction onClick={signOut}>Logout</MenuAction>
+    </>
+  );
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 bg-white/90 backdrop-blur border-b border-gray-200">
@@ -200,18 +237,9 @@ export default function Header() {
               </Link>
             </nav>
 
-            {/* ✅ Single Auth Button with Dropdown */}
+            {/* Auth Button/Dropdown */}
             <Dropdown label={authLabel} className={authButtonClasses} align="right">
-              {!user ? (
-                <>
-                  <MenuItem href={ROUTES.login}>Login</MenuItem>
-                  <MenuItem href={ROUTES.signup}>Sign Up</MenuItem>
-                </>
-              ) : (
-                <>
-                  <MenuAction onClick={signOut}>Logout</MenuAction>
-                </>
-              )}
+              {authDropdownItems}
             </Dropdown>
           </div>
 
@@ -229,7 +257,73 @@ export default function Header() {
         </div>
       </div>
 
-      {/* TODO: Mobile menu implementation can mirror the single-button logic if needed */}
+      {/* Mobile menu */}
+      {mobileOpen && (
+        <div className="md:hidden bg-white border-t border-gray-200">
+          <div className="space-y-1 px-4 py-4">
+            <Link
+              href={ROUTES.productA}
+              className="block px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-50 rounded-md"
+            >
+              ESG Comparison
+            </Link>
+            <Link
+              href={ROUTES.productB}
+              className="block px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-50 rounded-md"
+            >
+              ESG Reports
+            </Link>
+            <Link
+              href={ROUTES.methodology}
+              className="block px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-50 rounded-md"
+            >
+              Methodology
+            </Link>
+            <Link
+              href={ROUTES.about}
+              className="block px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-50 rounded-md"
+            >
+              About
+            </Link>
+            <div className="pt-4 border-t border-gray-300">
+              {!user ? (
+                <>
+                  <Link
+                    href="/auth/login"
+                    className="block px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-50 rounded-md"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/auth/signup"
+                    className="block px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-50 rounded-md"
+                  >
+                    Sign up
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <div className="block px-3 py-2 text-base font-medium text-gray-900">
+                    Hi, {user.name.split(" ")[0]}
+                  </div>
+                  <Link
+                    href="/account"
+                    className="block px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-50 rounded-md"
+                  >
+                    My Account
+                  </Link>
+                  <button
+                    onClick={signOut}
+                    className="w-full text-left block px-3 py-2 text-base font-medium text-gray-900 hover:bg-gray-50 rounded-md"
+                  >
+                    Logout
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
