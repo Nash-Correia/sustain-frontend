@@ -6,7 +6,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
 import { clsx } from "@/lib/utils";
-import { useAuth } from "@/components/auth/AuthProvider";
 
 /** Props we may inject into dropdown children */
 type WithSetOpen = { setOpen?: (v: boolean) => void };
@@ -150,7 +149,7 @@ function MenuAction({
 
 interface User {
   id: number;
-  name: string;
+  name?: string;
   email: string;
 }
 
@@ -164,7 +163,20 @@ export default function Header() {
     const checkUser = () => {
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
-        setUser(JSON.parse(storedUser));
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          // Validate that we have required fields
+          if (parsedUser && typeof parsedUser.email === 'string') {
+            setUser(parsedUser);
+          } else {
+            setUser(null);
+            localStorage.removeItem("user"); // Remove invalid data
+          }
+        } catch (error) {
+          console.error("Failed to parse user data:", error);
+          setUser(null);
+          localStorage.removeItem("user"); // Remove corrupted data
+        }
       } else {
         setUser(null);
       }
@@ -194,7 +206,7 @@ export default function Header() {
     "relative px-2 py-2 text-xl font-medium text-gray-900 hover:text-gray-700 transition-colors after:content-[''] after:absolute after:left-2 after:right-2 after:bottom-0 after:h-0.5 after:bg-teal-600 after:transform after:scale-x-0 after:transition-transform after:duration-300 hover:after:scale-x-100 focus-visible:after:scale-x-100";
 
   // Auth button text: "Login" or user's name
-  const authLabel = !user ? "Login" : user.name.split(" ")[0]; // Display first name only
+  const authLabel = !user ? "Login" : (user.name || user.email || "User").split(" ")[0]; // Display first name only
 
   const authButtonClasses =
     "px-5 py-3 bg-login-btn hover:bg-opacity-90 text-white font-bold text-lg rounded-md shadow-sm transition-colors";
@@ -304,7 +316,7 @@ export default function Header() {
               ) : (
                 <>
                   <div className="block px-3 py-2 text-base font-medium text-gray-900">
-                    Hi, {user.name.split(" ")[0]}
+                    Hi, {(user.name || user.email || "User").split(" ")[0]}
                   </div>
                   <Link
                     href="/account"
