@@ -100,7 +100,7 @@ export default function GreenRatingGauge({ score, rating, fundName }: GreenRatin
           )}
 
           {/* Center grade text */}
-          <div className="absolute top-41 left-1/2 -translate-x-1/2 -translate-y-1/3 text-center">
+          <div className="absolute top-31 left-1/2 -translate-x-1/2 -translate-y-1/3 text-center">
             <span className={clsx("text-5xl font-bold", showData ? color : "text-black-300")}>
               {showData ? rating : ""}
             </span>
@@ -110,9 +110,7 @@ export default function GreenRatingGauge({ score, rating, fundName }: GreenRatin
         <p className="text-center text-2xl font-bold text-brand-dark mt-2 h-8">
           {showData ? fundName : ""}
         </p>
-        <p className="text-center text-xs text-gray-500 mt-2 max-w-xs mx-auto">
-          Ratings are calculated based on a weighted average, in line with each fund&apos;s % allocation of AUM.
-        </p>
+
       </div>
     </div>
   );
