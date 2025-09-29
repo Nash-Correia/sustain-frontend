@@ -1,28 +1,39 @@
 // components/product/FundsComparisonTable.tsx
-import { FundDataRow, PortfolioCompany, CompanyDataRow } from "@/lib/excel-data";
+"use client";
+
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  getCompanyData,
+  type FundDataRow,
+  type PortfolioCompany,
+  type CompanyDataRow,
+} from "@/lib/excel-data";
 import { formatNumber } from "./productUtils";
 import GreenRatingGauge from "./GreenRatingGauge";
 
 type CompanyModeProps = {
   mode: "companies";
-  companies: PortfolioCompany[];
+  companies: (PortfolioCompany & { sector?: string })[] | PortfolioCompany[];
   onRemoveCompany: (isin: string) => void;
-  gaugePosition?: "top" | "bottom";
+  gaugePosition?: "top" | "bottom"; // kept for backward-compat
+  sectorLookupByIsin?: Record<string, string>;
+  sectorLookupByCompany?: Record<string, string>;
+  allCompanyData?: CompanyDataRow[];
 };
 
 type FundModeProps = {
   mode: "funds";
   funds: FundDataRow[];
   onRemoveFund: (fundName: string) => void;
-  gaugePosition?: "top" | "bottom";
+  gaugePosition?: "top" | "bottom"; // kept for backward-compat
 };
 
 type SectorModeProps = {
   mode: "sectors";
-  sectors: string[]; // selected sector names
+  sectors: string[];
   allCompanyData: CompanyDataRow[];
   onRemoveSector: (sectorName: string) => void;
-  gaugePosition?: "top" | "bottom";
+  gaugePosition?: "top" | "bottom"; // kept for backward-compat
 };
 
 type ComparisonProps = CompanyModeProps | FundModeProps | SectorModeProps;
@@ -40,36 +51,107 @@ function computeGrade(score: number): string {
 function parsePercent(pct: string | number | undefined): number {
   if (pct === undefined || pct === null) return 0;
   if (typeof pct === "number") return pct;
-  const n = parseFloat(String(pct).replace("%", "").trim());
-  return isNaN(n) ? 0 : n;
+  const raw = String(pct).trim();
+  if (raw.endsWith("%")) {
+    const n = parseFloat(raw.replace("%", "").trim());
+    return isNaN(n) ? 0 : n; // "5%" -> 5
+  }
+  const n = parseFloat(raw);
+  if (isNaN(n)) return 0;
+  return n <= 1 ? n * 100 : n; // treat <=1 as fraction
 }
 
 export default function FundsComparisonTable(props: ComparisonProps) {
-  const gaugePosition: "top" | "bottom" = props.gaugePosition ?? "top";
-
   const isFunds = props.mode === "funds";
   const isCompanies = props.mode === "companies";
   const isSectors = props.mode === "sectors";
 
+  // ---- Optional lazy load of company dataset to resolve sectors (companies mode) ----
+  const [lazyCompanyData, setLazyCompanyData] = useState<CompanyDataRow[] | null>(null);
+  useEffect(() => {
+    if (!isCompanies) return;
+    const { allCompanyData, sectorLookupByIsin, sectorLookupByCompany } = props as CompanyModeProps;
+
+    const needFetch =
+      !allCompanyData && !sectorLookupByIsin && !sectorLookupByCompany && !lazyCompanyData;
+    if (!needFetch) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const rows = await getCompanyData();
+        if (!cancelled) setLazyCompanyData(rows);
+      } catch {
+        // ignore; we'll fallback to "—"
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isCompanies, props, lazyCompanyData]);
+
+  // Build effective sector maps (prefer explicit props, then allCompanyData, then lazy fetch)
+  const effectiveSectorByIsin = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (isCompanies) {
+      const { sectorLookupByIsin, allCompanyData } = props as CompanyModeProps;
+      if (allCompanyData) {
+        for (const r of allCompanyData) {
+          const isin = (r.isin || "").trim();
+          if (isin && r.sector) map[isin] = r.sector;
+        }
+      } else if (lazyCompanyData) {
+        for (const r of lazyCompanyData) {
+          const isin = (r.isin || "").trim();
+          if (isin && r.sector) map[isin] = r.sector;
+        }
+      }
+      if (sectorLookupByIsin) Object.assign(map, sectorLookupByIsin);
+    }
+    return map;
+  }, [isCompanies, props, lazyCompanyData]);
+
+  const effectiveSectorByName = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (isCompanies) {
+      const { sectorLookupByCompany, allCompanyData } = props as CompanyModeProps;
+      const src = allCompanyData ?? lazyCompanyData ?? [];
+      for (const r of src) {
+        const key = (r.companyName || "").trim().toLowerCase();
+        if (key && r.sector) map[key] = r.sector;
+      }
+      if (sectorLookupByCompany) {
+        for (const k of Object.keys(sectorLookupByCompany)) {
+          map[k.trim().toLowerCase()] = sectorLookupByCompany[k];
+        }
+      }
+    }
+    return map;
+  }, [isCompanies, props, lazyCompanyData]);
+
   // ---- Derived summary (for gauge + KPIs) ----
   let title = "Selected Items";
-  let esgScore = 0; // will feed gauge
-  let coveragePct = 0; // shown as "AUM/Companies Covered" depending on mode
+  let esgScore = 0;
+  let coveragePct = 0; // AUM% or Universe coverage%
   let rating = "D";
   let gaugeName = "Average Rating";
+
+  // extra counters for mode-specific UIs
+  let fundsCount = 0;
+  let companiesCount = 0;
+  let sectorsSelected = 0;
+  let companiesInSelectedSectors = 0;
 
   if (isFunds) {
     title = "Selected Funds";
     gaugeName = "Average Fund Rating";
 
-    // Weighted by each fund's percentage; fallback to simple average
-    const funds = props.funds;
+    const funds = (props as FundModeProps).funds;
+    fundsCount = funds.length;
+
     const weights = funds.map((f) => parsePercent(f.percentage));
     const totalW = weights.reduce((a, b) => a + b, 0);
-    const weightedSum = funds.reduce(
-      (acc, f, i) => acc + (f.score || 0) * (weights[i] || 0),
-      0
-    );
+    const weightedSum = funds.reduce((acc, f, i) => acc + (f.score || 0) * (weights[i] || 0), 0);
     esgScore =
       totalW > 0
         ? weightedSum / totalW
@@ -77,68 +159,194 @@ export default function FundsComparisonTable(props: ComparisonProps) {
         ? funds.reduce((a, f) => a + (f.score || 0), 0) / funds.length
         : 0;
 
-    coveragePct = Math.min(100, totalW);
+    coveragePct = Math.min(100, totalW); // "AUM Covered"
     rating = computeGrade(esgScore);
   } else if (isCompanies) {
     title = "Selected Companies";
     gaugeName = "Average Company Rating";
 
-    const companies = props.companies;
-    const n = companies.length;
+    const companies = (props as CompanyModeProps).companies as (PortfolioCompany & {
+      sector?: string;
+    })[];
+    companiesCount = companies.length;
 
-    esgScore =
-      n > 0
-        ? companies.reduce((a, c) => a + (c.esgScore || 0), 0) / n
-        : 0;
-
-    // Equal split → if any companies are picked, treat as 100% coverage
-    coveragePct = n > 0 ? 100 : 0;
+    esgScore = companiesCount > 0 ? companies.reduce((a, c) => a + (c.esgScore || 0), 0) / companiesCount : 0;
+    coveragePct = companiesCount > 0 ? 100 : 0; // equal split assumption (unused in UI below)
     rating = computeGrade(esgScore);
   } else {
-    // Sectors mode
     title = "Selected Sectors";
     gaugeName = "Average Sector Rating";
 
-    const { sectors, allCompanyData } = props;
+    const { sectors, allCompanyData } = props as SectorModeProps;
+    sectorsSelected = sectors.length;
 
-    // Per sector: average composite and count
     type SectorRow = { sectorName: string; count: number; avgComposite: number; grade: string };
     const sectorRows: SectorRow[] = sectors.map((name) => {
       const comps = allCompanyData.filter((c) => c.sector === name);
       const count = comps.length;
-      const avgComposite =
-        count > 0
-          ? comps.reduce((s, c) => s + (c.composite ?? 0), 0) / count
-          : 0;
-      return {
-        sectorName: name,
-        count,
-        avgComposite,
-        grade: computeGrade(avgComposite),
-      };
+      const avgComposite = count > 0 ? comps.reduce((s, c) => s + (c.composite ?? 0), 0) / count : 0;
+      return { sectorName: name, count, avgComposite, grade: computeGrade(avgComposite) };
     });
 
-    // Summary score: weighted average by company count
-    const totalCompanies = sectorRows.reduce((s, r) => s + r.count, 0);
-    const weightedSum = sectorRows.reduce(
-      (s, r) => s + r.avgComposite * r.count,
-      0
-    );
-    esgScore = totalCompanies > 0 ? weightedSum / totalCompanies : 0;
+    companiesInSelectedSectors = sectorRows.reduce((s, r) => s + r.count, 0);
+    const weightedSum = sectorRows.reduce((s, r) => s + r.avgComposite * r.count, 0);
+    esgScore = companiesInSelectedSectors > 0 ? weightedSum / companiesInSelectedSectors : 0;
     rating = computeGrade(esgScore);
 
-    // Coverage: how much of the total universe is covered by selected sectors
-    const universe = allCompanyData.length;
-    coveragePct =
-      universe > 0 ? Math.min(100, (totalCompanies / universe) * 100) : 0;
+    const universe = (props as SectorModeProps).allCompanyData.length;
+    coveragePct = universe > 0 ? Math.min(100, (companiesInSelectedSectors / universe) * 100) : 0; // Universe coverage%
   }
 
-  // ---- Gauge block for reuse ----
+  // ---- Gauge in a consistent card ----
   const GaugeBlock = (
-    <div className={gaugePosition === "bottom" ? "mt-6" : ""}>
+    <div className="text-center p-4 w-full min-h-32 flex items-center justify-center">
       <GreenRatingGauge score={esgScore} rating={rating} fundName={gaugeName} />
     </div>
   );
+
+  // ---- Mode-specific summary UIs -------------------------------------------------------
+  function FundsSummary() {
+    return (
+      <div className="bg-white border border-gray-200 rounded-large p-6 sm:p-8 mt-6">
+        <h4 className="text-xl font-bold text-brand-dark mb-6">My Fund Portfolio</h4>
+
+        <div className="mx-auto max-w-5xl">
+          <div className="grid gap-8 md:grid-cols-2 items-center">
+            {/* LEFT: Gauge */}
+            <div className="flex items-center justify-center">{GaugeBlock}</div>
+
+            {/* RIGHT: Score + AUM Covered */}
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div className="mr-5 flex-shrink-0 bg-indigo-100 rounded-full p-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-indigo-600">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 7v5l3 3" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-indigo-700 font-medium">Weighted ESG Score</p>
+                  <p className="text-4xl font-bold text-gray-800">{formatNumber(esgScore)}</p>
+                  <p className="text-xs text-gray-500 mt-1">{fundsCount} {fundsCount === 1 ? "fund" : "funds"} selected</p>
+                </div>
+              </div>
+
+              <div className="flex items-center p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div className="mr-5 flex-shrink-0 bg-teal-100 rounded-full p-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-teal-600">
+                    <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
+                    <path d="M22 12A10 10 0 0 0 12 2v10z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-teal-700 font-medium">AUM Covered</p>
+                  <p className="text-4xl font-bold text-gray-800">{formatNumber(coveragePct)}%</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p className="text-center text-xs text-gray-500 mt-2 max-w-xs mx-auto">
+          Ratings are calculated based on a weighted average, in line with each fund&apos;s % allocation of AUM.
+        </p>
+        </div>
+      </div>
+    );
+  }
+
+  function CompaniesSummary() {
+    return (
+      <div className="bg-white border border-gray-200 rounded-large p-6 sm:p-8 mt-6">
+        <h4 className="text-xl font-bold text-brand-dark mb-6">My Companies</h4>
+
+        <div className="mx-auto max-w-5xl">
+          <div className="grid gap-8 md:grid-cols-2 items-center">
+            {/* LEFT: Gauge */}
+            <div className="flex items-center justify-center">{GaugeBlock}</div>
+
+            {/* RIGHT: Score + Companies Selected */}
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div className="mr-5 flex-shrink-0 bg-indigo-100 rounded-full p-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-indigo-600">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 7v5l3 3" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-indigo-700 font-medium">Average ESG Score</p>
+                  <p className="text-4xl font-bold text-gray-800">{formatNumber(esgScore)}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div className="mr-5 flex-shrink-0 bg-teal-100 rounded-full p-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-teal-600">
+                    <path d="M3 7h18" /><path d="M3 12h18" /><path d="M3 17h18" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-teal-700 font-medium">Companies Selected</p>
+                  <p className="text-4xl font-bold text-gray-800">{companiesCount}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+                  <p className="text-center text-xs text-gray-500 mt-2 max-w-xs mx-auto">
+          Ratings are calculated based on a weighted average, in line with each fund&apos;s % allocation of AUM.
+        </p>
+        </div>
+      </div>
+    );
+  }
+
+  function SectorsSummary() {
+    return (
+      <div className="bg-white border border-gray-200 rounded-large p-6 sm:p-8 mt-6">
+        <h4 className="text-xl font-bold text-brand-dark mb-6">My Sectors</h4>
+
+        <div className="mx-auto max-w-5xl">
+          <div className="grid gap-8 md:grid-cols-2 items-center">
+            {/* LEFT: Gauge */}
+            <div className="flex items-center justify-center">{GaugeBlock}</div>
+
+            {/* RIGHT: Score + Companies Covered (+ coverage hint) */}
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div className="mr-5 flex-shrink-0 bg-indigo-100 rounded-full p-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-indigo-600">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 7v5l3 3" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-indigo-700 font-medium">Avg Composite Score</p>
+                  <p className="text-4xl font-bold text-gray-800">{formatNumber(esgScore)}</p>
+                  <p className="text-xs text-gray-500 mt-1">{sectorsSelected} selected sector{sectorsSelected === 1 ? "" : "s"}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div className="mr-5 flex-shrink-0 bg-teal-100 rounded-full p-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-teal-600">
+                    <path d="M16 21v-2a4 4 0 0 0-8 0v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm text-teal-700 font-medium">Companies Covered</p>
+                  <p className="text-4xl font-bold text-gray-800">{companiesInSelectedSectors}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p className="text-center text-xs text-gray-500 mt-2 max-w-xs mx-auto">
+          Ratings are calculated based on a weighted average, in line with each fund&apos;s % allocation of AUM.
+        </p>
+        </div>
+      </div>
+    );
+  }
+  // --------------------------------------------------------------------------------------
 
   return (
     <>
@@ -153,9 +361,9 @@ export default function FundsComparisonTable(props: ComparisonProps) {
                 {isFunds && (
                   <>
                     <th className="p-3 font-semibold text-gray-700">Fund Name</th>
-                    <th className="p-3 font-semibold text-gray-700">Score</th>
-                    <th className="p-3 font-semibold text-gray-700">Grade</th>
-                    <th className="p-3 font-semibold text-gray-700">Percent</th>
+                    <th className="p-3 font-semibold text-gray-700">ESG Composite Score</th>
+                    <th className="p-3 font-semibold text-gray-700">ESG Rating</th>
+                    <th className="p-3 font-semibold text-gray-700">Holding</th>
                     <th className="p-3 font-semibold text-gray-700">Action</th>
                   </>
                 )}
@@ -164,18 +372,18 @@ export default function FundsComparisonTable(props: ComparisonProps) {
                   <>
                     <th className="p-3 font-semibold text-gray-700">Company Name</th>
                     <th className="p-3 font-semibold text-gray-700">ISIN</th>
-                    <th className="p-3 font-semibold text-gray-700">AUM Covered (%)</th>
-                    <th className="p-3 font-semibold text-gray-700">ESG Score</th>
+                    <th className="p-3 font-semibold text-gray-700">Sector</th>
+                    <th className="p-3 font-semibold text-gray-700">ESG Composite Score</th>
                     <th className="p-3 font-semibold text-gray-700">Action</th>
                   </>
                 )}
 
                 {isSectors && (
                   <>
-                    <th className="p-3 font-semibold text-gray-700">Sector</th>
+                    <th className="p-3 font-semibold text-gray-700">Sector Name</th>
                     <th className="p-3 font-semibold text-gray-700">Companies</th>
                     <th className="p-3 font-semibold text-gray-700">Avg ESG Composite</th>
-                    <th className="p-3 font-semibold text-gray-700">Sector Grade</th>
+                    <th className="p-3 font-semibold text-gray-700">Sector ESG Rating</th>
                     <th className="p-3 font-semibold text-gray-700">Action</th>
                   </>
                 )}
@@ -184,65 +392,75 @@ export default function FundsComparisonTable(props: ComparisonProps) {
 
             <tbody>
               {isFunds &&
-                props.funds.map((f) => (
-                  <tr key={f.fundName} className="border-b border-gray-200">
-                    <td className="p-3 font-medium text-gray-800">{f.fundName}</td>
-                    <td className="p-3 text-gray-600">{formatNumber(f.score)}</td>
-                    <td className="p-3 text-gray-600">{f.grade}</td>
-                    <td className="p-3 text-gray-600">{f.percentage}</td>
-                    <td className="p-3">
-                      <button
-                        onClick={() => props.onRemoveFund(f.fundName)}
-                        className="text-red-600 hover:underline"
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-
-              {isCompanies &&
-                (() => {
-                  const companies = props.companies;
-                  const n = companies.length;
-                  const perCompanyAum = n > 0 ? 100 / n : 0; // equal split
-
-                  return companies.map((item) => (
-                    <tr key={item.isin} className="border-b border-gray-200">
-                      <td className="p-3 font-medium text-gray-800">
-                        {item.companyName}
-                      </td>
-                      <td className="p-3 text-gray-600">{item.isin}</td>
-                      <td className="p-3 text-gray-600">
-                        {formatNumber(perCompanyAum)}%
-                      </td>
-                      <td className="p-3 text-gray-800 font-bold">
-                        {formatNumber(item.esgScore)}
-                      </td>
+                (props as FundModeProps).funds.map((f) => {
+                  const holding = `${formatNumber(parsePercent(f.percentage))}%`;
+                  return (
+                    <tr key={f.fundName} className="border-b border-gray-200">
+                      <td className="p-3 font-medium text-gray-800">{f.fundName}</td>
+                      <td className="p-3 text-gray-600">{formatNumber(f.score)}</td>
+                      <td className="p-3 text-gray-600">{f.grade}</td>
+                      <td className="p-3 text-gray-600">{holding}</td>
                       <td className="p-3">
                         <button
-                          onClick={() => props.onRemoveCompany(item.isin)}
+                          onClick={() => (props as FundModeProps).onRemoveFund(f.fundName)}
                           className="text-red-600 hover:underline"
                         >
                           Remove
                         </button>
                       </td>
                     </tr>
-                  ));
+                  );
+                })}
+
+              {isCompanies &&
+                (() => {
+                  const {
+                    companies,
+                    onRemoveCompany,
+                    sectorLookupByIsin,
+                    sectorLookupByCompany,
+                  } = props as CompanyModeProps;
+
+                  return (companies as (PortfolioCompany & { sector?: string })[]).map((item) => {
+                    const normalizedName = (item.companyName || "").trim().toLowerCase();
+                    const sector =
+                      item.sector ??
+                      sectorLookupByIsin?.[item.isin] ??
+                      sectorLookupByCompany?.[item.companyName] ??
+                      effectiveSectorByIsin[item.isin] ??
+                      effectiveSectorByName[normalizedName] ??
+                      "—";
+
+                    return (
+                      <tr key={item.isin} className="border-b border-gray-200">
+                        <td className="p-3 font-medium text-gray-800">{item.companyName}</td>
+                        <td className="p-3 text-gray-600">{item.isin}</td>
+                        <td className="p-3 text-gray-600">{sector}</td>
+                        <td className="p-3 text-gray-800 font-bold">
+                          {formatNumber(item.esgScore)}
+                        </td>
+                        <td className="p-3">
+                          <button
+                            onClick={() => onRemoveCompany(item.isin)}
+                            className="text-red-600 hover:underline"
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  });
                 })()}
 
               {isSectors &&
                 (() => {
-                  const { sectors, allCompanyData, onRemoveSector } = props;
+                  const { sectors, allCompanyData, onRemoveSector } = props as SectorModeProps;
 
-                  // Build per-sector rows once here
                   const rows = sectors.map((name) => {
                     const comps = allCompanyData.filter((c) => c.sector === name);
                     const count = comps.length;
                     const avgComposite =
-                      count > 0
-                        ? comps.reduce((s, c) => s + (c.composite ?? 0), 0) / count
-                        : 0;
+                      count > 0 ? comps.reduce((s, c) => s + (c.composite ?? 0), 0) / count : 0;
                     return {
                       sectorName: name,
                       count,
@@ -275,36 +493,8 @@ export default function FundsComparisonTable(props: ComparisonProps) {
         </div>
       </div>
 
-      {/* Summary (Gauge + KPIs) */}
-      <div className="bg-white border border-gray-200 rounded-large p-6 sm:p-8 mt-6">
-        <h4 className="text-xl font-bold text-brand-dark mb-4">My Portfolio</h4>
-
-        {/* Gauge at TOP */}
-        {gaugePosition === "top" && GaugeBlock}
-
-        {/* KPIs */}
-        <div className="flex flex-wrap justify-center gap-8 mb-6">
-          <div className="text-center p-4 bg-brand-bg-light rounded-lg border border-green-200 w-64 h-32 flex flex-col justify-center">
-            <p className="text-sm text-indigo-600 font-medium">My Portfolio ESG Score</p>
-            <p className="text-3xl font-bold text-indigo-800">
-              {formatNumber(esgScore)}
-            </p>
-          </div>
-
-          {/* Label changes depending on mode */}
-          <div className="text-center p-4 bg-brand-bg-light rounded-lg border border-green-200 w-64 h-32 flex flex-col justify-center">
-            <p className="text-sm text-teal-600 font-medium">
-              {isFunds ? "AUM Covered" : isCompanies ? "AUM Covered" : "Companies Covered"}
-            </p>
-            <p className="text-3xl font-bold text-teal-800">
-              {formatNumber(coveragePct)}%
-            </p>
-          </div>
-        </div>
-
-        {/* Gauge at BOTTOM */}
-        {gaugePosition === "bottom" && GaugeBlock}
-      </div>
+      {/* -------- Mode-specific summary below -------- */}
+      {isFunds ? <FundsSummary /> : isCompanies ? <CompaniesSummary /> : <SectorsSummary />}
     </>
   );
 }

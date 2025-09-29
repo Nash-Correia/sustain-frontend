@@ -1,7 +1,7 @@
 "use client";
 import React, { useMemo, useState, useEffect } from "react";
-import Modal from "@/components/ui/Modal";
-import MultiSelect from "@/components/product/MultiSelect";
+import Modal from "../ui/Modal";
+import MultiSelect from "./MultiSelect";
 
 const EMAIL_RE = /^(?:[a-zA-Z0-9_'^&/+-])+(?:\.(?:[a-zA-Z0-9_'^&/+-])+)*@(?:(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})$/;
 
@@ -74,7 +74,7 @@ export default function RequestReportModal({ open, onClose, defaultCompany, year
 
       // 3. Define the subject and recipient
       const subject = "Request for Report";
-      const recipient = "nash.correia@iias.in"; // Changed for testing purposes
+      const recipient = "nash.correia@iias.in"; // You can change this to your desired email
 
       // 4. Construct the mailto link and trigger the user's email client
       const mailtoLink = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;

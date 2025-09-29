@@ -5,19 +5,23 @@ import React, { useEffect, useMemo, useState } from "react";
 import RatingTable, { type RatingRow } from "@/components/product/RatingTable";
 import { getCompanyData, type CompanyDataRow } from "@/lib/excel-data";
 import { LOGIN, SHOW_TABS_FOR_EMPTY_USER } from "@/lib/feature-flags";
+import RequestReportModal from "./RequestReportModal";
 
 /**
  * Adds:
  * - Tab switch (All Companies | My Reports) when LOGIN=true
  * - Ownership check: if user owns/downloaded a report → show "Show" action
  * - Inbuilt PDF viewer modal for "Show"
+ * - ✅ Request report modal opened from "Download" (no JSX return from handler)
  */
 
 // ===== Mock "user reports" (replace with real DB/API later) =====
 type UserReport = { company: string; year: number; reportUrl: string };
 // For testing: keep empty OR add one sample below.
-const DUMMY_USER_REPORTS: UserReport[] = [{ company: "Infosys Limited", year: 2024, reportUrl: "/reports/sample.pdf" }];
-//const DUMMY_USER_REPORTS: UserReport[] = [];
+const DUMMY_USER_REPORTS: UserReport[] = [
+  { company: "Infosys Limited", year: 2024, reportUrl: "/reports/sample.pdf" },
+];
+// const DUMMY_USER_REPORTS: UserReport[] = [];
 
 // Grade ordering helper for sorting (A+ best → D worst)
 const GRADE_ORDER = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D"];
@@ -57,6 +61,10 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
   // Inbuilt PDF viewer modal state
   const [viewerUrl, setViewerUrl] = useState<string | null>(null);
   const [viewerTitle, setViewerTitle] = useState<string>("");
+
+  // ✅ Request Report modal state
+  const [reqOpen, setReqOpen] = useState(false);
+  const [reqDefaultCompany, setReqDefaultCompany] = useState<string | undefined>(undefined);
 
   // ===== Load from Excel on mount (if not provided) =====
   useEffect(() => {
@@ -119,13 +127,15 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
   const myRows = useMemo<RatingRow[]>(() => {
     if (reportMap.size === 0) return [];
     // Bring over rows that match user reports (company & year)
-    return allRows.map((r) => {
-      const key = `${r.company}|${r.year}`;
-      if (reportMap.has(key)) {
-        return { ...r, reportUrl: reportMap.get(key)! };
-      }
-      return r;
-    }).filter((r) => reportMap.has(`${r.company}|${r.year}`));
+    return allRows
+      .map((r) => {
+        const key = `${r.company}|${r.year}`;
+        if (reportMap.has(key)) {
+          return { ...r, reportUrl: reportMap.get(key)! };
+        }
+        return r;
+      })
+      .filter((r) => reportMap.has(`${r.company}|${r.year}`));
   }, [allRows, reportMap]);
 
   // In production, show tabs only if the user has at least one report.
@@ -192,9 +202,9 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
 
   // ===== Actions =====
   function handleRequest(company: string) {
-    // TODO: Hook up to a real purchase/download flow
-    console.log("Download request for:", company, " (tab:", tab, ")");
-    alert(`Download requested for: ${company}`);
+    if (!LOGIN) return; // Download is disabled in UI when logged out
+    setReqDefaultCompany(company);
+    setReqOpen(true); // ✅ open the modal instead of returning JSX/alert
   }
 
   function handleShow(row: RatingRow) {
@@ -221,13 +231,10 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
               My Reports
             </TabButton>
           </div>
-          {SHOW_TABS_FOR_EMPTY_USER && myRows.length === 0 && (
-            <p className="mt-2 text-xs text-gray-500">
-              (Testing mode) You have 0 reports, but the tab switch is visible for UI testing.
-            </p>
-          )}
         </div>
       )}
+
+
 
       <RatingTable
         // data + pagination
@@ -254,6 +261,16 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
         isLoggedIn={LOGIN}
         hasReport={hasReport}
         onShow={handleShow}
+      />
+
+      {/* ✅ Request report modal (wired to Download button) */}
+      <RequestReportModal
+        open={reqOpen}
+        onClose={() => setReqOpen(false)}
+        defaultCompany={reqDefaultCompany}
+        year={filterYear}
+        loggedIn={LOGIN}
+        companyOptions={companyOptions}
       />
 
       {/* Inbuilt PDF/report viewer */}
