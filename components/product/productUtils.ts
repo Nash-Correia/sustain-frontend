@@ -70,14 +70,19 @@ export function getCellClass(
   return "text-gray-700";
 }
 
-// ---------- Extreme Highlight ----------
+// ---------- Extreme Highlight (CELL) ----------
 /**
- * Bold highlight for absolute extremes (highest/lowest) of a column.
- * Optionally restrict with `highlightColumns` to only some columns.
- * Returns background + ring + stronger text styles.
+ * STRICT highlight for ONLY the exact highest and exact lowest values.
+ * - Exact equality (===) with stats.min/stats.max.
+ * - If multiple rows share the exact min or max, all of those rows are highlighted.
+ * - If the column has no variation (min === max), nothing is highlighted.
+ *
+ * Use this when applying the class to the <td> itself.
  *
  * Usage:
- * className={`${getCellClass(...)} ${getExtremeClass("composite", v, stats, ["composite"])}`}
+ * <td className={`p-3 text-center ${getCellClass(...)} ${getExtremeClass("composite", v, stats, ["composite"])}`}>
+ *   {formatNumber(v)}
+ * </td>
  */
 export function getExtremeClass(
   column: string,
@@ -90,16 +95,47 @@ export function getExtremeClass(
   const s = stats[column];
   if (!Number.isFinite(v) || !s) return "";
 
-  // Float-safe equality check
-  const EPS = 1e-9;
-  const isMax = Math.abs(v - s.max) <= EPS * (Math.abs(s.max) + 1);
-  const isMin = Math.abs(v - s.min) <= EPS * (Math.abs(s.min) + 1);
+  const span = s.max - s.min;
+  // No variation → don't highlight anything
+  if (span === 0) return "";
 
-  if (isMax) {
-    return "bg-green-50 text-green-800 font-semibold ring-1 ring-green-300";
+  if (v === s.max) return "bg-green-50 text-green-800 font-semibold ring-1 ring-green-300";
+  if (v === s.min) return "bg-red-50 text-red-800 font-semibold ring-1 ring-red-300";
+  return "";
+}
+
+// ---------- Extreme Highlight (CHIP) ----------
+/**
+ * Same strict logic as getExtremeClass, but returns classes for an
+ * inline "pill/chip" you can wrap around the value (so you don't
+ * pad/round the entire <td>).
+ *
+ * Usage:
+ * <td className="p-3 text-center">
+ *   <span className={getExtremeChipClass("composite", v, stats, ["composite"])}>
+ *     {formatNumber(v)}
+ *   </span>
+ * </td>
+ */
+export function getExtremeChipClass(
+  column: string,
+  value: number | null | undefined,
+  stats: ColumnStatsMap,
+  highlightColumns?: string[]
+): string {
+  if (highlightColumns && !highlightColumns.includes(column)) return "";
+  const v = Number(value);
+  const s = stats[column];
+  if (!Number.isFinite(v) || !s) return "";
+
+  const span = s.max - s.min;
+  if (span === 0) return "";
+
+  if (v === s.max) {
+    return "inline-block px-2 py-0.5 rounded-full bg-green-50 text-green-800 font-semibold ring-1 ring-green-300";
   }
-  if (isMin) {
-    return "bg-red-50 text-red-800 font-semibold ring-1 ring-red-300";
+  if (v === s.min) {
+    return "inline-block px-2 py-0.5 rounded-full bg-red-50 text-red-800 font-semibold ring-1 ring-red-300";
   }
   return "";
 }

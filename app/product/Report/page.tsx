@@ -1,8 +1,7 @@
-// app/product-b/page.tsx (or wherever your route lives)
+// app/product-b/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
-import ProductHero from "@/components/product/ProductHero";
 import RatingsClient from "@/components/product/RatingsClient";
 import { RatingRow } from "@/components/product/RatingTable";
 import { getCompanyData } from "@/lib/excel-data";
@@ -36,9 +35,8 @@ export default function ProductBPage() {
 
       // Ensure ONE 2023 sample row for demo (prefer Infosys if present)
       const preferred =
-        deduped2024.find(
-          (r) => r.company.toLowerCase() === "infosys limited"
-        ) || deduped2024[0];
+        deduped2024.find((r) => r.company.toLowerCase() === "infosys limited") ||
+        deduped2024[0];
 
       const rowsWith2023 =
         preferred != null
@@ -51,9 +49,11 @@ export default function ProductBPage() {
 
   return (
     <>
-      {/* keeping your original heading/sub copy */}
-      <ProductHero heading="EGS Reports" sub={`Over ${rows.length} Companies Listed`} />
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-10">
+      {/* Container with comfortable top padding for better visual breathing room */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 lg:pt-16 pb-10">
+        {/* Optional spacer if you need a little extra separation from any page header */}
+        <div className="mb-4 sm:mb-6 lg:mb-8" />
+
         <RatingsClient initial={rows} />
       </section>
     </>

@@ -260,7 +260,7 @@ export default function TabbedSearch({
       : undefined;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 z-35">
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 sm:p-8">
         <h2 className="text-2xl font-bold text-brand-dark mb-6">
           ESG Rating Comparison
@@ -285,7 +285,7 @@ export default function TabbedSearch({
         </div>
 
         {/* Search */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="flex items-center gap-2">
             <div
               className="w-3 h-3 rounded-full"

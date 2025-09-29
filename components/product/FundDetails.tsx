@@ -2,79 +2,112 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CompanyDataRow, FundDataRow } from "@/lib/excel-data";
-import { formatNumber, getColumnStats, getCellClass } from "./productUtils";
+import {
+  formatNumber,
+  getColumnStats,
+  getExtremeChipClass,
+} from "./productUtils";
 
 type Props = {
   fund: FundDataRow | null;
   allCompanyData: CompanyDataRow[];
-  handleAddFundToList: (fund: FundDataRow) => void;
+  handleAddFundToList: (fund: FundDataRow) => void; // kept for parity, not used here now
 };
 
 export default function FundDetails({
   fund,
   allCompanyData,
-  handleAddFundToList,
 }: Props) {
-  if (!fund || !fund.fundName || !fund.fundName.trim()) {
-    return null;
-  }
+  if (!fund || !fund.fundName || !fund.fundName.trim()) return null;
 
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Reset expansion when fund changes (independent per selection)
   useEffect(() => {
     setIsExpanded(false);
   }, [fund.fundName]);
 
-  // TODO: replace this with actual fund holdings mapping
-  const rows = useMemo(() => {
-    return allCompanyData.slice(5, 20);
-  }, [allCompanyData]);
-
+  // TODO: replace with real holdings
+  const rows = useMemo(() => allCompanyData.slice(5, 20), [allCompanyData]);
   const totalCompanies = rows.length;
 
-  // ✅ Use COMPOSITE for averages (not esgScore)
   const avgScore =
     totalCompanies > 0
       ? rows.reduce((sum, r) => sum + (r.composite ?? 0), 0) / totalCompanies
       : 0;
 
-  // Include composite in page stats so we can color-scale that column too
   const pageStats = useMemo(
     () => getColumnStats(rows, ["composite", "esgScore", "e_score", "s_score", "g_score"]),
     [rows]
   );
 
   return (
-    <div className="bg-white border border-gray-200 rounded-large p-6 sm:p-8">
-      {/* Header */}
-    <div className="sticky top-0 bg-white  items-center justify-between mb-6">
-          <h3 className="text-2xl font-bold text-brand-dark">{fund.fundName}</h3>
-        </div>
-      <div className="flex items-center justify-end mb-6">
-
-
-        {/* Add to List (funds) */}
-        <button
-          onClick={() => handleAddFundToList(fund)}
-          className="px-4 py-2 bg-brand-action text-white rounded-lg text-sm font-medium hover:bg-brand-action/90 transition-colors"
-        >
-          Add to List
-        </button>
-      </div>
+    <div className="bg-white border border-gray-200 rounded-large p-6 sm:p-8 ">
+      {/* (Title moved to page-level sticky bar) */}
 
       {/* Overview tiles */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="text-center p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg border border-indigo-200">
-          <p className="text-sm text-indigo-600 font-medium">Total Companies</p>
-          <p className="text-3xl font-bold text-indigo-800">{totalCompanies}</p>
-        </div>
-        <div className="text-center p-4 bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg border border-teal-200">
-          {/* ✅ Label changed */}
-          <p className="text-sm text-teal-600 font-medium">Average ESG Composite Score</p>
-          <p className="text-3xl font-bold text-teal-800">{formatNumber(avgScore)}</p>
-        </div>
+<div className="mx-auto max-w-3xl">
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-12 mb-6">
+
+    {/* Average ESG Composite Score Card */}
+    <div className="flex gap-4 items-center p-6 bg-white rounded-xl border border-brand-bg-light shadow-sm ">
+      <div className="mr-5 flex-shrink-0 bg-teal-100 rounded-full p-3">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-teal-600"
+        >
+          <path d="M0 0h24v24H0z" stroke="none" fill="none"/>
+          <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+          <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+          <path d="M13.41 10.59l4.59 -4.59" />
+          <path d="M7 12a5 5 0 0 1 5 -5" />
+        </svg>
       </div>
+      <div>
+        <p className="text-4xl font-bold text-gray-800">{formatNumber(avgScore)}</p>
+        <p className="text-sm text-gray-600 font-medium">Average ESG Composite Score</p>
+      </div>
+    </div>
+
+    {/* Total Companies Card */}
+    <div className="flex gap-4 items-center p-6 bg-white rounded-xl border border-brand-bg-light shadow-sm ">
+      <div className="mr-5 flex-shrink-0 bg-cyan-100 rounded-full p-3">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-cyan-600"
+        >
+          <path d="M3 21h18" />
+          <path d="M5 21v-14l8 -4v18" />
+          <path d="M19 21v-10l-6 -4" />
+          <path d="M9 9v0" />
+          <path d="M9 12v0" />
+          <path d="M9 15v0" />
+          <path d="M9 18v0" />
+        </svg>
+      </div>
+      <div>
+        <p className="text-4xl font-bold text-gray-800">{totalCompanies}</p>
+        <p className="text-sm text-gray-600 font-medium">Total Companies</p>
+      </div>
+    </div>
+
+  </div>
+</div>
 
       {/* Toggle */}
       <div className="flex justify-end mb-6">
@@ -89,70 +122,109 @@ export default function FundDetails({
 
       {/* Companies table */}
       {totalCompanies > 0 ? (
-        <div className="relative h-[400px] overflow-y-auto overflow-x-hidden rounded-lg border border-gray-200 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-600">
+        <div className="relative h-[400px] overflow-auto rounded-lg border border-gray-200 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-600">
           <table className="w-full text-sm table-fixed">
-            <thead className="sticky top-0 bg-gray-100">
-              <tr>
-                <th className="text-left p-3 font-bold text-gray-700">Company</th>
-                <th className="text-left p-3 font-bold text-gray-700">Sector</th>
-                <th className="text-center p-3 font-bold text-gray-700">ESG Score</th>
-                {/* ✅ Rename header to ESG Composite Score */}
-                <th className="text-center p-3 font-bold text-gray-700">ESG Composite Score</th>
-                <th className="text-center p-3 font-bold text-gray-700">Rating</th>
-
-                {isExpanded && (
-                  <>
-                    <th className="text-center p-3 font-bold text-gray-700">E-Score</th>
-                    <th className="text-center p-3 font-bold text-gray-700">S-Score</th>
-                    <th className="text-center p-3 font-bold text-gray-700">G-Score</th>
-                    <th className="text-center p-3 font-bold text-gray-700">Positive</th>
-                    <th className="text-center p-3 font-bold text-gray-700">Negative</th>
-                    <th className="text-center p-3 font-bold text-gray-700">Controversy</th>
-                  </>
-                )}
-              </tr>
-            </thead>
-
-            <tbody>
-              {rows.map((company, index) => (
-                <tr
-                  key={`${company.isin || company.companyName}-${index}`}
-                  className="border-b border-gray-100 hover:bg-gray-50"
-                >
-                  <td className="p-3 font-medium text-gray-800">{company.companyName}</td>
-                  <td className="p-3 font-medium text-gray-800">{company.sector}</td>
-                  <td className={`p-3 text-center ${getCellClass("esgScore", company.esgScore, pageStats)}`}>
-                    {formatNumber(company.esgScore ?? 0)}
-                  </td>
-                  {/* ✅ Use composite with color scale */}
-                  <td className={`p-2 text-center ${getCellClass("composite", company.composite, pageStats)}`}>
-                    {formatNumber(company.composite ?? 0)}
-                  </td>
-                  <td className="p-3 text-center">
-                    <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-                      {company.grade ?? "-"}
-                    </span>
-                  </td>
-
-                  {isExpanded && (
-                    <>
-                      <td className={`p-3 text-center ${getCellClass("e_score", company.e_score, pageStats)}`}>
-                        {formatNumber(company.e_score ?? 0)}
-                      </td>
-                      <td className={`p-3 text-center ${getCellClass("s_score", company.s_score, pageStats)}`}>
-                        {formatNumber(company.s_score ?? 0)}
-                      </td>
-                      <td className={`p-3 text-center ${getCellClass("g_score", company.g_score, pageStats)}`}>
-                        {formatNumber(company.g_score ?? 0)}
-                      </td>
-                      <td className="p-3 text-center">{company.positive || "-"}</td>
-                      <td className="p-3 text-center">{company.negative || "-"}</td>
-                      <td className="p-3 text-center">{company.controversy || "-"}</td>
-                    </>
-                  )}
+            {!isExpanded ? (
+              <thead className="sticky top-0 bg-gray-100">
+                <tr>
+                  <th className="text-left p-3 font-bold text-gray-700">Company</th>
+                  <th className="text-left p-3 font-bold text-gray-700">Sector</th>
+                  <th className="text-center p-3 font-bold text-gray-700">ESG Pillar Score</th>
+                  <th className="text-center p-3 font-bold text-gray-700">ESG Composite Score</th>
+                  <th className="text-center p-3 font-bold text-gray-700">ESG Rating</th>
                 </tr>
-              ))}
-            </tbody>
+              </thead>
+            ) : (
+              <thead className="sticky top-0 bg-gray-100">
+                <tr>
+                  <th className="text-left p-3 font-bold text-gray-700">Company</th>
+                  <th className="text-left p-3 font-bold text-gray-700">Sector</th>
+                  <th className="text-center p-3 font-bold text-gray-700">E-Pillar Score</th>
+                  <th className="text-center p-3 font-bold text-gray-700">S-Pillar Score</th>
+                  <th className="text-center p-3 font-bold text-gray-700">G-Pillar Score</th>
+                  <th className="text-center p-3 font-bold text-gray-700">ESG Pillar Score</th>
+                  <th className="text-center p-3 font-bold text-gray-700">Positive Rating</th>
+                  <th className="text-center p-3 font-bold text-gray-700">Negative Rating</th>
+                  <th className="text-center p-3 font-bold text-gray-700">Controversy Rating</th>
+                  <th className="text-center p-3 font-bold text-gray-700">ESG Composite Score</th>
+                  <th className="text-center p-3 font-bold text-gray-700">ESG Rating</th>
+                </tr>
+              </thead>
+            )}
+
+            {!isExpanded ? (
+              <tbody>
+                {rows.map((company, index) => (
+                  <tr
+                    key={`${company.isin || company.companyName}-${index}-collapsed`}
+                    className="border-b border-gray-100 hover:bg-gray-50"
+                  >
+                    <td className="p-3 font-medium text-gray-800">{company.companyName}</td>
+                    <td className="p-3 text-gray-700">{company.sector}</td>
+                    <td className="p-3 text-center text-gray-800">
+                      <span className={getExtremeChipClass("esgScore", company.esgScore, pageStats)}>
+                        {formatNumber(company.esgScore ?? 0)}
+                      </span>
+                    </td>
+                    <td className="p-2 text-center text-gray-800">
+                      <span className={getExtremeChipClass("composite", company.composite, pageStats)}>
+                        {formatNumber(company.composite ?? 0)}
+                      </span>
+                    </td>
+                    <td className="p-3 text-center">
+                      <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                        {company.grade ?? "-"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            ) : (
+              <tbody>
+                {rows.map((company, index) => (
+                  <tr
+                    key={`${company.isin || company.companyName}-${index}-expanded`}
+                    className="border-b border-gray-100 hover:bg-gray-50"
+                  >
+                    <td className="p-3 font-medium text-gray-800">{company.companyName}</td>
+                    <td className="p-3 text-gray-700">{company.sector}</td>
+                    <td className="p-3 text-center text-gray-800">
+                      <span className={getExtremeChipClass("e_score", company.e_score, pageStats)}>
+                        {formatNumber(company.e_score ?? 0)}
+                      </span>
+                    </td>
+                    <td className="p-3 text-center text-gray-800">
+                      <span className={getExtremeChipClass("s_score", company.s_score, pageStats)}>
+                        {formatNumber(company.s_score ?? 0)}
+                      </span>
+                    </td>
+                    <td className="p-3 text-center text-gray-800">
+                      <span className={getExtremeChipClass("g_score", company.g_score, pageStats)}>
+                        {formatNumber(company.g_score ?? 0)}
+                      </span>
+                    </td>
+                    <td className="p-3 text-center text-gray-800">
+                      <span className={getExtremeChipClass("esgScore", company.esgScore, pageStats)}>
+                        {formatNumber(company.esgScore ?? 0)}
+                      </span>
+                    </td>
+                    <td className="p-3 text-center">{company.positive || "-"}</td>
+                    <td className="p-3 text-center">{company.negative || "-"}</td>
+                    <td className="p-3 text-center">{company.controversy || "-"}</td>
+                    <td className="p-3 text-center text-gray-800">
+                      <span className={getExtremeChipClass("composite", company.composite, pageStats)}>
+                        {formatNumber(company.composite ?? 0)}
+                      </span>
+                    </td>
+                    <td className="p-3 text-center">
+                      <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                        {company.grade ?? "-"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            )}
           </table>
         </div>
       ) : (

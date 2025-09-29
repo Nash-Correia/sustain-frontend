@@ -155,7 +155,7 @@ export default function SearchableSelect({
 
       {/* Popover */}
       {isOpen && (
-        <div className="absolute z-10 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg">
+        <div className="absolute z-35 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg">
           {/* Search box */}
           <div className="p-2">
             <input
