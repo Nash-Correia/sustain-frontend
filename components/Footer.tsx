@@ -8,27 +8,27 @@ const footerSections = [
     title: "Links",
     links: [
       { text: "About IiAS", href: ROUTES.about },
-      { text: "Company Profile", href: "#" }, // Placeholder link
-      { text: "Board of Directors", href: "#" }, // Added new link
+      { text: "Company Profile", href:  ROUTES.about }, // Placeholder link
+      { text: "Board of Directors", href:  ROUTES.about }, // Added new link
     ],
   },
   {
     title: "Products",
     links: [
-      { text: "Voting Advisory", href: "#" }, // Placeholder link
-      { text: "Voting Analytics", href: "#" }, // Placeholder link
-      { text: "Compayre", href: "#" }, // Placeholder link
-      { text: "Governance Scorecard", href: "#" }, // Placeholder link
-      { text: "ESG Advisory", href: ROUTES.productB },
+      { text: "Voting Advisory", href: "https://www.iiasadvisory.com/voting-advisory" }, // Placeholder link
+      { text: "Voting Analytics", href: "https://www.iiasadrian.com/" }, // Placeholder link
+      { text: "Compayre", href: "https://www.iiascompayre.com/introduction" }, // Placeholder link
+      { text: "Governance Scorecard", href: "https://www.iiasadvisory.com/governance-Scorecard" }, // Placeholder link
+      { text: "ESG Advisory", href: "https://www.iiasadvisory.com/esg" },
     ],
   },
   {
     title: "Company",
     links: [
-      { text: "Privacy Policy", href: "#" }, // Placeholder link
-      { text: "Terms of Use", href: "#" }, // Placeholder link
-      { text: "Disclaimer", href: "#" }, // Placeholder link
-      { text: "Return and refund policy", href: "#" }, // Placeholder link
+      { text: "Privacy Policy", href: "https://www.iiasadvisory.com/privacy#privacy" }, // Placeholder link
+      { text: "Terms of Use", href: "https://www.iiasadvisory.com/privacy#useterm" }, // Placeholder link
+      { text: "Disclaimer", href: "https://www.iiasadvisory.com/privacy#disclaimer" }, // Placeholder link
+      { text: "Return and refund policy", href: "https://www.iiasadvisory.com/privacy#returns" }, // Placeholder link
     ],
   },
 ];
@@ -83,10 +83,10 @@ export default function Footer() {
             © {new Date().getFullYear()} IiAS. All Rights Reserved.
           </span>
           <div className="flex items-center gap-6 text-base">
-             <Link href="#" className="text-gray-500 hover:text-teal-btn transition-colors">
+             <Link href="https://www.iiasadvisory.com/privacy#desclaimer" className="text-gray-500 hover:text-teal-btn transition-colors">
                Disclaimer
              </Link>
-             <Link href="#" className="text-gray-500 hover:text-teal-btn transition-colors">
+             <Link href="https://www.iiasadvisory.com/privacy#useterm" className="text-gray-500 hover:text-teal-btn transition-colors">
                Terms & Conditions
              </Link>
           </div>

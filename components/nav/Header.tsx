@@ -6,48 +6,67 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
 import { clsx } from "@/lib/utils";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { LOGIN } from "@/lib/feature-flags";
+
+/** Simple person/user icon */
+function PersonIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      {...props}
+      className={clsx("h-5 w-5", props.className)}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+      <path d="M20 21a8 8 0 1 0-16 0" />
+    </svg>
+  );
+}
 
 /** Props we may inject into dropdown children */
 type WithSetOpen = { setOpen?: (v: boolean) => void };
 
-/** Type guard: is a valid React element */
+/** Type guards */
 function isElement(node: React.ReactNode): node is React.ReactElement {
   return React.isValidElement(node);
 }
-
-/** Type guard: a Fragment with children (so props.children is known) */
 function isFragmentElement(
   node: React.ReactNode
-): node is React.ReactElement<{ children?: React.ReactNode }> {
+): node is React.ReactElement<{ children?: React.ReactNode }>
+{
   return isElement(node) && node.type === React.Fragment;
 }
+function isDomTag(el: React.ReactElement): boolean {
+  return typeof el.type === "string";
+}
 
-/** Safely inject setOpen into children (skips Fragments themselves, recurses into their children) */
+/** Inject setOpen only into custom components (not DOM nodes) */
 function injectSetOpenIntoChildren(
   children: React.ReactNode,
   setOpen: (v: boolean) => void
 ): React.ReactNode {
   return React.Children.map(children, (child) => {
     if (!isElement(child)) return child;
-
-    // If it's a Fragment, do NOT pass props to the Fragment; recurse into its children
     if (isFragmentElement(child)) {
       const fragKids = injectSetOpenIntoChildren(child.props.children, setOpen);
       return <>{fragKids}</>;
     }
-
-    // Normal element: clone with setOpen prop
+    if (isDomTag(child)) return child;
     return React.cloneElement(child as React.ReactElement<WithSetOpen>, { setOpen });
   });
 }
 
-/** Reusable Dropdown */
+/** Compact Dropdown */
 function Dropdown({
   label,
   children,
   className,
-  align = "right", // "right" | "center"
+  align = "right",
 }: {
   label: React.ReactNode;
   children: React.ReactNode;
@@ -70,14 +89,18 @@ function Dropdown({
   return (
     <div className="relative" ref={ref}>
       <button
-        className={clsx("inline-flex items-center gap-2", className)}
+        className={clsx(
+          // Fixed size & centering so it looks identical in both states
+          "inline-flex items-center justify-center gap-1.5 h-11 w-36",
+          className
+        )}
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="true"
         aria-expanded={open}
       >
         {label}
         <svg
-          className={clsx("h-5 w-5 transition-transform", open && "rotate-180")}
+          className={clsx("h-4 w-4 transition-transform", open && "rotate-180")}
           viewBox="0 0 20 20"
           fill="currentColor"
           aria-hidden="true"
@@ -88,20 +111,20 @@ function Dropdown({
 
       <div
         className={clsx(
-          "absolute z-30 mt-3 w-64 rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden transition-all duration-150 ease-out",
+          "absolute z-30 mt-2 min-w-[10rem] rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden transition-all duration-150 ease-out",
           align === "center" ? "left-1/2 -translate-x-1/2" : "right-0",
           open ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
         )}
         role="menu"
         aria-hidden={!open}
       >
-        <div className="py-2">{renderedChildren}</div>
+        <div className="p-1">{renderedChildren}</div>
       </div>
     </div>
   );
 }
 
-/** Link item used inside dropdowns */
+/** Compact items */
 function MenuItem({
   href,
   children,
@@ -115,7 +138,7 @@ function MenuItem({
     <Link
       href={href}
       role="menuitem"
-      className="block w-full text-left px-4 py-2 text-lg text-gray-700 hover:bg-gray-50"
+      className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm text-gray-800 hover:bg-gray-50"
       onClick={() => setOpen?.(false)}
     >
       {children}
@@ -123,7 +146,6 @@ function MenuItem({
   );
 }
 
-/** Action item (button) used inside dropdowns */
 function MenuAction({
   onClick,
   children,
@@ -137,7 +159,7 @@ function MenuAction({
     <button
       type="button"
       role="menuitem"
-      className="block w-full text-left px-4 py-2 text-lg text-gray-700 hover:bg-gray-50"
+      className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm text-gray-800 hover:bg-gray-50"
       onClick={() => {
         onClick();
         setOpen?.(false);
@@ -152,7 +174,6 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
-  const { user, signOut } = useAuth();
 
   useEffect(() => setMobileOpen(false), [pathname]);
 
@@ -166,14 +187,21 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Base classes for top nav links
   const navLinkClasses =
     "relative px-2 py-2 text-xl font-medium text-gray-900 hover:text-gray-700 transition-colors after:content-[''] after:absolute after:left-2 after:right-2 after:bottom-0 after:h-0.5 after:bg-teal-600 after:transform after:scale-x-0 after:transition-transform after:duration-300 hover:after:scale-x-100 focus-visible:after:scale-x-100";
 
-  // One auth button: either "Login" or "User" with dropdown
-  const authLabel = !user ? "Login" : "User";
+  const isLoggedIn = LOGIN;
+
+  // Label swaps, but the button keeps same fixed size via Dropdown trigger classes
+  const authLabel = !isLoggedIn ? (
+    <span className="leading-none">Login</span>
+  ) : (
+    <PersonIcon />
+  );
+
+  // Green button style (shared)
   const authButtonClasses =
-    "px-5 py-3 bg-login-btn hover:bg-opacity-90 text-white font-bold text-lg rounded-md shadow-sm transition-colors";
+    "bg-login-btn hover:bg-opacity-90 text-white font-semibold text-base rounded-md shadow-sm transition-colors";
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 bg-white/90 backdrop-blur border-b border-gray-200">
@@ -185,8 +213,8 @@ export default function Header() {
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-8">
-            <nav className="flex items-center gap-8 text-xl">
+          <div className="hidden md:flex items-center gap-6">
+            <nav className="flex items-center gap-6 text-xl">
               <Dropdown label="Products" className={navLinkClasses} align="center">
                 <MenuItem href={ROUTES.productA}>ESG Comparison</MenuItem>
                 <MenuItem href={ROUTES.productB}>ESG Reports</MenuItem>
@@ -200,16 +228,21 @@ export default function Header() {
               </Link>
             </nav>
 
-            {/* ✅ Single Auth Button with Dropdown */}
+            {/* Auth Trigger (icon or "Login") with consistent button size */}
             <Dropdown label={authLabel} className={authButtonClasses} align="right">
-              {!user ? (
+              {!isLoggedIn ? (
                 <>
                   <MenuItem href={ROUTES.login}>Login</MenuItem>
                   <MenuItem href={ROUTES.signup}>Sign Up</MenuItem>
                 </>
               ) : (
                 <>
+                  {/* Uncomment and wire when backend is ready
                   <MenuAction onClick={signOut}>Logout</MenuAction>
+                  */}
+                  <div className="px-3 py-1.5 text-sm text-gray-600 select-none">
+                    Logout 
+                  </div>
                 </>
               )}
             </Dropdown>
@@ -229,7 +262,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* TODO: Mobile menu implementation can mirror the single-button logic if needed */}
+      {/* (Optional) Mobile menu omitted for brevity */}
     </header>
   );
 }
