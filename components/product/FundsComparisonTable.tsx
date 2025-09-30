@@ -225,7 +225,7 @@ export default function FundsComparisonTable(props: ComparisonProps) {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm text-indigo-700 font-medium">Weighted ESG Score</p>
+                  <p className="text-sm text-indigo-700 font-medium">Weighted ESG Composite Score</p>
                   <p className="text-4xl font-bold text-gray-800">{formatNumber(esgScore)}</p>
                   <p className="text-xs text-gray-500 mt-1">{fundsCount} {fundsCount === 1 ? "fund" : "funds"} selected</p>
                 </div>
@@ -319,7 +319,7 @@ export default function FundsComparisonTable(props: ComparisonProps) {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm text-indigo-700 font-medium">Avg Composite Score</p>
+                  <p className="text-sm text-indigo-700 font-medium">Average Composite Score</p>
                   <p className="text-4xl font-bold text-gray-800">{formatNumber(esgScore)}</p>
                   <p className="text-xs text-gray-500 mt-1">{sectorsSelected} selected sector{sectorsSelected === 1 ? "" : "s"}</p>
                 </div>
@@ -382,7 +382,7 @@ export default function FundsComparisonTable(props: ComparisonProps) {
                   <>
                     <th className="p-3 font-semibold text-gray-700">Sector Name</th>
                     <th className="p-3 font-semibold text-gray-700">Companies</th>
-                    <th className="p-3 font-semibold text-gray-700">Avg ESG Composite</th>
+                    <th className="p-3 font-semibold text-gray-700">Average ESG Composite</th>
                     <th className="p-3 font-semibold text-gray-700">Sector ESG Rating</th>
                     <th className="p-3 font-semibold text-gray-700">Action</th>
                   </>

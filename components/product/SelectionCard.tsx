@@ -320,14 +320,14 @@ export default function SelectionCard({
                   <tr>
                     <th className="text-left p-3 font-semibold text-gray-700">Company</th>
                     <th className="text-center p-3 font-semibold text-gray-700">ESG Score</th>
-                    <th className="text-center p-3 font-semibold text-gray-700">ESG Composite</th>
-                    <th className="text-center p-3 font-semibold text-gray-700">Grade</th>
-                    <th className="text-center p-3 font-semibold text-gray-700">E-Score</th>
-                    <th className="text-center p-3 font-semibold text-gray-700">S-Score</th>
-                    <th className="text-center p-3 font-semibold text-gray-700">G-Score</th>
-                    <th className="text-left p-3 font-semibold text-gray-700">Positive</th>
-                    <th className="text-left p-3 font-semibold text-gray-700">Negative</th>
-                    <th className="text-left p-3 font-semibold text-gray-700">Controversy</th>
+                    <th className="text-center p-3 font-semibold text-gray-700">ESG Composite Score</th>
+                    <th className="text-center p-3 font-semibold text-gray-700">ESG Rating</th>
+                    <th className="text-center p-3 font-semibold text-gray-700">E-Pillar Score</th>
+                    <th className="text-center p-3 font-semibold text-gray-700">S-Pillar Score</th>
+                    <th className="text-center p-3 font-semibold text-gray-700">G-Pillar Score</th>
+                    <th className="text-left p-3 font-semibold text-gray-700">Positive Screen</th>
+                    <th className="text-left p-3 font-semibold text-gray-700">Negative Screen</th>
+                    <th className="text-left p-3 font-semibold text-gray-700">Controversy Rating</th>
                   </tr>
                 </thead>
                 <tbody>

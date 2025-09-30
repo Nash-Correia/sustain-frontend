@@ -49,10 +49,10 @@ const ReportsIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export default function StatsGrid() {
   const stats = [
     { value: "Top 500", label: "Companies Covered", Icon: CompanyIcon },
-    { value: "2010", label: "Year of Establishment", Icon: CalendarIcon },
+    { value: "2010", label: "IiAS's Year of Establishment", Icon: CalendarIcon },
     { value: "SEBI", label: "Registered ERP", Icon: ErpIcon },
     { value: "UN PRI", label: "Signatory of UN PRI", Icon: PriIcon },
-    { value: "700", label: "Reports Generated", Icon: ReportsIcon },
+    { value: "700+", label: "Reports Generated", Icon: ReportsIcon },
   ];
 
   // Spring transition

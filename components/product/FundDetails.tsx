@@ -7,6 +7,7 @@ import {
   getColumnStats,
   getExtremeChipClass,
 } from "./productUtils";
+import { InfoTooltip } from "@/components/ui/InfoTooltip"; 
 
 type Props = {
   fund: FundDataRow | null;
@@ -72,7 +73,7 @@ export default function FundDetails({
       </div>
       <div>
         <p className="text-4xl font-bold text-gray-800">{formatNumber(avgScore)}</p>
-        <p className="text-sm text-gray-600 font-medium">Average ESG Composite Score</p>
+        <p className="text-sm text-gray-600 font-medium">Weighted ESG Composite Score</p>
       </div>
     </div>
 
@@ -120,113 +121,177 @@ export default function FundDetails({
         </button>
       </div>
 
-      {/* Companies table */}
-      {totalCompanies > 0 ? (
-        <div className="relative h-[400px] overflow-auto rounded-lg border border-gray-200 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-600">
-          <table className="w-full text-sm table-fixed">
-            {!isExpanded ? (
-              <thead className="sticky top-0 bg-gray-100">
-                <tr>
-                  <th className="text-left p-3 font-bold text-gray-700">Company</th>
-                  <th className="text-left p-3 font-bold text-gray-700">Sector</th>
-                  <th className="text-center p-3 font-bold text-gray-700">ESG Pillar Score</th>
-                  <th className="text-center p-3 font-bold text-gray-700">ESG Composite Score</th>
-                  <th className="text-center p-3 font-bold text-gray-700">ESG Rating</th>
-                </tr>
-              </thead>
-            ) : (
-              <thead className="sticky top-0 bg-gray-100">
-                <tr>
-                  <th className="text-left p-3 font-bold text-gray-700">Company</th>
-                  <th className="text-left p-3 font-bold text-gray-700">Sector</th>
-                  <th className="text-center p-3 font-bold text-gray-700">E-Pillar Score</th>
-                  <th className="text-center p-3 font-bold text-gray-700">S-Pillar Score</th>
-                  <th className="text-center p-3 font-bold text-gray-700">G-Pillar Score</th>
-                  <th className="text-center p-3 font-bold text-gray-700">ESG Pillar Score</th>
-                  <th className="text-center p-3 font-bold text-gray-700">Positive Rating</th>
-                  <th className="text-center p-3 font-bold text-gray-700">Negative Rating</th>
-                  <th className="text-center p-3 font-bold text-gray-700">Controversy Rating</th>
-                  <th className="text-center p-3 font-bold text-gray-700">ESG Composite Score</th>
-                  <th className="text-center p-3 font-bold text-gray-700">ESG Rating</th>
-                </tr>
-              </thead>
-            )}
+      {/* Somewhere at the top of this file, make sure you import the InfoTooltip component:
 
-            {!isExpanded ? (
-              <tbody>
-                {rows.map((company, index) => (
-                  <tr
-                    key={`${company.isin || company.companyName}-${index}-collapsed`}
-                    className="border-b border-gray-100 hover:bg-gray-50"
-                  >
-                    <td className="p-3 font-medium text-gray-800">{company.companyName}</td>
-                    <td className="p-3 text-gray-700">{company.sector}</td>
-                    <td className="p-3 text-center text-gray-800">
-                      <span className={getExtremeChipClass("esgScore", company.esgScore, pageStats)}>
-                        {formatNumber(company.esgScore ?? 0)}
-                      </span>
-                    </td>
-                    <td className="p-2 text-center text-gray-800">
-                      <span className={getExtremeChipClass("composite", company.composite, pageStats)}>
-                        {formatNumber(company.composite ?? 0)}
-                      </span>
-                    </td>
-                    <td className="p-3 text-center">
-                      <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-                        {company.grade ?? "-"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            ) : (
-              <tbody>
-                {rows.map((company, index) => (
-                  <tr
-                    key={`${company.isin || company.companyName}-${index}-expanded`}
-                    className="border-b border-gray-100 hover:bg-gray-50"
-                  >
-                    <td className="p-3 font-medium text-gray-800">{company.companyName}</td>
-                    <td className="p-3 text-gray-700">{company.sector}</td>
-                    <td className="p-3 text-center text-gray-800">
-                      <span className={getExtremeChipClass("e_score", company.e_score, pageStats)}>
-                        {formatNumber(company.e_score ?? 0)}
-                      </span>
-                    </td>
-                    <td className="p-3 text-center text-gray-800">
-                      <span className={getExtremeChipClass("s_score", company.s_score, pageStats)}>
-                        {formatNumber(company.s_score ?? 0)}
-                      </span>
-                    </td>
-                    <td className="p-3 text-center text-gray-800">
-                      <span className={getExtremeChipClass("g_score", company.g_score, pageStats)}>
-                        {formatNumber(company.g_score ?? 0)}
-                      </span>
-                    </td>
-                    <td className="p-3 text-center text-gray-800">
-                      <span className={getExtremeChipClass("esgScore", company.esgScore, pageStats)}>
-                        {formatNumber(company.esgScore ?? 0)}
-                      </span>
-                    </td>
-                    <td className="p-3 text-center">{company.positive || "-"}</td>
-                    <td className="p-3 text-center">{company.negative || "-"}</td>
-                    <td className="p-3 text-center">{company.controversy || "-"}</td>
-                    <td className="p-3 text-center text-gray-800">
-                      <span className={getExtremeChipClass("composite", company.composite, pageStats)}>
-                        {formatNumber(company.composite ?? 0)}
-                      </span>
-                    </td>
-                    <td className="p-3 text-center">
-                      <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-                        {company.grade ?? "-"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            )}
-          </table>
-        </div>
+*/}
+
+{/* Companies table */}
+{totalCompanies > 0 ? (
+  <div className="relative h-[400px] overflow-auto rounded-lg border border-gray-200 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-600">
+    <table className="w-full text-sm table-fixed">
+      {!isExpanded ? (
+        <thead className="sticky top-0 bg-gray-100">
+          <tr>
+            <th className="text-left p-3 font-bold text-gray-700">Company</th>
+            <th className="text-left p-3 font-bold text-gray-700">Sector</th>
+            <th className="text-center p-3 font-bold text-gray-700">
+              <div className="flex items-center justify-center">
+                <span>ESG Pillar Score</span>
+                <InfoTooltip id="esgPillarScore" />
+              </div>
+            </th>
+            <th className="text-center p-3 font-bold text-gray-700">
+              <div className="flex items-center justify-center">
+                <span>ESG Composite Score</span>
+                <InfoTooltip id="esgCompositeScore" />
+              </div>
+            </th>
+            <th className="text-center p-3 font-bold text-gray-700">
+              <div className="flex items-center justify-center">
+                <span>ESG Rating</span>
+                <InfoTooltip id="esgRating" />
+              </div>
+            </th>
+          </tr>
+        </thead>
+      ) : (
+        <thead className="sticky top-0 bg-gray-100">
+          <tr>
+            <th className="text-left p-3 font-bold text-gray-700">Company</th>
+            <th className="text-left p-3 font-bold text-gray-700">Sector</th>
+            <th className="text-center p-3 font-bold text-gray-700">
+              <div className="flex items-center justify-center">
+                <span>E-Pillar Score</span>
+                <InfoTooltip id="environmentalPillar" />
+              </div>
+            </th>
+            <th className="text-center p-3 font-bold text-gray-700">
+              <div className="flex items-center justify-center">
+                <span>S-Pillar Score</span>
+                <InfoTooltip id="socialPillar" />
+              </div>
+            </th>
+            <th className="text-center p-3 font-bold text-gray-700">
+              <div className="flex items-center justify-center">
+                <span>G-Pillar Score</span>
+                <InfoTooltip id="governancePillar" />
+              </div>
+            </th>
+            <th className="text-center p-3 font-bold text-gray-700">
+              <div className="flex items-center justify-center">
+                <span>ESG Pillar Score</span>
+                <InfoTooltip id="esgPillarScore" />
+              </div>
+            </th>
+            <th className="text-center p-3 font-bold text-gray-700">
+              <div className="flex items-center justify-center">
+                <span>Positive Screen</span>
+                <InfoTooltip id="positiveScreen" />
+              </div>
+            </th>
+            <th className="text-center p-3 font-bold text-gray-700">
+              <div className="flex items-center justify-center">
+                <span>Negative Screen</span>
+                <InfoTooltip id="negativeScreen" />
+              </div>
+            </th>
+            <th className="text-center p-3 font-bold text-gray-700">
+              <div className="flex items-center justify-center">
+                <span>Controversy Rating</span>
+                <InfoTooltip id="controversyRating" />
+              </div>
+            </th>
+            <th className="text-center p-3 font-bold text-gray-700">
+              <div className="flex items-center justify-center">
+                <span>ESG Composite Score</span>
+                <InfoTooltip id="esgCompositeScore" />
+              </div>
+            </th>
+            <th className="text-center p-3 font-bold text-gray-700">
+              <div className="flex items-center justify-center">
+                <span>ESG Rating</span>
+                <InfoTooltip id="esgRating" />
+              </div>
+            </th>
+          </tr>
+        </thead>
+      )}
+
+      {!isExpanded ? (
+        <tbody>
+          {rows.map((company, index) => (
+            <tr
+              key={`${company.isin || company.companyName}-${index}-collapsed`}
+              className="border-b border-gray-100 hover:bg-gray-50"
+            >
+              <td className="p-3 font-medium text-gray-800">{company.companyName}</td>
+              <td className="p-3 text-gray-700">{company.sector}</td>
+              <td className="p-3 text-center text-gray-800">
+                <span className={getExtremeChipClass("esgScore", company.esgScore, pageStats)}>
+                  {formatNumber(company.esgScore ?? 0)}
+                </span>
+              </td>
+              <td className="p-2 text-center text-gray-800">
+                <span className={getExtremeChipClass("composite", company.composite, pageStats)}>
+                  {formatNumber(company.composite ?? 0)}
+                </span>
+              </td>
+              <td className="p-3 text-center">
+                <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                  {company.grade ?? "-"}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      ) : (
+        <tbody>
+          {rows.map((company, index) => (
+            <tr
+              key={`${company.isin || company.companyName}-${index}-expanded`}
+              className="border-b border-gray-100 hover:bg-gray-50"
+            >
+              <td className="p-3 font-medium text-gray-800">{company.companyName}</td>
+              <td className="p-3 text-gray-700">{company.sector}</td>
+              <td className="p-3 text-center text-gray-800">
+                <span className={getExtremeChipClass("e_score", company.e_score, pageStats)}>
+                  {formatNumber(company.e_score ?? 0)}
+                </span>
+              </td>
+              <td className="p-3 text-center text-gray-800">
+                <span className={getExtremeChipClass("s_score", company.s_score, pageStats)}>
+                  {formatNumber(company.s_score ?? 0)}
+                </span>
+              </td>
+              <td className="p-3 text-center text-gray-800">
+                <span className={getExtremeChipClass("g_score", company.g_score, pageStats)}>
+                  {formatNumber(company.g_score ?? 0)}
+                </span>
+              </td>
+              <td className="p-3 text-center text-gray-800">
+                <span className={getExtremeChipClass("esgScore", company.esgScore, pageStats)}>
+                  {formatNumber(company.esgScore ?? 0)}
+                </span>
+              </td>
+              <td className="p-3 text-center">{company.positive || "-"}</td>
+              <td className="p-3 text-center">{company.negative || "-"}</td>
+              <td className="p-3 text-center">{company.controversy || "-"}</td>
+              <td className="p-3 text-center text-gray-800">
+                <span className={getExtremeChipClass("composite", company.composite, pageStats)}>
+                  {formatNumber(company.composite ?? 0)}
+                </span>
+              </td>
+              <td className="p-3 text-center">
+                <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                  {company.grade ?? "-"}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      )}
+    </table>
+  </div>
       ) : (
         <div className="border border-ui-border rounded-lg p-6 bg-ui-fill text-ui-text-secondary">
           No companies available for this fund’s current holdings.

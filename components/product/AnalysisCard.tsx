@@ -4,6 +4,39 @@
 import React from "react";
 import { formatNumber } from "./productUtils";
 import type { CompanyDataRow } from "@/lib/excel-data";
+import {
+  Landmark,
+  FileText,
+  Award,
+  ChevronRight,
+  Leaf,
+  Users,
+  Building2,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  ChevronDown,     // New icon import
+  GraduationCap,   // New icon import
+  TrendingUp,      // New icon import
+  Minus,           // New icon import
+  TrendingDown,    // New icon import
+} from 'lucide-react';
+
+// --- ICONS ---
+const PillarIcon = () => <Landmark className="w-12 h-12 text-teal-700" />;
+const ScreenIcon = () => <FileText className="w-12 h-12 text-teal-700" />;
+const RatingIcon = () => <Award className="w-12 h-12 text-yellow-500" />;
+const GradeIcon = () => <GraduationCap className="w-12 h-12 text-teal-500" />; // New Icon
+const ThickArrow = () => <ChevronRight className="w-10 h-10 text-gray-400" />;
+const VerticalThickArrow = () => <ChevronDown className="w-10 h-10 text-gray-400 my-2" />; // New Component
+const EnvIcon = () => <Leaf className="w-9 h-9" style={{ color: '#1c4439' }} />;
+const SocialIcon = () => <Users className="w-9 h-9" style={{ color: '#6ec8bd' }} />;
+const GovIcon = () => <Building2 className="w-9 h-9" style={{ color: '#cada8e' }} />;
+const PositiveIcon = () => <CheckCircle2 className="w-9 h-9 text-green-600" />;
+const NegativeIcon = () => <XCircle className="w-9 h-9 text-red-600" />;
+const ControversyIcon = () => <AlertTriangle className="w-9 h-9 text-yellow-500" />;
+
+
 
 type SelectedItem =
   | { name: string; type: "Funds" | "Sectors" | "Companies" }
@@ -143,13 +176,7 @@ function TopAndBottom({ result }: { result: AnalysisResult }) {
               Top ESG Performer
             </p>
             <div className="p-2 bg-green-50 rounded-full">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                   viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                   strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                   className="text-green-600">
-                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-                <polyline points="17 6 23 6 23 12"></polyline>
-              </svg>
+<PositiveIcon/>
             </div>
           </div>
           <div>
@@ -166,13 +193,7 @@ function TopAndBottom({ result }: { result: AnalysisResult }) {
               Needs Improvement
             </p>
             <div className="p-2 bg-red-50 rounded-full">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                   viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                   strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                   className="text-red-600">
-                <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
-                <polyline points="17 18 23 18 23 12"></polyline>
-              </svg>
+<NegativeIcon/> 
             </div>
           </div>
           <div>
@@ -197,25 +218,40 @@ function SectorPerformanceList({
   if (!entries.length) return null;
   return (
     <div>
-      <h4 className={`font-semibold ${titleClass} mb-4`}>Sectoral ESG Composite Performance</h4>
-      <div className="space-y-2">
-        {entries.map(([sector, data], index) => (
-          <div key={sector} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div>
-              <span className="text-sm font-medium text-gray-800">{sector}</span>
-              <span className="text-xs text-gray-500 ml-2">({data.count} companies)</span>
+      <h4 className={`font-semibold ${titleClass} mb-4`}>
+        Sectoral Average ESG Composite Performance
+      </h4>
+      <div className="max-h-[12.2rem] overflow-y-auto pr-2">
+        <div className="space-y-2">
+          {entries.map(([sector, data], index) => (
+            <div
+              key={sector}
+              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+            >
+              <div>
+                <span className="text-sm font-medium text-gray-800">
+                  {sector}
+                </span>
+                {/* This span now conditionally checks the count */}
+                <span className="text-xs text-gray-500 ml-2">
+                  ({data.count} {data.count === 1 ? "company" : "companies"})
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="font-bold text-gray-800">
+                  {formatNumber(data.avgScore)}
+                </span>
+                {index === 0 && (
+                  <span className="text-xs text-green-700 ml-1"></span>
+                )}
+              </div>
             </div>
-            <div className="text-right">
-              <span className="font-bold text-gray-800">{formatNumber(data.avgScore)}</span>
-              {index === 0 && <span className="text-xs text-green-700 ml-1"></span>}
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
 }
-
 // ---------- Funds Section ----------
 function FundsSection({
   fundName,
@@ -235,14 +271,7 @@ function FundsSection({
 
   return (
     <div className="bg-white border border-gray-200 p-6 sm:p-8 space-y-8">
-      {/* Global universe tile pair */}
-      <section>
-        <h3 className="text-2xl font-bold text-brand-dark mb-1">IIAS rated universe</h3>
-        <p className="text-sm text-ui-text-secondary mb-4">
-          Top and lowest <b>ESG Composite</b> performers across all covered companies.
-        </p>
-        <TopAndBottom result={global} />
-      </section>
+
 
       {/* Fund analysis */}
       <section>
@@ -276,7 +305,7 @@ function FundsSection({
                 label="Top ESG Composite Score"
                 value={selection.highestScore}
                 trend="up"
-                description={`Best: ${selection.bestCompany}`}
+                // description={`Best: ${selection.bestCompany}`}
                 bgFrom="from-brand-surface"
                 bgTo="to-brand-bg-light"
                 border="border-ui-border"
@@ -314,6 +343,14 @@ function FundsSection({
           </div>
         )}
       </section>
+      {/* Global universe tile pair */}
+      <section>
+        <h3 className="text-2xl font-bold text-brand-dark mb-1">IIAS rated universe</h3>
+        <p className="text-sm text-ui-text-secondary mb-4">
+          Highest and lowest <b>ESG Composite</b> performers across all covered companies.
+        </p>
+        <TopAndBottom result={global} />
+      </section>
     </div>
   );
 }
@@ -336,14 +373,7 @@ function SectorsSection({
 
   return (
     <div className="bg-white border border-gray-200 p-6 sm:p-8 space-y-8">
-      {/* Global universe tile pair */}
-      <section>
-        <h3 className="text-2xl font-bold text-brand-dark mb-1">IIAS rated universe</h3>
-        <p className="text-sm text-ui-text-secondary mb-4">
-          Top and lowest <b>ESG Composite</b> performers across all covered companies.
-        </p>
-        <TopAndBottom result={global} />
-      </section>
+
 
       {/* Sector analysis */}
       <section>
@@ -379,7 +409,7 @@ function SectorsSection({
                 label="Sectoral Top ESG Composite Score"
                 value={selection.highestScore}
                 trend="up"
-                description={`Best: ${selection.bestCompany}`}
+                //description={`Best: ${selection.bestCompany}`}
                 bgFrom="from-cyan-50"
                 bgTo="to-cyan-100"
                 border="border-cyan-200"
@@ -417,6 +447,14 @@ function SectorsSection({
           </div>
         )}
       </section>
+            {/* Global universe tile pair */}
+      <section>
+        <h3 className="text-2xl font-bold text-brand-dark mb-1">IiAS rated universe</h3>
+        <p className="text-sm text-ui-text-secondary mb-4">
+          Highest and lowest <b>ESG Composite</b> performers across all covered companies.
+        </p>
+        <TopAndBottom result={global} />
+      </section>
     </div>
   );
 }
@@ -444,14 +482,7 @@ function CompaniesSection({
 
   return (
     <div className="bg-white border border-gray-200 p-6 sm:p-8 space-y-10">
-      {/* Global universe tile pair */}
-      <section>
-        <h3 className="text-2xl font-bold text-brand-dark mb-1">IIAS rated universe</h3>
-        <p className="text-sm text-ui-text-secondary mb-4">
-          Top and lowest <b>ESG Composite</b> performers across all covered companies.
-        </p>
-        <TopAndBottom result={global} />
-      </section>
+
 
       {/* Peer analysis */}
       <section>
@@ -485,7 +516,7 @@ function CompaniesSection({
                 label="Sectoral Top ESG Composite Score"
                 value={selection.highestScore}
                 trend="up"
-                description={`Best: ${selection.bestCompany}`}
+                //description={`Best: ${selection.bestCompany}`}
                 bgFrom="from-gray-50"
                 bgTo="to-gray-100"
                 border="border-gray-200"
@@ -522,6 +553,14 @@ function CompaniesSection({
             No peers found for this company’s sector.
           </div>
         )}
+      </section>
+            {/* Global universe tile pair */}
+      <section>
+        <h3 className="text-2xl font-bold text-brand-dark mb-1">IiAS rated universe</h3>
+        <p className="text-sm text-ui-text-secondary mb-4">
+          Highest and lowest <b>ESG Composite Score</b> performers across all covered companies.
+        </p>
+        <TopAndBottom result={global} />
       </section>
     </div>
   );

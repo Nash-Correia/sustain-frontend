@@ -44,7 +44,7 @@ const CompanyDetails = ({
       {/* KPI ribbon */}
       <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6">
         <div className="inline-flex items-baseline gap-2 rounded-lg border px-3 py-2 bg-white shadow-sm border-gray-200">
-          <span className="text-xs uppercase tracking-wide text-gray-600">Composite</span>
+          <span className="text-xs uppercase tracking-wide text-gray-600">ESG Composite Score</span>
           <span className="text-lg font-bold leading-none text-gray-900">
             {formatNumber(compositeVal)}
           </span>
@@ -56,7 +56,7 @@ const CompanyDetails = ({
           </span>
         </div>
         <div className="inline-flex items-baseline gap-2 rounded-lg border px-3 py-2 bg-gray-50 border-gray-200">
-          <span className="text-xs uppercase tracking-wide text-gray-600">Grade</span>
+          <span className="text-xs uppercase tracking-wide text-gray-600">ESG Rating</span>
           <span className="text-lg font-bold leading-none text-gray-900">
             {company.grade || "-"}
           </span>
@@ -92,7 +92,7 @@ const CompanyDetails = ({
 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
 
   {/* Positive Screen Card */}
-  <div className="flex items-center justify-between p-6 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-shadow duration-300">
+  <div className="flex items-center justify-between p-6 bg-white rounded-xl border border-gray-200 shadow-sm  transition-shadow duration-300">
     <div>
       <p className="text-sm text-teal-800 font-medium uppercase tracking-wider">
         Positive Screen
@@ -121,7 +121,7 @@ const CompanyDetails = ({
   </div>
 
   {/* Negative Screen Card */}
-  <div className="flex items-center justify-between p-6 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-shadow duration-300">
+  <div className="flex items-center justify-between p-6 bg-white rounded-xl border border-gray-200 shadow-sm  transition-shadow duration-300">
     <div>
       <p className="text-sm text-rose-800 font-medium uppercase tracking-wider">
         Negative Screen
@@ -151,7 +151,7 @@ const CompanyDetails = ({
   </div>
 
   {/* Controversy Rating Card */}
-  <div className="flex items-center justify-between p-6 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-shadow duration-300">
+  <div className="flex items-center justify-between p-6 bg-white rounded-xl border border-gray-200 shadow-sm  transition-shadow duration-300">
     <div>
       <p className="text-sm text-amber-800 font-medium uppercase tracking-wider">
         Controversy Rating

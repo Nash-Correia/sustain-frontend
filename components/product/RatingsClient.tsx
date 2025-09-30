@@ -19,7 +19,7 @@ import RequestReportModal from "./RequestReportModal";
 type UserReport = { company: string; year: number; reportUrl: string };
 // For testing: keep empty OR add one sample below.
 const DUMMY_USER_REPORTS: UserReport[] = [
-  { company: "Infosys Limited", year: 2024, reportUrl: "/reports/sample.pdf" },
+  { company: "HDFC Bank Limited", year: 2024, reportUrl: "/reports/sample.pdf" },
 ];
 // const DUMMY_USER_REPORTS: UserReport[] = [];
 

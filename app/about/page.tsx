@@ -219,19 +219,20 @@ const WhoWeAre = () => {
             <h2 className="text-3xl font-bold text-brand-dark tracking-tight sm:text-4xl">Who We Are</h2>
             <div className="text-lg text-gray-600 space-y-4">
               <p>
-                Institutional Investor Advisory Services India Limited (IiAS) is an advisory firm, dedicated to
-                providing participants in the Indian market with independent opinions, research and data on corporate
-                governance and ESG issues as well as voting recommendations on shareholder resolutions for about 1000
-                companies that account for over 95% of market capitalization.
+                IiAS Sustainability Solutions Limited (IiAS Sustain) is an ESG Rating Provider dedicated to delivering high-quality ESG ratings, benchmarks, data, and insights on companies’ environmental, social, and governance disclosures and practices. IiAS Sustain is registered with the Securities and Exchange Board of India (SEBI) as a Category II ESG Rating Provider (ERP) and is a wholly owned subsidiary of Institutional Investor Advisory Services India Limited (IiAS).
+
+
               </p>
               <p>
-                More recently, IiAS has extended its analysis to ESG – Environment, Social and Governance. We have
-                worked with some of India’s largest hedge funds, alternate investment funds and PE Funds to guide them
-                in their ESG assessments and integrate ESG into their investment decisions.
+                IiAS Sustain’s objective is to enable investors, companies, and regulators to integrate ESG considerations into decision-making through transparent, data-driven, and independent evaluations. Our ESG ratings and benchmarks are designed to provide comparability across companies and sectors, while our analytical opinions help stakeholders interpret ESG disclosures in the context of best practices, regulatory requirements, and global standards.
+
+              </p>
+              <p>
+                By combining IiAS’ deep expertise in corporate governance with rigorous ESG frameworks, IiAS Sustain is uniquely positioned to support the Indian market in strengthening accountability, improving disclosure quality, and advancing the sustainability agenda.
+
               </p>
             </div>
             <p className="text-sm text-gray-500 pt-4 border-t border-gray-200">
-              IiAS is a SEBI registered entity (proxy advisor registration number: INH000000024).
             </p>
           </FadeIn>
 
