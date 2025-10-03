@@ -133,7 +133,7 @@ export default function ProductAPage() {
           onClick={() => handleAddFundToList(fund)}
           className="px-4 py-2 bg-brand-action text-white rounded-lg text-sm font-medium hover:bg-brand-action/90 transition-colors"
         >
-          Add to List
+          Compare
         </button>
       );
     } else if (selectedItem.type === "Companies") {
@@ -146,7 +146,7 @@ export default function ProductAPage() {
           onClick={() => handleAddCompanyToList(company)}
           className="px-4 py-2 bg-brand-action text-white rounded-lg text-sm font-medium hover:bg-brand-action/90 transition-colors"
         >
-          Add to List
+          Add to Portfolio
         </button>
       );
     } else if (selectedItem.type === "Sectors") {
@@ -156,7 +156,7 @@ export default function ProductAPage() {
           onClick={() => handleAddSectorToList(selectedItem.name)}
           className="px-4 py-2 bg-brand-action text-white rounded-lg text-sm font-medium hover:bg-brand-action/90 transition-colors"
         >
-          Add to List
+          Compare
         </button>
       );
     }

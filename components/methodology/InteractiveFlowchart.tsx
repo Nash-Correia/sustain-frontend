@@ -36,7 +36,7 @@ const ControversyIcon = () => <AlertTriangle className="w-9 h-9 text-yellow-500"
 // --- CHILD COMPONENTS ---
 const InfoItem = ({ icon, text, color, onClick }: { icon: React.ReactNode, text: string, color: string, onClick: () => void }) => (
   <button onClick={onClick} className="flex flex-col items-center text-center group">
-    <div className="w-20 h-20 rounded-full bg-white shadow-md flex items-center justify-center group-hover:shadow-xl transition-shadow transform transition-transform duration-200 group-hover:scale-110">
+    <div className="w-20 h-20 rounded-full bg-white shadow-md flex items-center justify-center group-hover:shadow-xl transform transition-transform duration-200 group-hover:scale-110">
       {icon}
     </div>
     <p className={`mt-2 font-semibold ${color}`}>{text}</p>
@@ -62,7 +62,7 @@ export default function InteractiveMethodologyDiagram({ onNodeClick }: DiagramPr
         {/* --- GROUP 1: PILLAR SCORE --- */}
         <div className="w-full md:w-1/3 flex flex-col items-center">
           <NodeButton onClick={() => onNodeClick('pillarScore')}>
-            <div className="w-24 h-24 rounded-full bg-white shadow-lg group-hover:shadow-xl transition-shadow flex items-center justify-center transform transition-transform duration-200 group-hover:scale-110">
+            <div className="w-24 h-24 rounded-full bg-white shadow-lg group-hover:shadow-xl flex items-center justify-center transform transition-transform duration-200 group-hover:scale-110">
               <PillarIcon />
             </div>
             <h3 className="mt-4 text-lg font-bold text-brand-dark">Pillar Score</h3>
@@ -88,7 +88,7 @@ export default function InteractiveMethodologyDiagram({ onNodeClick }: DiagramPr
         {/* --- GROUP 2: SCREEN --- */}
         <div className="w-full md:w-1/3 flex flex-col items-center">
           <NodeButton onClick={() => onNodeClick('screen')}>
-            <div className="w-24 h-24 rounded-full bg-white shadow-lg group-hover:shadow-xl transition-shadow flex items-center justify-center transform transition-transform duration-200 group-hover:scale-110">
+            <div className="w-24 h-24 rounded-full bg-white shadow-lg group-hover:shadow-xl flex items-center justify-center transform transition-transform duration-200 group-hover:scale-110">
               <ScreenIcon />
             </div>
             <h3 className="mt-4 text-lg font-bold text-brand-dark">Screen</h3>
@@ -114,7 +114,7 @@ export default function InteractiveMethodologyDiagram({ onNodeClick }: DiagramPr
         {/* --- GROUP 3: COMPOSITE RATING & FINAL GRADE (Updated) --- */}
         <div className="w-full md:w-1/3 flex flex-col items-center">
           <NodeButton onClick={() => onNodeClick('compositeRating')}>
-            <div className="w-24 h-24 rounded-full bg-white shadow-lg group-hover:shadow-xl transition-shadow flex items-center justify-center transform transition-transform duration-200 group-hover:scale-110">
+            <div className="w-24 h-24 rounded-full bg-white shadow-lg group-hover:shadow-xl  flex items-center justify-center transform transition-transform duration-200 group-hover:scale-110">
               <RatingIcon />
             </div>
             <h3 className="mt-4 text-lg font-bold text-brand-dark">ESG Composite Score</h3>
@@ -123,7 +123,7 @@ export default function InteractiveMethodologyDiagram({ onNodeClick }: DiagramPr
           <VerticalThickArrow />
 
           <NodeButton onClick={() => onNodeClick('finalRating')}>
-             <div className="w-24 h-24 rounded-full bg-white shadow-lg group-hover:shadow-xl transition-shadow flex items-center justify-center transform transition-transform duration-200 group-hover:scale-110">
+             <div className="w-24 h-24 rounded-full bg-white shadow-lg group-hover:shadow-xl flex items-center justify-center transform transition-transform duration-200 group-hover:scale-110">
               <GradeIcon />
             </div>
             <h3 className="mt-4 text-lg font-bold">ESG Rating</h3>

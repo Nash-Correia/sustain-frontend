@@ -162,7 +162,7 @@ export default function FundsComparisonTable(props: ComparisonProps) {
     coveragePct = Math.min(100, totalW); // "AUM Covered"
     rating = computeGrade(esgScore);
   } else if (isCompanies) {
-    title = "Selected Companies";
+    title = "My Portfolio Companies";
     gaugeName = "Average Company Rating";
 
     const companies = (props as CompanyModeProps).companies as (PortfolioCompany & {
@@ -256,7 +256,7 @@ export default function FundsComparisonTable(props: ComparisonProps) {
   function CompaniesSummary() {
     return (
       <div className="bg-white border border-gray-200 rounded-large p-6 sm:p-8 mt-6">
-        <h4 className="text-xl font-bold text-brand-dark mb-6">My Companies</h4>
+        <h4 className="text-xl font-bold text-brand-dark mb-6">My Portfolio-Analysis</h4>
 
         <div className="mx-auto max-w-5xl">
           <div className="grid gap-8 md:grid-cols-2 items-center">
@@ -350,13 +350,29 @@ export default function FundsComparisonTable(props: ComparisonProps) {
 
   return (
     <>
-      {/* Table */}
-      <div className="bg-white border border-gray-200 rounded-large p-6 sm:p-8">
-        <h3 className="text-2xl font-bold text-brand-dark mb-6">{title}</h3>
+{/* Table */}
+<div className="bg-white border border-gray-200 rounded-large p-6 sm:p-8">
+  <h3 className="text-2xl font-bold text-brand-dark mb-6">{title}</h3>
 
-        <div className="overflow-x-auto">
+  {/* figure out counts so we can render blank rows */}
+  {(() => {
+    const rowCount =
+      isFunds
+        ? (props as FundModeProps).funds.length
+        : isCompanies
+        ? (props as CompanyModeProps).companies.length
+        : (props as SectorModeProps).sectors.length;
+
+    const minRows = 7;                       // target body height = 10 rows
+    const blanks = Math.max(0, minRows - rowCount);
+    const colCount = 5;                       // all 3 modes render 5 columns
+
+    return (
+      <div className="overflow-x-auto">
+        {/* scrollable body with fixed height (~56px per row × 10 rows) */}
+        <div className="max-h-[380px] overflow-y-auto rounded-md border border-gray-100">
           <table className="w-full text-sm text-left">
-            <thead className="bg-gray-100">
+            <thead className="bg-gray-100 sticky top-0 z-10">
               <tr>
                 {isFunds && (
                   <>
@@ -390,7 +406,7 @@ export default function FundsComparisonTable(props: ComparisonProps) {
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="align-top">
               {isFunds &&
                 (props as FundModeProps).funds.map((f) => {
                   const holding = `${formatNumber(parsePercent(f.percentage))}%`;
@@ -488,13 +504,24 @@ export default function FundsComparisonTable(props: ComparisonProps) {
                     </tr>
                   ));
                 })()}
+
+              {/* --- placeholder rows to keep 10-row height --- */}
+              {Array.from({ length: blanks }).map((_, i) => (
+                <tr key={`placeholder-${i}`} className="border-b border-gray-100">
+                  <td className="p-3" colSpan={colCount}>
+                    &nbsp;
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
       </div>
-
-      {/* -------- Mode-specific summary below -------- */}
-      {isFunds ? <FundsSummary /> : isCompanies ? <CompaniesSummary /> : <SectorsSummary />}
+    );
+  })()}
+</div>
+{/* -------- Mode-specific summary below -------- */}
+ {isCompanies ? <CompaniesSummary />: ""}
     </>
   );
 }

@@ -39,17 +39,20 @@ export default function LandingPageClient() {
   <div className="mb-0">
     <SearchHero />
   </div>
-
+      <div className="py-1"/>
       {/* Hero section with animation trigger */}
       <div ref={heroRef} className="-mt-22">
         <Hero isVisible={isHeroVisible} />
       </div>
-
+      <div className="py-8"/>
       {/* Other sections */}
       <StatsGrid />
-      <Subscribe />
+      <div className="py-8"/>
       <Insights />
-      <ContactForm />
+      <div className="py-8"/>
+      <Subscribe />
+      <div className="py-8"/>
+      <ContactForm  />
 
     </div>
   );

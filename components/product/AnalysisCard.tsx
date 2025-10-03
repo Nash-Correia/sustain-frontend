@@ -50,8 +50,12 @@ type AnalysisResult = {
   lowestScore: number;
   totalCompanies: number;
   sectorBreakdown: Record<string, { count: number; avgScore: number }>;
-  screeningCompliance: number; // percentage 0-100
+  screeningCompliance: number;
+
+  bestRow: CompanyDataRow | null;
+  worstRow: CompanyDataRow | null;
 };
+
 
 // ---------- Shared analysis logic (COMPOSITE-driven) ----------
 function analyzeData(companies: CompanyDataRow[]): AnalysisResult {
@@ -65,11 +69,12 @@ function analyzeData(companies: CompanyDataRow[]): AnalysisResult {
       totalCompanies: 0,
       sectorBreakdown: {},
       screeningCompliance: 0,
+      bestRow: null,            // <- NEW
+      worstRow: null,           // <- NEW
     };
   }
 
   const scores = companies.map((c) => Number(c.composite ?? 0));
-
   const isEmptyOrNA = (s?: string) =>
     !s || s.trim().length === 0 || s.trim().toUpperCase() === "NA";
 
@@ -89,7 +94,6 @@ function analyzeData(companies: CompanyDataRow[]): AnalysisResult {
     companies[0]
   );
 
-  // sector breakdown
   const sectorBreakdown: Record<string, { count: number; avgScore: number }> = {};
   companies.forEach((c) => {
     const sector = c.sector || "Unknown";
@@ -114,8 +118,11 @@ function analyzeData(companies: CompanyDataRow[]): AnalysisResult {
     totalCompanies: companies.length,
     sectorBreakdown,
     screeningCompliance,
+    bestRow: bestCompanyRow,     // <- NEW
+    worstRow: worstCompanyRow,   // <- NEW
   };
 }
+
 
 // ---------- Small UI bits ----------
 function StatCard({
@@ -166,47 +173,134 @@ function StatCard({
   );
 }
 
-function TopAndBottom({ result }: { result: AnalysisResult }) {
+function DetailRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
   return (
-    <div className="mx-auto max-w-4xl">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex flex-col justify-between">
-          <div className="flex justify-between items-start">
-            <p className="text-m py-3 font-semibold text-green-700 uppercase tracking-wider">
-              Top ESG Performer
-            </p>
-            <div className="p-2 bg-green-50 rounded-full">
-<PositiveIcon/>
-            </div>
-          </div>
-          <div>
-            <p className="text-4xl font-bold text-gray-800 mt-2">
-              {formatNumber(result.highestScore)}
-            </p>
-            <p className="font-semibold text-green-700 truncate">{result.bestCompany}</p>
-          </div>
+    <div className="flex justify-between gap-4 py-1">
+      <span className="text-xs font-medium text-gray-500">{label}</span>
+      <span className="text-sm font-semibold text-gray-800 text-right">{value ?? "—"}</span>
+    </div>
+  );
+}
+
+function Badge({
+  children,
+  tone = "neutral", // "positive" | "negative" | "warn" | "neutral"
+}: {
+  children: React.ReactNode;
+  tone?: "positive" | "negative" | "warn" | "neutral";
+}) {
+  const toneMap: Record<string, string> = {
+    positive: "bg-green-50 text-green-700 ring-green-200",
+    negative: "bg-rose-50 text-rose-700 ring-rose-200",
+    warn: "bg-amber-50 text-amber-700 ring-amber-200",
+    neutral: "bg-gray-50 text-gray-700 ring-gray-200",
+  };
+  return (
+    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${toneMap[tone]}`}>
+      {children}
+    </span>
+  );
+}
+
+function CompanyDetailCard({
+  title,
+  score,
+  name,
+  row,
+  tone,
+}: {
+  title: string;
+  score: number;
+  name: string;
+  row: CompanyDataRow | null;
+  tone: "positive" | "negative";
+}) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+      <div className="flex items-start justify-between">
+        <p className={`text-m py-3 font-semibold uppercase tracking-wider ${tone === "positive" ? "text-green-700" : "text-red-700"}`}>
+          {title}
+        </p>
+        <div className={`p-2 rounded-full ${tone === "positive" ? "bg-green-50" : "bg-rose-50"}`}>
+          {tone === "positive" ? <CheckCircle2 className="w-6 h-6 text-green-600" /> : <XCircle className="w-6 h-6 text-rose-600" />}
+        </div>
+      </div>
+
+      <div className="mt-1">
+        {/* <p className="text-4xl font-bold text-gray-800">{formatNumber(score)}</p> */}
+        <p className={`font-semibold ${tone === "positive" ? "text-green-700" : "text-red-700"} truncate`}>
+          {name || "N/A"}
+        </p>
+      </div>
+
+      {/* Full details */}
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="rounded-lg border border-gray-100 p-3">
+          <DetailRow label="E-Pillar Score" value={row ? formatNumber(row.e_score) : "—"} />
+          <DetailRow label="S-Pillar Score" value={row ? formatNumber(row.s_score) : "—"} />
+          <DetailRow label="G-Pillar Score" value={row ? formatNumber(row.g_score) : "—"} />
+          <DetailRow label="ESG Pillar Score" value={row ? formatNumber(row.esgScore) : "—"} />
+          <DetailRow label="ESG Composite Score" value={row ? formatNumber(row.composite) : "—"} />
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex flex-col justify-between">
-          <div className="flex justify-between items-start">
-            <p className="text-m py-3 font-semibold text-red-700 uppercase tracking-wider">
-              Needs Improvement
-            </p>
-            <div className="p-2 bg-red-50 rounded-full">
-<NegativeIcon/> 
-            </div>
+        <div className="rounded-lg border border-gray-100 p-3">
+          <DetailRow label="ESG Rating" value={row?.grade || "—"} />
+          <div className="flex items-center justify-between gap-4 py-1">
+            <span className="text-xs font-medium text-gray-500">Positive Screen</span>
+            <span className="text-sm text-right">
+              {row?.positive ? <Badge tone="positive">{row.positive}</Badge> : <Badge>—</Badge>}
+            </span>
           </div>
-          <div>
-            <p className="text-4xl font-bold text-gray-800 mt-2">
-              {formatNumber(result.lowestScore)}
-            </p>
-            <p className="font-semibold text-red-700 truncate">{result.worstCompany}</p>
+          <div className="flex items-center justify-between gap-4 py-1">
+            <span className="text-xs font-medium text-gray-500">Negative Screen</span>
+            <span className="text-sm text-right">
+              {row?.negative ? <Badge tone="negative">{row.negative}</Badge> : <Badge>—</Badge>}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-4 py-1">
+            <span className="text-xs font-medium text-gray-500">Controversy Rating</span>
+            <span className="text-sm text-right">
+              {row?.controversy ? <Badge tone="warn">{row.controversy}</Badge> : <Badge>—</Badge>}
+            </span>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
+function TopAndBottom({ result }: { result: AnalysisResult }) {
+  const best = result.bestRow;
+  const worst = result.worstRow;
+
+  return (
+    <div className="mx-auto max-w-4xl">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <CompanyDetailCard
+          title="Top ESG Performer"
+          score={result.highestScore}
+          name={result.bestCompany}
+          row={best}
+          tone="positive"
+        />
+        <CompanyDetailCard
+          title="Needs Improvement"
+          score={result.lowestScore}
+          name={result.worstCompany}
+          row={worst}
+          tone="negative"
+        />
+      </div>
+    </div>
+  );
+}
+
 
 function SectorPerformanceList({
   entries,
@@ -527,6 +621,7 @@ function CompaniesSection({
             <div >
               <div className="space-y-6">
                 <h4 className="font-semibold text-brand-dark mb-4">Peer highlights</h4>
+
                 <div className="grid lg:grid-cols-2 gap-8 ">
                   <div className="p-4 border rounded-lg bg-amber-50 border-amber-200 text-amber-900">
                     <div className="flex items-center justify-between">

@@ -53,7 +53,7 @@ export default function ProductHubPage() {
       <p className="mt-3 text-gray-600 max-w-2xl">Choose a product to learn about features, methodology alignment, and workflows.</p>
       <div className="mt-8 grid gap-6 sm:grid-cols-2">
         <ProductCard
-          title="ESG Comparison Tool"
+          title="ESG Rating Comparison"
           href={ROUTES.productA}
           icon={<ComparisonIcon />}
         >

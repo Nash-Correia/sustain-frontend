@@ -86,7 +86,7 @@ export default function SearchHero() {
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Search companies, insights, reports..."
+                placeholder="Search Reports, Ratings, Funds..."
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 onFocus={() => setIsFocused(true)}
@@ -163,24 +163,7 @@ export default function SearchHero() {
             )}
           </div>
 
-          {/* Optional: Quick filters or categories */}
-          <div className="mt-4 flex flex-wrap gap-2 justify-center">
-            {[
-              "All",
-              "Companies",
-              "Reports",
-              "News",
-              "Insights"
-            ].map((filter) => (
-              <button
-                key={filter}
-                type="button"
-                className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
+
         </form>
       </div>
     </section>

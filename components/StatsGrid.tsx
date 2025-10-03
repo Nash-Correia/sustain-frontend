@@ -1,7 +1,8 @@
 import React from "react";
+import Link from "next/link";
 import { motion, Transition } from "framer-motion";
-
-// --- SVG Icons ---
+import { ROUTES } from "@/lib/constants";
+/* --- SVG Icons --- */
 const CompanyIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -46,26 +47,78 @@ const ReportsIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+type Stat = {
+  value: string;
+  label: string;
+  Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  herf: string; // keeping your existing key
+};
+
 export default function StatsGrid() {
-  const stats = [
-    { value: "Top 500", label: "Companies Covered", Icon: CompanyIcon },
-    { value: "2010", label: "IiAS's Year of Establishment", Icon: CalendarIcon },
-    { value: "SEBI", label: "Registered ERP", Icon: ErpIcon },
-    { value: "UN PRI", label: "Signatory of UN PRI", Icon: PriIcon },
-    { value: "700+", label: "Reports Generated", Icon: ReportsIcon },
+  const stats: Stat[] = [
+    { value: "Top 500", label: "Companies Covered", Icon: CompanyIcon, herf: "#" },
+    { value: "2010", label: "IiAS's Year of Establishment", Icon: CalendarIcon, herf: "https://www.iiasadvisory.com/" },
+    { value: "SEBI", label: "Registered ERP", Icon: ErpIcon, herf: "#" },
+    { value: "UN PRI", label: "Signatory of UN PRI", Icon: PriIcon, herf: "#" },
+    { value: "700+", label: "Reports Generated", Icon: ReportsIcon, herf: ROUTES.productB },
   ];
 
-  // Spring transition
-  const spring: Transition = {
-    type: "spring",
-    damping: 15,
-    stiffness: 120,
-  };
-
-  // Motion variants
+  const spring: Transition = { type: "spring", damping: 15, stiffness: 120 };
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0, transition: spring },
+  };
+
+  // Fixed card sizing
+  const CARD_WIDTH = "w-64";     // ~256px
+  const CARD_HEIGHT = "h-56";    // fixed height for uniformity
+
+  const renderCard = (item: Stat, index: number) => {
+    const href = item.herf || "#";
+    const isExternal = /^https?:\/\//i.test(href);
+
+    const CardInner = (
+      <motion.div
+        className={[
+          CARD_WIDTH,
+          CARD_HEIGHT,
+          "rounded-xl bg-white p-6 text-center shadow-lg ring-1 ring-gray-100",
+          "hover:shadow-xl hover:ring-gray-200 transition",
+          "flex flex-col items-center justify-center gap-2", // center contents
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600",
+          "select-none", // avoid text selection on click
+        ].join(" ")}
+        variants={itemVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ ...spring, delay: index * 0.1 }}
+      >
+        <item.Icon className="h-16 w-16 text-teal-600" />
+        <dt className="text-4xl font-bold text-brand-dark leading-tight">{item.value}</dt>
+        {/* label wraps but card height stays fixed; clamp to 2 lines to avoid overflow */}
+        <dd className="mt-1 text-base text-gray-600 leading-snug line-clamp-2">
+          {item.label}
+        </dd>
+      </motion.div>
+    );
+
+    return isExternal ? (
+      <a
+        key={item.label}
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="focus:outline-none"
+        aria-label={`${item.label} – opens in a new tab`}
+      >
+        {CardInner}
+      </a>
+    ) : (
+      <Link key={item.label} href={href} className="focus:outline-none" aria-label={item.label}>
+        {CardInner}
+      </Link>
+    );
   };
 
   return (
@@ -73,40 +126,12 @@ export default function StatsGrid() {
       <div className="flex flex-col items-center gap-6">
         {/* First row */}
         <div className="flex justify-center gap-10 flex-wrap">
-          {stats.slice(0, 3).map((item, index) => (
-            <motion.div
-              key={item.label}
-              className="w-64 rounded-xl bg-white p-6 text-center shadow-lg hover:shadow-xl flex flex-col items-center"
-              variants={itemVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ ...spring, delay: index * 0.1 }}
-            >
-              <item.Icon className="h-16 w-16 mb-4 text-teal-600" />
-              <dt className="text-4xl font-bold text-brand-dark">{item.value}</dt>
-              <dd className="mt-2 text-base text-gray-600">{item.label}</dd>
-            </motion.div>
-          ))}
+          {stats.slice(0, 3).map((item, index) => renderCard(item, index))}
         </div>
 
         {/* Second row */}
         <div className="flex justify-center gap-10 flex-wrap">
-          {stats.slice(3).map((item, index) => (
-            <motion.div
-              key={item.label}
-              className="w-64 rounded-xl bg-white p-6 text-center shadow-lg hover:shadow-xl flex flex-col items-center"
-              variants={itemVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ ...spring, delay: index * 0.1 }}
-            >
-              <item.Icon className="h-16 w-16 mb-4 text-teal-600" />
-              <dt className="text-4xl font-bold text-brand-dark">{item.value}</dt>
-              <dd className="mt-2 text-base text-gray-600">{item.label}</dd>
-            </motion.div>
-          ))}
+          {stats.slice(3).map((item, i) => renderCard(item, i))}
         </div>
       </div>
     </section>

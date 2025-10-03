@@ -1,8 +1,6 @@
 // lib/excel-data.ts
 import Excel from 'exceljs';
 
-
-
 export interface CompanyDataRow {
   companyName: string;
   sector: string;
@@ -15,7 +13,7 @@ export interface CompanyDataRow {
   grade: string;
   isin: string;
   esgScore: number;
-  composite:number;
+  composite: number;
 }
 
 export interface FundDataRow {
@@ -42,14 +40,24 @@ function headerIndexMap(worksheet: Excel.Worksheet) {
   return map;
 }
 
-export async function getCompanyData(): Promise<CompanyDataRow[]> {
+// Internal function to load workbook once
+async function loadWorkbook(): Promise<Excel.Workbook | null> {
   try {
     const response = await fetch('/data.xlsx');
     if (!response.ok) throw new Error(`Failed to fetch Excel file: ${response.statusText}`);
     const buffer = await response.arrayBuffer();
     const workbook = new Excel.Workbook();
     await workbook.xlsx.load(buffer);
+    return workbook;
+  } catch (error) {
+    console.error('Failed to load Excel file:', error);
+    return null;
+  }
+}
 
+// Internal function to parse company sheet
+function parseCompanySheet(workbook: Excel.Workbook): CompanyDataRow[] {
+  try {
     const worksheet = workbook.getWorksheet('Sheet-1');
     if (!worksheet) throw new Error("Worksheet 'Sheet-1' not found.");
 
@@ -59,13 +67,12 @@ export async function getCompanyData(): Promise<CompanyDataRow[]> {
       const col = idx[headerName];
       if (!col) return '';
       const v = row.getCell(col).value;
-      // handle Excel types (rich text / numbers / null)
       return v === null || v === undefined ? '' : v;
     };
 
     const data: CompanyDataRow[] = [];
     worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-      if (rowNumber === 1) return; // skip header
+      if (rowNumber === 1) return;
 
       const companyName = String(get(row, 'Company Name') || '').trim();
       const sector = String(get(row, 'Sector') || '').trim();
@@ -80,7 +87,6 @@ export async function getCompanyData(): Promise<CompanyDataRow[]> {
       const esgScore = Number(get(row, 'ESG Pillar') || 0) || 0;
       const composite = Number(get(row, 'Composite Rating') || 0) || 0;
 
-      // Use same inclusion logic as before
       if (companyName) {
         data.push({
           companyName,
@@ -101,19 +107,14 @@ export async function getCompanyData(): Promise<CompanyDataRow[]> {
 
     return data;
   } catch (error) {
-    console.error('Failed to load or parse company data from Excel:', error);
+    console.error('Failed to parse company data from Excel:', error);
     return [];
   }
 }
 
-export async function getFundData(): Promise<FundDataRow[]> {
+// Internal function to parse fund sheet
+function parseFundSheet(workbook: Excel.Workbook): FundDataRow[] {
   try {
-    const response = await fetch('/data.xlsx');
-    if (!response.ok) throw new Error(`Failed to fetch Excel file: ${response.statusText}`);
-    const buffer = await response.arrayBuffer();
-    const workbook = new Excel.Workbook();
-    await workbook.xlsx.load(buffer);
-
     const worksheet = workbook.getWorksheet('Sheet-2');
     if (!worksheet) throw new Error("Worksheet 'Sheet-2' not found.");
 
@@ -132,7 +133,37 @@ export async function getFundData(): Promise<FundDataRow[]> {
 
     return data;
   } catch (error) {
-    console.error('Failed to load or parse fund data from Excel:', error);
+    console.error('Failed to parse fund data from Excel:', error);
     return [];
   }
+}
+
+// Cache for loaded data
+let cachedData: { companies: CompanyDataRow[]; funds: FundDataRow[] } | null = null;
+
+// Load both datasets once and cache them
+async function loadAllData(): Promise<{ companies: CompanyDataRow[]; funds: FundDataRow[] }> {
+  if (cachedData) return cachedData;
+
+  const workbook = await loadWorkbook();
+  if (!workbook) {
+    return { companies: [], funds: [] };
+  }
+
+  const companies = parseCompanySheet(workbook);
+  const funds = parseFundSheet(workbook);
+
+  cachedData = { companies, funds };
+  return cachedData;
+}
+
+// Public API - maintains same function signatures
+export async function getCompanyData(): Promise<CompanyDataRow[]> {
+  const data = await loadAllData();
+  return data.companies;
+}
+
+export async function getFundData(): Promise<FundDataRow[]> {
+  const data = await loadAllData();
+  return data.funds;
 }

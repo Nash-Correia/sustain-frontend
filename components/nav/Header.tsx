@@ -213,10 +213,10 @@ export default function Header() {
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-12">
             <nav className="flex items-center gap-6 text-xl">
               <Dropdown label="Products" className={navLinkClasses} align="center">
-                <MenuItem href={ROUTES.productA}>ESG Comparison</MenuItem>
+                <MenuItem href={ROUTES.productA}>ESG Rating Comparison</MenuItem>
                 <MenuItem href={ROUTES.productB}>ESG Reports</MenuItem>
               </Dropdown>
 
