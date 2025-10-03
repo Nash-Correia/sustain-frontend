@@ -2,8 +2,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import RatingsClient from "@/components/product/RatingsClient";
-import { RatingRow } from "@/components/product/RatingTable";
+import RatingsClient from "@/components/product/reports/ReportsClient";
+import { RatingRow } from "@/components/product/reports/ReportsTable";
 import { getCompanyData } from "@/lib/excel-data";
 
 export default function ProductBPage() {

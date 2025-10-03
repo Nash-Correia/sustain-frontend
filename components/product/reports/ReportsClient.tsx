@@ -2,26 +2,25 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import RatingTable, { type RatingRow } from "@/components/product/RatingTable";
+import RatingTable, { type RatingRow } from "@/components/product/reports/ReportsTable";
 import { getCompanyData, type CompanyDataRow } from "@/lib/excel-data";
 import { LOGIN, SHOW_TABS_FOR_EMPTY_USER } from "@/lib/feature-flags";
 import RequestReportModal from "./RequestReportModal";
+import { div } from "framer-motion/client";
 
 /**
- * Adds:
+ * RatingsClient with scroll view (pagination removed)
  * - Tab switch (All Companies | My Reports) when LOGIN=true
  * - Ownership check: if user owns/downloaded a report → show "Show" action
  * - Inbuilt PDF viewer modal for "Show"
- * - ✅ Request report modal opened from "Download" (no JSX return from handler)
+ * - Request report modal opened from "Download"
  */
 
 // ===== Mock "user reports" (replace with real DB/API later) =====
 type UserReport = { company: string; year: number; reportUrl: string };
-// For testing: keep empty OR add one sample below.
 const DUMMY_USER_REPORTS: UserReport[] = [
   { company: "HDFC Bank Limited", year: 2024, reportUrl: "/reports/sample.pdf" },
 ];
-// const DUMMY_USER_REPORTS: UserReport[] = [];
 
 // Grade ordering helper for sorting (A+ best → D worst)
 const GRADE_ORDER = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D"];
@@ -30,8 +29,8 @@ const gradeRank = (g: string) => {
   return i === -1 ? Number.POSITIVE_INFINITY : i;
 };
 
-// Pagination (kept here in case you need it elsewhere too)
-const PAGE_SIZE = 10;
+// PAGINATION REMOVED - Using scroll view instead
+// const PAGE_SIZE = 10;
 
 export default function RatingsClient({ initial = [] as RatingRow[] }) {
   // Raw, fully-loaded rows (mapped from Excel)
@@ -47,14 +46,14 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
   // Rating sort state: "asc" | "desc" | null
   const [sortRating, setSortRating] = useState<"asc" | "desc" | null>(null);
 
-  // Year filter (dropdown). Add dummy 2023 for testing.
+  // Year filter (dropdown)
   const [filterYear, setFilterYear] = useState<number>(2024);
-  const yearOptions = [2024, 2023]; // include dummy 2023
+  const yearOptions = [2024, 2023];
 
-  // Pagination
-  const [page, setPage] = useState(1);
+  // PAGINATION STATE REMOVED
+  // const [page, setPage] = useState(1);
 
-  // Tab state (only shown when showTabs === true)
+  // Tab state
   type TabKey = "all" | "mine";
   const [tab, setTab] = useState<TabKey>("all");
 
@@ -62,11 +61,11 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
   const [viewerUrl, setViewerUrl] = useState<string | null>(null);
   const [viewerTitle, setViewerTitle] = useState<string>("");
 
-  // ✅ Request Report modal state
+  // Request Report modal state
   const [reqOpen, setReqOpen] = useState(false);
   const [reqDefaultCompany, setReqDefaultCompany] = useState<string | undefined>(undefined);
 
-  // ===== Load from Excel on mount (if not provided) =====
+  // ===== Load from Excel on mount =====
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -74,15 +73,14 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
       try {
         const companies: CompanyDataRow[] = await getCompanyData();
 
-        // Map real Excel data → 2024 rows
         const mapped2024: RatingRow[] = companies
-          .filter((c) => !!c.companyName && !!c.grade) // ensure essential fields
+          .filter((c) => !!c.companyName && !!c.grade)
           .map((c) => ({
             company: c.companyName,
             sector: c.sector || "—",
-            rating: c.grade, // from Excel 'ESG Rating'
+            rating: c.grade,
             year: 2024,
-            reportUrl: "#", // TODO: wire to your report route if available
+            reportUrl: "#",
           }));
 
         // De-duplicate by company+year
@@ -94,13 +92,12 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
           return true;
         });
 
-        // ---- Add ONE synthetic 2023 row for testing the dropdown ----
+        // Add ONE synthetic 2023 row for testing
         if (deduped.length > 0) {
           const preferred =
             deduped.find((r) => r.company.toLowerCase() === "infosys limited") ?? deduped[0];
           deduped.push({ ...preferred, year: 2023 });
         }
-        // --------------------------------------------------------------
 
         if (!cancelled) setAllRows(deduped);
       } catch (e) {
@@ -115,8 +112,8 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
     };
   }, [initial]);
 
-  // ----- My reports (filter allRows by user-owned reports) -----
-  const myReports = DUMMY_USER_REPORTS; // replace with real user’s reports later
+  // ----- My reports -----
+  const myReports = DUMMY_USER_REPORTS;
 
   const reportMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -126,7 +123,6 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
 
   const myRows = useMemo<RatingRow[]>(() => {
     if (reportMap.size === 0) return [];
-    // Bring over rows that match user reports (company & year)
     return allRows
       .map((r) => {
         const key = `${r.company}|${r.year}`;
@@ -138,14 +134,12 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
       .filter((r) => reportMap.has(`${r.company}|${r.year}`));
   }, [allRows, reportMap]);
 
-  // In production, show tabs only if the user has at least one report.
-  // For testing, SHOW_TABS_FOR_EMPTY_USER lets you always show tabs when LOGIN=true.
   const showTabs = LOGIN && (SHOW_TABS_FOR_EMPTY_USER || myRows.length > 0);
 
   // ===== Base rows depend on active tab =====
   const baseRows = tab === "mine" ? myRows : allRows;
 
-  // ===== Derived option lists (Company, Sector) from baseRows =====
+  // ===== Derived option lists =====
   const companyOptions = useMemo(() => {
     const set = new Set<string>();
     baseRows.forEach((r) => set.add(r.company));
@@ -158,7 +152,7 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [baseRows]);
 
-  // ===== Filtering & Sorting (against baseRows) =====
+  // ===== Filtering & Sorting - Returns ALL filtered rows (no pagination) =====
   const filteredRows = useMemo(() => {
     let rows = baseRows;
 
@@ -183,17 +177,12 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
     return rows;
   }, [baseRows, filterCompanies, filterSectors, filterYear, sortRating]);
 
-  // Reset page when filters/sort/tab change
-  useEffect(() => {
-    setPage(1);
-  }, [filterCompanies, filterSectors, filterYear, sortRating, tab]);
-
-  // ===== Pagination slice =====
-  const pages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
-  const pageRows = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
-    return filteredRows.slice(start, start + PAGE_SIZE);
-  }, [filteredRows, page]);
+  // PAGINATION LOGIC REMOVED - No longer slicing rows
+  // const pages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
+  // const pageRows = useMemo(() => {
+  //   const start = (page - 1) * PAGE_SIZE;
+  //   return filteredRows.slice(start, start + PAGE_SIZE);
+  // }, [filteredRows, page]);
 
   // ===== Ownership helpers =====
   const hasReport = (company: string, year: number) => {
@@ -202,9 +191,9 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
 
   // ===== Actions =====
   function handleRequest(company: string) {
-    if (!LOGIN) return; // Download is disabled in UI when logged out
+    if (!LOGIN) return;
     setReqDefaultCompany(company);
-    setReqOpen(true); // ✅ open the modal instead of returning JSX/alert
+    setReqOpen(true);
   }
 
   function handleShow(row: RatingRow) {
@@ -234,14 +223,15 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
         </div>
       )}
 
-
-
       <RatingTable
-        // data + pagination
-        rows={pageRows}
-        page={page}
-        pages={pages}
-        onPage={setPage}
+        // Pass ALL filtered rows (scroll view will handle display)
+        rows={filteredRows}
+        
+        // PAGINATION PROPS REMOVED/COMMENTED
+        // page={page}
+        // pages={pages}
+        // onPage={setPage}
+        
         // filters (multi)
         companyOptions={companyOptions}
         sectorOptions={sectorOptions}
@@ -249,13 +239,16 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
         onFilterCompanies={setFilterCompanies}
         filterSectors={filterSectors}
         onFilterSectors={setFilterSectors}
+        
         // rating sort
         sortRating={sortRating}
         onSortRating={setSortRating}
+        
         // year (single)
         filterYear={filterYear}
         onFilterYear={setFilterYear}
         yearOptions={yearOptions}
+        
         // actions
         onRequest={handleRequest}
         isLoggedIn={LOGIN}
@@ -263,7 +256,7 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
         onShow={handleShow}
       />
 
-      {/* ✅ Request report modal (wired to Download button) */}
+      {/* Request report modal */}
       <RequestReportModal
         open={reqOpen}
         onClose={() => setReqOpen(false)}
@@ -367,7 +360,6 @@ function ReportViewerModal({
 
         {/* viewer */}
         <div className="p-0">
-          {/* Use native PDF rendering in the browser. Ensure your server serves the PDF with correct headers. */}
           <iframe
             src={url}
             title="Report viewer"

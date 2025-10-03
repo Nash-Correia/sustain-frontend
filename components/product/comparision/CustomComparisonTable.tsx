@@ -8,8 +8,8 @@ import {
   type PortfolioCompany,
   type CompanyDataRow,
 } from "@/lib/excel-data";
-import { formatNumber } from "./productUtils";
-import GreenRatingGauge from "./GreenRatingGauge";
+import { formatNumber } from "../productUtils";
+import GreenRatingGauge from "../GreenRatingGauge";
 
 type CompanyModeProps = {
   mode: "companies";

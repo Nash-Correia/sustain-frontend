@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import { formatNumber } from "./productUtils";
+import { formatNumber } from "../productUtils";
 import type { CompanyDataRow } from "@/lib/excel-data";
 import {
   Landmark,
@@ -562,32 +562,178 @@ function CompaniesSection({
   allCompanyData: CompanyDataRow[];
 }) {
   const company = allCompanyData.find((c) => c.companyName === companyName);
+
+  // Peers (excluding selected) for stats cards
   const peers = company
     ? allCompanyData.filter(
         (c) => c.sector === company.sector && c.companyName !== company.companyName
       )
     : [];
+
+  // Full sector list (including selected) for the table
+  const companiesInSector = company
+    ? allCompanyData.filter((c) => c.sector === company.sector)
+    : [];
+
   const selection = analyzeData(peers);
   const global = analyzeData(allCompanyData);
 
-  const sectorEntries = Object.entries(selection.sectorBreakdown)
-    .sort((a, b) => b[1].avgScore - a[1].avgScore)
-    .slice(0, 5) as [string, { count: number; avgScore: number }][];
+  // --- Local UI state for the peer table (collapsed/expanded)
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
+  type MetricKey = "e_score" | "s_score" | "g_score" | "esgScore" | "composite";
+
+  function getMinMax(metric: MetricKey) {
+    if (!companiesInSector.length) return { min: 0, max: 0 };
+    const vals = companiesInSector.map((c) => Number(c[metric] ?? 0));
+    return { min: Math.min(...vals), max: Math.max(...vals) };
+  }
+
+  // Render a metric cell: plain number by default; green bubble for max, red bubble for min
+  function renderMetric(metric: MetricKey, value?: number | null) {
+    const v = Number(value ?? 0);
+    const { min, max } = getMinMax(metric);
+    const hasRange = max !== min;
+
+    if (hasRange && v === max) {
+      // highest -> green bubble
+      return (
+        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
+          {formatNumber(v)}
+        </span>
+      );
+    }
+    if (hasRange && v === min) {
+      // lowest -> red bubble
+      return (
+        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 ring-1 ring-rose-200">
+          {formatNumber(v)}
+        </span>
+      );
+    }
+    // everyone else -> plain number
+    return <span className="text-gray-800">{formatNumber(v)}</span>;
+  }
 
   return (
     <div className="bg-white border border-gray-200 p-6 sm:p-8 space-y-10">
-
-
       {/* Peer analysis */}
       <section>
-        <h3 className="text-2xl font-bold text-brand-dark mb-1">
-          {company?.sector || "Peer"} — Peer Analysis
-        </h3>
-        <p className="text-sm text-brand-dark/80 mb-6">Peer comparison within the same sector.</p>
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-2">
+          <div>
+            <h3 className="text-2xl font-bold text-brand-dark">
+              {company?.sector || "Peer"} — Peer Analysis
+            </h3>
+            <p className="text-sm text-brand-dark/80">
+              Peer comparison within the same sector.
+            </p>
+          </div>
+        </div>
 
+        {/* Toggle */}
+        <div className="flex justify-end mb-6">
+          <button
+            onClick={() => setIsExpanded((v) => !v)}
+            aria-expanded={isExpanded}
+            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-all"
+          >
+            {isExpanded ? "Hide Details" : "Show Details"}
+          </button>
+        </div>
+
+        {/* === Peer Table (sector of selected company) === */}
+        <div className="relative h-[400px] overflow-auto rounded-lg border border-gray-200 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-600">
+          <table className="w-full text-sm table-fixed">
+            {!isExpanded ? (
+              <>
+                <thead className="sticky top-0 bg-gray-100">
+                  <tr>
+                    <th className="text-left p-3 font-bold text-gray-700 w-[32%]">Company</th>
+                    <th className="text-center p-3 font-bold text-gray-700 w-[17%]">ESG Pillar Score</th>
+                    <th className="text-center p-3 font-bold text-gray-700 w-[24%]">ESG Composite Score</th>
+                    <th className="text-center p-3 font-bold text-gray-700 w-[17%]">ESG Rating</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {companiesInSector.map((row, idx) => (
+                    <tr
+                      key={`${row.companyName}-${idx}-compact`}
+                      className="border-b border-gray-100 hover:bg-gray-50"
+                    >
+                      <td className="p-3 font-medium text-gray-800 truncate">
+                        {row.companyName}
+                        {row.companyName === companyName && (
+                          <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200 align-middle">
+                            Selected
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-3 text-center">{renderMetric("esgScore", row.esgScore)}</td>
+                      <td className="p-3 text-center">{renderMetric("composite", row.composite)}</td>
+                      <td className="p-3 text-center">
+                        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                          {row.grade ?? "-"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </>
+            ) : (
+              <>
+                <thead className="sticky top-0 bg-gray-100">
+                  <tr>
+                    <th className="text-left p-3 font-bold text-gray-700 w-[24%]">Company</th>
+                    <th className="text-center p-3 font-bold text-gray-700">E-Pillar Score</th>
+                    <th className="text-center p-3 font-bold text-gray-700">S-Pillar Score</th>
+                    <th className="text-center p-3 font-bold text-gray-700">G-Pillar Score</th>
+                    <th className="text-center p-3 font-bold text-gray-700">ESG Score</th>
+                    <th className="text-center p-3 font-bold text-gray-700">Positive Screen</th>
+                    <th className="text-center p-3 font-bold text-gray-700">Negative Screen</th>
+                    <th className="text-center p-3 font-bold text-gray-700">Controversy Rating</th>
+                    <th className="text-center p-3 font-bold text-gray-700">ESG Composite Score</th>
+                    <th className="text-center p-3 font-bold text-gray-700">ESG Rating</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {companiesInSector.map((row, idx) => (
+                    <tr
+                      key={`${row.companyName}-${idx}-expanded`}
+                      className="border-b border-gray-100 hover:bg-gray-50"
+                    >
+                      <td className="p-3 font-medium text-gray-800 truncate">
+                        {row.companyName}
+                        {row.companyName === companyName && (
+                          <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200 align-middle">
+                            Selected
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-3 text-center">{renderMetric("e_score", row.e_score)}</td>
+                      <td className="p-3 text-center">{renderMetric("s_score", row.s_score)}</td>
+                      <td className="p-3 text-center">{renderMetric("g_score", row.g_score)}</td>
+                      <td className="p-3 text-center">{renderMetric("esgScore", row.esgScore)}</td>
+                      <td className="p-3 text-center">{row.positive || "-"}</td>
+                      <td className="p-3 text-center">{row.negative || "-"}</td>
+                      <td className="p-3 text-center">{row.controversy || "-"}</td>
+                      <td className="p-3 text-center">{renderMetric("composite", row.composite)}</td>
+                      <td className="p-3 text-center">
+                        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                          {row.grade ?? "-"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </>
+            )}
+          </table>
+        </div>
+
+        {/* Summary tiles beneath the table */}
         {selection.totalCompanies > 0 ? (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 my-8">
               <StatCard
                 label="Peers Considered"
                 value={selection.totalCompanies}
@@ -610,7 +756,6 @@ function CompaniesSection({
                 label="Sectoral Top ESG Composite Score"
                 value={selection.highestScore}
                 trend="up"
-                //description={`Best: ${selection.bestCompany}`}
                 bgFrom="from-gray-50"
                 bgTo="to-gray-100"
                 border="border-gray-200"
@@ -618,38 +763,40 @@ function CompaniesSection({
               />
             </div>
 
-            <div >
+            <div>
               <div className="space-y-6">
                 <h4 className="font-semibold text-brand-dark mb-4">Peer highlights</h4>
-
                 <div className="grid lg:grid-cols-2 gap-8 ">
                   <div className="p-4 border rounded-lg bg-amber-50 border-amber-200 text-amber-900">
                     <div className="flex items-center justify-between">
                       <span className="text-m font-medium">🏅 Top ESG Performer</span>
-                      <span className="text-lg font-bold">{formatNumber(selection.highestScore)}</span>
+                      <span className="text-lg font-bold">
+                        {formatNumber(selection.highestScore)}
+                      </span>
                     </div>
                     <p className="font-semibold mt-1">{selection.bestCompany}</p>
                   </div>
                   <div className="p-4 border rounded-lg bg-stone-50 border-stone-200 text-stone-900">
                     <div className="flex items-center justify-between">
                       <span className="text-m font-medium">⚠ Needs Improvement</span>
-                      <span className="text-lg font-bold">{formatNumber(selection.lowestScore)}</span>
+                      <span className="text-lg font-bold">
+                        {formatNumber(selection.lowestScore)}
+                      </span>
                     </div>
                     <p className="font-semibold mt-1">{selection.worstCompany}</p>
                   </div>
                 </div>
               </div>
-
-              {/* <SectorPerformanceList entries={sectorEntries} titleClass="text-brand-dark" /> */}
             </div>
           </>
         ) : (
-          <div className="border border-ui-border rounded-lg p-6 bg-ui-fill text-ui-text-secondary">
+          <div className="border border-ui-border rounded-lg p-6 bg-ui-fill text-ui-text-secondary mt-6">
             No peers found for this company’s sector.
           </div>
         )}
       </section>
-            {/* Global universe tile pair */}
+
+      {/* Global universe tile pair */}
       <section>
         <h3 className="text-2xl font-bold text-brand-dark mb-1">IiAS rated universe</h3>
         <p className="text-sm text-ui-text-secondary mb-4">

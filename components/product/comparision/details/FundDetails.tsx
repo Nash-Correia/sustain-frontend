@@ -6,7 +6,7 @@ import {
   formatNumber,
   getColumnStats,
   getExtremeChipClass,
-} from "./productUtils";
+} from "../../productUtils";
 import { InfoTooltip } from "@/components/ui/InfoTooltip"; 
 
 type Props = {

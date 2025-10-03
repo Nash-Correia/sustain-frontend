@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
-import SearchableSelect from "../ui/SearchableSelect";
+import SearchableSelect from "@/components/ui/SearchableSelect";
 import { clsx } from "@/lib/utils";
 
 type Tab = "Funds" | "Companies" | "Sectors";

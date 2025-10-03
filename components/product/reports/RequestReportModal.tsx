@@ -1,7 +1,7 @@
 "use client";
 import React, { useMemo, useState, useEffect } from "react";
-import Modal from "../ui/Modal";
-import MultiSelect from "./MultiSelect";
+import Modal from "@/components/ui/Modal";
+import MultiSelect from "../MultiSelect";
 
 const EMAIL_RE = /^(?:[a-zA-Z0-9_'^&/+-])+(?:\.(?:[a-zA-Z0-9_'^&/+-])+)*@(?:(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})$/;
 
