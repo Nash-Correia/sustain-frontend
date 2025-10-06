@@ -1,9 +1,13 @@
-// components/product/SectorDetails.tsx
 "use client";
 
 import { useState } from "react";
 import { CompanyDataRow } from "@/lib/excel-data";
-import { formatNumber, getColumnStats, getExtremeChipClass } from "../../productUtils";
+import {
+  formatNumber,
+  getColumnStats,
+  getExtremeChipClass,
+} from "../../productUtils";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 
 type GaugeData = { score: number; rating: string; name: string };
 
@@ -11,8 +15,8 @@ const SectorDetails = ({
   sectorName,
   allCompanyData,
   gaugeData, // unused here (reserved)
-  onAddSector,            // ⬅️ optional add handler (matches ProductAPage)
-  stickyTopOffsetPx = 80, // ⬅️ accepted for parity; not used inside this card
+  onAddSector,
+  stickyTopOffsetPx = 80,
 }: {
   sectorName: string;
   allCompanyData: CompanyDataRow[];
@@ -24,15 +28,26 @@ const SectorDetails = ({
 
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const companiesInSector = allCompanyData.filter((c) => c.sector === sectorName);
+  const companiesInSector = allCompanyData.filter(
+    (c) => c.sector === sectorName
+  );
   const totalCompanies = companiesInSector.length;
   if (totalCompanies === 0) return null;
 
   // Stats for strict min/max chips
-  const numericColumns = ["composite", "esgScore", "e_score", "s_score", "g_score"];
+  const numericColumns = [
+    "composite",
+    "esgScore",
+    "e_score",
+    "s_score",
+    "g_score",
+  ];
   const pageStats = getColumnStats(companiesInSector, numericColumns);
 
-  const totalComposite = companiesInSector.reduce((acc, c) => acc + (c.composite ?? 0), 0);
+  const totalComposite = companiesInSector.reduce(
+    (acc, c) => acc + (c.composite ?? 0),
+    0
+  );
   const avgComposite = totalCompanies > 0 ? totalComposite / totalCompanies : 0;
 
   let sectorGrade = "D";
@@ -43,21 +58,45 @@ const SectorDetails = ({
   else if (avgComposite >= 55) sectorGrade = "C+";
   else if (avgComposite >= 50) sectorGrade = "C";
 
+  // Header helper: label and tooltip icon are now inline.
+  const Header = ({
+    children,
+    tip,
+    align = "center",
+  }: {
+    children: React.ReactNode;
+    tip:
+      | "esgPillarScore"
+      | "esgCompositeScore"
+      | "esgRating"
+      | "environmentalPillar"
+      | "socialPillar"
+      | "governancePillar"
+      | "positiveScreen"
+      | "negativeScreen"
+      | "controversyRating";
+    align?: "left" | "center" | "right";
+  }) => {
+    const alignCls =
+      align === "left"
+        ? "justify-start text-left"
+        : align === "right"
+        ? "justify-end text-right"
+        : "justify-center text-center";
+    return (
+      <div
+        className={`relative flex flex-row items-center gap-1 ${alignCls} px-2 py-2 leading-snug`}
+      >
+        <span className="font-bold text-gray-700 whitespace-normal">
+          {children}
+        </span>
+        <InfoTooltip id={tip} align="center" panelWidthClass="w-72" />
+      </div>
+    );
+  };
+
   return (
     <div className="bg-white border border-gray-200 rounded-large p-6 sm:p-8">
-      {/* Title was moved to page-level sticky bar. We keep only an optional Add button here. */}
-      {/* <div className="flex justify-end mb-4">
-        {onAddSector && (
-          <button
-            onClick={() => onAddSector(sectorName)}
-            aria-label={`Add ${sectorName} sector to list`}
-            className="px-4 py-2 bg-brand-action text-white rounded-lg text-sm font-medium hover:bg-brand-action/90 transition-colors"
-          >
-            Add to List
-          </button>
-        )}
-      </div> */}
-
       {/* Tiles */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {/* Average ESG Composite Score Card */}
@@ -83,8 +122,17 @@ const SectorDetails = ({
             </svg>
           </div>
           <div>
-            <p className="text-3xl font-bold text-gray-800">{formatNumber(avgComposite)}</p>
-            <p className="text-sm text-gray-600 font-medium">Average ESG Composite Score</p>
+            <p className="text-3xl font-bold text-gray-800">
+              {formatNumber(avgComposite)}
+            </p>
+            <p className="text-sm text-gray-600 font-medium inline-flex items-center gap-1">
+              Average ESG Composite Score
+              <InfoTooltip
+                id="esgCompositeScore"
+                align="left"
+                panelWidthClass="w-72"
+              />
+            </p>
           </div>
         </div>
 
@@ -114,7 +162,10 @@ const SectorDetails = ({
           </div>
           <div>
             <p className="text-3xl font-bold text-gray-800">{sectorGrade}</p>
-            <p className="text-sm text-gray-600 font-medium">Sector Rating</p>
+            <p className="text-sm text-gray-600 font-medium inline-flex items-center gap-1">
+              Sector Rating
+              <InfoTooltip id="esgRating" align="left" panelWidthClass="w-64" />
+            </p>
           </div>
         </div>
 
@@ -143,131 +194,203 @@ const SectorDetails = ({
             </svg>
           </div>
           <div>
-            <p className="text-3xl font-bold text-gray-800">{totalCompanies}</p>
-            <p className="text-sm text-gray-600 font-medium">Total Companies</p>
+            <p className="text-3xl font-bold text-gray-800">
+              {totalCompanies}
+            </p>
+            <p className="text-sm text-gray-600 font-medium">
+              Total Companies
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Expand control */}
-{/* Toggle */}
-<div className="flex justify-end mb-6">
-  <button
-    onClick={() => setIsExpanded((v) => !v)}
-    aria-expanded={isExpanded}
-    className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-all"
-  >
-    {isExpanded ? "Hide Details" : "Show Details"}
-  </button>
-</div>
+      {/* Toggle */}
+      <div className="flex justify-end mb-6">
+        <button
+          onClick={() => setIsExpanded((v) => !v)}
+          aria-expanded={isExpanded}
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-all"
+        >
+          {isExpanded ? "Hide Details" : "Show Details"}
+        </button>
+      </div>
 
-{/* Table */}
-<div className="relative h-[400px] overflow-auto rounded-lg border border-gray-200 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-600">
-  <table className="w-full text-sm table-fixed">
-    {(() => {
-      type MetricKey = "e_score" | "s_score" | "g_score" | "esgScore" | "composite";
-
-      function getMinMax(metric: MetricKey) {
-        if (!companiesInSector.length) return { min: 0, max: 0 };
-        const vals = companiesInSector.map((c) => Number(c[metric] ?? 0));
-        return { min: Math.min(...vals), max: Math.max(...vals) };
-      }
-
-      function renderMetric(metric: MetricKey, value?: number | null) {
-        const v = Number(value ?? 0);
-        const { min, max } = getMinMax(metric);
-        const hasRange = max !== min;
-
-        if (hasRange && v === max) {
-          return (
-            <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
-              {formatNumber(v)}
-            </span>
-          );
-        }
-        if (hasRange && v === min) {
-          return (
-            <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 ring-1 ring-rose-200">
-              {formatNumber(v)}
-            </span>
-          );
-        }
-        return <span className="text-gray-800">{formatNumber(v)}</span>;
-      }
-
-      return !isExpanded ? (
-        <>
-          <thead className="sticky top-0 bg-gray-100">
-            <tr className="h-12">
-              <th className="w-[30%] text-left p-3 font-bold text-gray-700">Company</th>
-              <th className="w-[20%] text-center p-3 font-bold text-gray-700">ESG Score</th>
-              <th className="w-[30%] text-center p-3 font-bold text-gray-700">ESG Composite Score</th>
-              <th className="w-[20%] text-center p-3 font-bold text-gray-700">ESG Rating</th>
-            </tr>
-          </thead>
-          <tbody>
-            {companiesInSector.map((row, index) => (
-              <tr
-                key={`${index}-collapsed`}
-                className="border-b border-gray-100 hover:bg-gray-50 h-12"
-              >
-                <td className="p-3 font-medium text-gray-800">{row.companyName}</td>
-                <td className="p-3 text-center">{renderMetric("esgScore", row.esgScore)}</td>
-                <td className="p-3 text-center">{renderMetric("composite", row.composite)}</td>
-                <td className="p-3 text-center">
-                  <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-                    {row.grade ?? "-"}
-                  </span>
-                </td>
+      {/* Table */}
+      <div className="relative h-[400px] overflow-auto rounded-lg border border-gray-200 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-600">
+        <table
+          className={`w-full table-auto ${
+            isExpanded ? "text-xs" : "text-sm"
+          }`}
+        >
+          {!isExpanded ? (
+            <thead className="sticky top-0 bg-gray-100">
+              <tr className="align-middle">
+                <th className="text-left p-3 font-bold text-gray-700">
+                  Company
+                </th>
+                <th className="text-center p-2">
+                  <Header tip="esgPillarScore">ESG Pillar Score</Header>
+                </th>
+                <th className="text-center p-2">
+                  <Header tip="esgCompositeScore">ESG Composite Score</Header>
+                </th>
+                <th className="text-center p-2">
+                  <Header tip="esgRating">ESG Rating</Header>
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </>
-      ) : (
-        <>
-          <thead className="sticky top-0 bg-gray-100">
-            <tr className="h-12">
-              <th className="w-[20%] text-left p-3 font-bold text-gray-700">Company</th>
-              <th className="w-[10%] text-center p-3 font-bold text-gray-700">E-Pillar</th>
-              <th className="w-[10%] text-center p-3 font-bold text-gray-700">S-Pillar</th>
-              <th className="w-[10%] text-center p-3 font-bold text-gray-700">G-Pillar</th>
-              <th className="w-[10%] text-center p-3 font-bold text-gray-700">ESG Score</th>
-              <th className="w-[10%] text-center p-3 font-bold text-gray-700">Positive Screen</th>
-              <th className="w-[10%] text-center p-3 font-bold text-gray-700">Negative Screen</th>
-              <th className="w-[10%] text-center p-3 font-bold text-gray-700">Controversy Rating</th>
-              <th className="w-[10%] text-center p-3 font-bold text-gray-700">ESG Composite Score</th>
-              <th className="w-[10%] text-center p-3 font-bold text-gray-700">ESG Rating</th>
-            </tr>
-          </thead>
-          <tbody>
-            {companiesInSector.map((row, index) => (
-              <tr
-                key={`${index}-expanded`}
-                className="border-b border-gray-100 hover:bg-gray-50 h-12"
-              >
-                <td className="p-3 font-medium text-gray-800">{row.companyName}</td>
-                <td className="p-3 text-center">{renderMetric("e_score", row.e_score)}</td>
-                <td className="p-3 text-center">{renderMetric("s_score", row.s_score)}</td>
-                <td className="p-3 text-center">{renderMetric("g_score", row.g_score)}</td>
-                <td className="p-3 text-center">{renderMetric("esgScore", row.esgScore)}</td>
-                <td className="p-3 text-center">{row.positive || "-"}</td>
-                <td className="p-3 text-center">{row.negative || "-"}</td>
-                <td className="p-3 text-center">{row.controversy || "-"}</td>
-                <td className="p-3 text-center">{renderMetric("composite", row.composite)}</td>
-                <td className="p-3 text-center">
-                  <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-                    {row.grade ?? "-"}
-                  </span>
-                </td>
+            </thead>
+          ) : (
+            <thead className="sticky top-0 bg-gray-100">
+              <tr className="align-middle">
+                <th className="text-left p-2 font-bold text-gray-700">
+                  Company
+                </th>
+                <th className="text-center p-1">
+                  <Header tip="environmentalPillar">E-Pillar Score</Header>
+                </th>
+                <th className="text-center p-1">
+                  <Header tip="socialPillar">S-Pillar Score</Header>
+                </th>
+                <th className="text-center p-1">
+                  <Header tip="governancePillar">G-Pillar Score</Header>
+                </th>
+                <th className="text-center p-1">
+                  <Header tip="esgPillarScore">ESG Pillar Score</Header>
+                </th>
+                <th className="text-center p-1">
+                  <Header tip="positiveScreen">Positive Screen</Header>
+                </th>
+                <th className="text-center p-1">
+                  <Header tip="negativeScreen">Negative Screen</Header>
+                </th>
+                <th className="text-center p-1">
+                  <Header tip="controversyRating">Controversy Rating</Header>
+                </th>
+                <th className="text-center p-1">
+                  <Header tip="esgCompositeScore">ESG Composite Score</Header>
+                </th>
+                <th className="text-center p-1">
+                  <Header tip="esgRating">ESG Rating</Header>
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </>
-      );
-    })()}
-  </table>
-</div>
+            </thead>
+          )}
 
+          <tbody>
+            {companiesInSector.map((row, index) =>
+              !isExpanded ? (
+                <tr
+                  key={`${index}-collapsed`}
+                  className="border-b border-gray-100 hover:bg-gray-50 h-12"
+                >
+                  <td className="p-3 font-medium text-gray-800">
+                    {row.companyName}
+                  </td>
+                  <td className="p-3 text-center">
+                    <span
+                      className={getExtremeChipClass(
+                        "esgScore",
+                        row.esgScore,
+                        pageStats
+                      )}
+                    >
+                      {formatNumber(row.esgScore ?? 0)}
+                    </span>
+                  </td>
+                  <td className="p-3 text-center">
+                    <span
+                      className={getExtremeChipClass(
+                        "composite",
+                        row.composite,
+                        pageStats
+                      )}
+                    >
+                      {formatNumber(row.composite ?? 0)}
+                    </span>
+                  </td>
+                  <td className="p-3 text-center">
+                    <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                      {row.grade ?? "-"}
+                    </span>
+                  </td>
+                </tr>
+              ) : (
+                <tr
+                  key={`${index}-expanded`}
+                  className="border-b border-gray-100 hover:bg-gray-50 h-12"
+                >
+                  <td className="p-2 font-medium text-gray-800">
+                    {row.companyName}
+                  </td>
+                  <td className="p-2 text-center">
+                    <span
+                      className={getExtremeChipClass(
+                        "e_score",
+                        row.e_score,
+                        pageStats
+                      )}
+                    >
+                      {formatNumber(row.e_score ?? 0)}
+                    </span>
+                  </td>
+                  <td className="p-2 text-center">
+                    <span
+                      className={getExtremeChipClass(
+                        "s_score",
+                        row.s_score,
+                        pageStats
+                      )}
+                    >
+                      {formatNumber(row.s_score ?? 0)}
+                    </span>
+                  </td>
+                  <td className="p-2 text-center">
+                    <span
+                      className={getExtremeChipClass(
+                        "g_score",
+                        row.g_score,
+                        pageStats
+                      )}
+                    >
+                      {formatNumber(row.g_score ?? 0)}
+                    </span>
+                  </td>
+                  <td className="p-2 text-center">
+                    <span
+                      className={getExtremeChipClass(
+                        "esgScore",
+                        row.esgScore,
+                        pageStats
+                      )}
+                    >
+                      {formatNumber(row.esgScore ?? 0)}
+                    </span>
+                  </td>
+                  <td className="p-2 text-center">{row.positive || "-"}</td>
+                  <td className="p-2 text-center">{row.negative || "-"}</td>
+                  <td className="p-2 text-center">{row.controversy || "-"}</td>
+                  <td className="p-2 text-center">
+                    <span
+                      className={getExtremeChipClass(
+                        "composite",
+                        row.composite,
+                        pageStats
+                      )}
+                    >
+                      {formatNumber(row.composite ?? 0)}
+                    </span>
+                  </td>
+                  <td className="p-2 text-center">
+                    <span className="px-2 py-1 rounded-full font-semibold bg-gray-100 text-gray-700">
+                      {row.grade ?? "-"}
+                    </span>
+                  </td>
+                </tr>
+              )
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

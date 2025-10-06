@@ -44,7 +44,6 @@ function companyComposite(c: CompanyDataRow): number | null {
   return v;
 }
 
-// Only the grade letter gets color; containers are neutral
 function gradeTextColor(ratingRaw: string | undefined | null) {
   const r = (ratingRaw ?? "").toUpperCase().trim();
   if (!r || r === "N/A" || r === "X") return "text-gray-700";
@@ -58,9 +57,7 @@ function gradeTextColor(ratingRaw: string | undefined | null) {
   return "text-gray-700";
 }
 
-/** Smooth, GPU-friendly sticky detector for a sticky header element.
- *  Checks headerRef.top <= offsetPx using rAF-throttled scroll listener.
- */
+/** rAF-throttled sticky detector reading the sticky header's top. */
 function useHeaderSticky(headerRef: React.RefObject<HTMLElement>, offsetPx = 80) {
   const [isStuck, setIsStuck] = useState(false);
   const rafRef = useRef<number | null>(null);
@@ -69,8 +66,7 @@ function useHeaderSticky(headerRef: React.RefObject<HTMLElement>, offsetPx = 80)
     const el = headerRef.current;
     if (!el) return false;
     const top = el.getBoundingClientRect().top;
-    // Sticky "sticks" when its top touches the offset line (top-20 ≈ 80px)
-    return top <= offsetPx + 0.5;
+    return top <= offsetPx + 0.5; // top-20 ≈ 80px
   }, [headerRef, offsetPx]);
 
   const onScroll = useCallback(() => {
@@ -78,29 +74,24 @@ function useHeaderSticky(headerRef: React.RefObject<HTMLElement>, offsetPx = 80)
     rafRef.current = window.requestAnimationFrame(() => {
       rafRef.current = null;
       const next = readIsStuck();
-      // Avoid setState if value is unchanged
-      setIsStuck(prev => (prev !== next ? next : prev));
+      setIsStuck((prev) => (prev !== next ? next : prev));
     });
   }, [readIsStuck]);
 
   useEffect(() => {
-    // initialize
     const init = () => setIsStuck(readIsStuck());
     init();
 
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", init);
 
-    // Re-check after paint (helps when content above loads async)
     const id = window.setTimeout(init, 0);
 
     return () => {
       window.clearTimeout(id);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", init);
-      if (rafRef.current != null) {
-        window.cancelAnimationFrame(rafRef.current);
-      }
+      if (rafRef.current != null) window.cancelAnimationFrame(rafRef.current);
     };
   }, [onScroll, readIsStuck]);
 
@@ -117,12 +108,10 @@ export default function ProductAPage() {
   const [selectedItem, setSelectedItem] = useState<SelectedItem>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Lists
   const [portfolioCompanies, setPortfolioCompanies] = useState<PortfolioCompany[]>([]);
   const [selectedFunds, setSelectedFunds] = useState<FundDataRow[]>([]);
   const [selectedSectors, setSelectedSectors] = useState<string[]>([]);
 
-  // Load data
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -137,10 +126,11 @@ export default function ProductAPage() {
         if (!cancelled) setLoadError("Failed to load data. Please try again.");
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // Lookups & options
   const { companyOptions, fundOptions, sectorOptions, companyMap, fundMap, companiesBySector } =
     useMemo(() => {
       const cMap = new Map<string, CompanyDataRow>();
@@ -173,7 +163,6 @@ export default function ProductAPage() {
       };
     }, [allCompanyData, allFundData]);
 
-  // Gauge data (unified)
   const gaugeData = useMemo(() => {
     if (!selectedItem || !selectedItem.name?.trim()) {
       return { score: 0, rating: "N/A", name: "Select an item" };
@@ -215,7 +204,6 @@ export default function ProductAPage() {
     return { score: 0, rating: "N/A", name: selectedItem.name };
   }, [selectedItem, fundMap, companyMap, companiesBySector]);
 
-  // handlers
   const handleSelection = useCallback(
     (value: string, type: "Funds" | "Companies" | "Sectors") => {
       setSelectedItem({ name: value, type });
@@ -260,187 +248,241 @@ export default function ProductAPage() {
   }, []);
 
   /* =========================
-     Sticky Context Bar (self-contained, smooth)
+     Sticky Context Bar
+     - Y padding reduces when sticky (more for Companies)
+     - Left cluster scales; button stays pinned
   ========================= */
 
-  const StickyContextBar = () => {
-    if (!selectedItem?.name) return null;
+const StickyContextBar = () => {
+  if (!selectedItem?.name) return null;
 
-    const headerRef = useRef<HTMLElement | null>(null);
-    const isStuck = useHeaderSticky(headerRef as React.RefObject<HTMLElement>, 80);
+  const headerRef = useRef<HTMLElement | null>(null);
+  const isStuck = useHeaderSticky(headerRef as React.RefObject<HTMLElement>, 80);
 
-    // defaults
-    let title = selectedItem.name;
-    let subtitle: string | null = null;
-    let ratingText: string = "N/A";
-    let compositeVal: number | null = null;
-    let addBtn: React.ReactNode = null;
+  // defaults
+  let title = selectedItem.name;
+  let subtitle: string | null = null;
+  let ratingText: string = "N/A";
+  let compositeVal: number | null = null;
+  let addBtn: React.ReactNode = null;
 
-    // dedupe checks
-    const isFundAlready =
-      selectedItem.type === "Funds" &&
-      !!fundMap.get(selectedItem.name) &&
-      selectedFunds.some((f) => f.fundName === selectedItem.name);
+  const isFundAlready =
+    selectedItem.type === "Funds" &&
+    !!fundMap.get(selectedItem.name) &&
+    selectedFunds.some((f) => f.fundName === selectedItem.name);
 
-    const isCompanyAlready =
-      selectedItem.type === "Companies" &&
-      !!companyMap.get(selectedItem.name) &&
-      portfolioCompanies.some((p) => p.companyName === selectedItem.name);
+  const isCompanyAlready =
+    selectedItem.type === "Companies" &&
+    !!companyMap.get(selectedItem.name) &&
+    portfolioCompanies.some((p) => p.companyName === selectedItem.name);
 
-    const isSectorAlready =
-      selectedItem.type === "Sectors" && selectedSectors.includes(selectedItem.name);
+  const isSectorAlready =
+    selectedItem.type === "Sectors" && selectedSectors.includes(selectedItem.name);
 
-    const alreadyAdded = isFundAlready || isCompanyAlready || isSectorAlready;
+  const alreadyAdded = isFundAlready || isCompanyAlready || isSectorAlready;
 
-    if (selectedItem.type === "Funds") {
-      const fund = fundMap.get(selectedItem.name);
-      if (!fund) return null;
-      title = fund.fundName;
-      ratingText = fund.grade || "N/A";
-      compositeVal = typeof fund.score === "number" ? fund.score : null;
-      addBtn = (
-        <button
-          onClick={() => handleAddFundToList(fund)}
-          disabled={alreadyAdded}
-          className={[
-            "px-4 py-2 rounded-lg text-sm font-medium transition-opacity",
-            alreadyAdded
-              ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-              : "bg-brand-action text-white hover:opacity-90",
-          ].join(" ")}
-        >
-          Compare
-        </button>
-      );
-    } else if (selectedItem.type === "Companies") {
-      const company = companyMap.get(selectedItem.name);
-      if (!company) return null;
-      title = company.companyName;
-      subtitle = company.sector || null;
-      ratingText = company.grade || "N/A";
-      compositeVal = companyComposite(company);
-      addBtn = (
-        <button
-          onClick={() => handleAddCompanyToList(company)}
-          disabled={alreadyAdded}
-          className={[
-            "px-4 py-2 rounded-lg text-sm font-medium transition-opacity",
-            alreadyAdded
-              ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-              : "bg-brand-action text-white hover:opacity-90",
-          ].join(" ")}
-        >
-          Add to Portfolio
-        </button>
-      );
-    } else if (selectedItem.type === "Sectors") {
-      title = `${selectedItem.name} Sector`;
-      const list = companiesBySector.get(selectedItem.name) ?? [];
-      if (list.length > 0) {
-        const totalComposite = list.reduce((s, c) => s + (companyComposite(c) ?? 0), 0);
-        const avgComposite = Math.round(totalComposite / list.length);
-        compositeVal = avgComposite;
-        ratingText = gradeFromScore(avgComposite);
-      }
-      addBtn = (
-        <button
-          onClick={() => handleAddSectorToList(selectedItem.name)}
-          disabled={alreadyAdded}
-          className={[
-            "px-4 py-2 rounded-lg text-sm font-medium transition-opacity",
-            alreadyAdded
-              ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-              : "bg-brand-action text-white hover:opacity-90",
-          ].join(" ")}
-        >
-          Compare
-        </button>
-      );
-    }
-
-    const isCompany = selectedItem.type === "Companies";
-    const gradeColorCls = gradeTextColor(ratingText);
-
-    // Fixed title/subtitle sizes
-const titleCls = isStuck ? "text-xl" : "text-2xl sm:text-3xl";
-const subtitleCls = isStuck ? "text-sm" : "text-base";
-
-    // GPU-accelerated scaling for smoothness (no layout shift)
-    const scale = isStuck ? 0.9 : 1; // tweak 0.92–0.85 to taste
-
-    return (
-      <section
-        ref={headerRef as React.RefObject<HTMLElement>}
-        role="region"
-        aria-label="Context"
-        className="sticky top-20 z-30 bg-white border-b border-gray-200 py-6"
+  if (selectedItem.type === "Funds") {
+    const fund = fundMap.get(selectedItem.name);
+    if (!fund) return null;
+    title = fund.fundName;
+    ratingText = fund.grade || "N/A";
+    compositeVal = typeof fund.score === "number" ? fund.score : null;
+    addBtn = (
+      <button
+        onClick={() => handleAddFundToList(fund)}
+        disabled={alreadyAdded}
+        className={[
+          "px-4 py-2 rounded-lg text-sm font-medium transition-opacity",
+          alreadyAdded
+            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+            : "bg-brand-action text-white hover:opacity-90",
+        ].join(" ")}
       >
-        <div className="flex items-center justify-between gap-6 px-6">
-          {/* Left: title/subtitle + metrics */}
-          <div className="flex items-center gap-8 min-w-0 flex-1">
-            <div className="min-w-0">
-              <h2 className={["font-semibold text-brand-dark truncate", titleCls].join(" ")}>
-                {title}
-              </h2>
-              {subtitle && (
-                <p className={["mt-0.5 text-ui-text-secondary truncate", subtitleCls].join(" ")}>
-                  {subtitle}
-                </p>
-              )}
-            </div>
+        Compare
+      </button>
+    );
+  } else if (selectedItem.type === "Companies") {
+    const company = companyMap.get(selectedItem.name);
+    if (!company) return null;
+    title = company.companyName;
+    subtitle = company.sector || null;
+    ratingText = company.grade || "N/A";
+    compositeVal = companyComposite(company);
+    addBtn = (
+      <button
+        onClick={() => handleAddCompanyToList(company)}
+        disabled={alreadyAdded}
+        className={[
+          "px-4 py-2 rounded-lg text-sm font-medium transition-opacity",
+          alreadyAdded
+            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+            : "bg-brand-action text-white hover:opacity-90",
+        ].join(" ")}
+      >
+        Add to Portfolio
+      </button>
+    );
+  } else if (selectedItem.type === "Sectors") {
+    title = `${selectedItem.name} Sector`;
+    const list = companiesBySector.get(selectedItem.name) ?? [];
+    if (list.length > 0) {
+      const totalComposite = list.reduce((s, c) => s + (companyComposite(c) ?? 0), 0);
+      const avgComposite = Math.round(totalComposite / list.length);
+      compositeVal = avgComposite;
+      ratingText = gradeFromScore(avgComposite);
+    }
+    addBtn = (
+      <button
+        onClick={() => handleAddSectorToList(selectedItem.name)}
+        disabled={alreadyAdded}
+        className={[
+          "px-4 py-2 rounded-lg text-sm font-medium transition-opacity",
+          alreadyAdded
+            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+            : "bg-brand-action text-white hover:opacity-90",
+        ].join(" ")}
+      >
+        Compare
+      </button>
+    );
+  }
 
-            {/* Company Metrics */}
+  const isCompany = selectedItem.type === "Companies";
+  const gradeColorCls = gradeTextColor(ratingText);
+
+  // spacing + scale
+  const containerPadding = isStuck ? "py-2" : "py-4";
+  const leftScale   = isStuck ? 0.86 : 1;
+  const centerScale = isStuck ? 0.82 : 1;
+
+  // unified value size; shrink when stuck
+  const valueSizeCls = isStuck ? "text-4xl" : "text-5xl";
+
+  // label placement:
+  // - not stuck: label ABOVE, centered
+  // - stuck: label LEFT of value, left-aligned and vertically centered
+  const labelAbove = !isStuck;
+
+  const labelBase =
+    "text-[10px] font-semibold uppercase tracking-wider text-gray-600 whitespace-nowrap leading-tight";
+  const labelAboveCls = `${labelBase} text-center`;
+  const labelLeftCls = `${labelBase} text-left`;
+
+  const metricCardBase = "rounded-xl border border-gray-200";
+  const metricCardPad = isStuck ? "px-3 py-1.5" : "px-4 py-2.5";
+  const ratingMinW = isStuck ? "min-w-[180px]" : "min-w-[200px]";
+  const compositeMinW = isStuck ? "min-w-[210px]" : "min-w-[230px]";
+
+  return (
+    <section
+      ref={headerRef as React.RefObject<HTMLElement>}
+      role="region"
+      aria-label="Context"
+      className={[
+        "sticky top-20 z-30 bg-white border-b border-gray-200",
+        containerPadding,
+        "transition-[padding] duration-150 ease-out",
+      ].join(" ")}
+    >
+      <div className="px-6">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-6">
+          {/* LEFT: title/subtitle (scales) */}
+          <div
+            className="min-w-0 transform-gpu will-change-transform transition-transform duration-150 ease-out"
+            style={{ transform: `scale(${leftScale})`, transformOrigin: "top left" }}
+          >
+            <h2 className="font-semibold text-brand-dark truncate text-2xl sm:text-3xl">
+              {title}
+            </h2>
+            {subtitle && (
+              <p className="mt-0.5 text-ui-text-secondary truncate text-base">
+                {subtitle}
+              </p>
+            )}
+          </div>
+
+          {/* CENTER: metrics (pinned center; scales) */}
+          <div
+            className="justify-self-center transform-gpu will-change-transform transition-transform duration-150 ease-out"
+            style={{ transform: `scale(${centerScale})`, transformOrigin: "center" }}
+          >
             {isCompany && (
-              <div
-                className="flex items-stretch gap-6 transform-gpu will-change-transform transition-transform duration-200 ease-out"
-                style={{ transform: `scale(${scale})` }}
-              >
+              <div className="inline-flex items-center gap-6">
                 {/* ESG Rating */}
-                <div className="w-[132px]">
-                  <div className="mt-1 rounded-xl border border-gray-200 p-3">
-                    <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-600 text-left">
-                      ESG Rating
+                <div className={`${metricCardBase} ${metricCardPad} ${ratingMinW}`}>
+                  {labelAbove ? (
+                    <div className="flex flex-col items-center">
+                      <div className={labelAboveCls}>ESG Rating</div>
+                      <div
+                        className={[
+                          "leading-none font-extrabold tracking-tight text-center",
+                          valueSizeCls,
+                          gradeColorCls,
+                        ].join(" ")}
+                        title="ESG grade"
+                      >
+                        {ratingText || "N/A"}
+                      </div>
                     </div>
-                    <div
-                      className={[
-                        "leading-none font-extrabold text-center tracking-tight",
-                        "text-5xl", // keep font static; scale container instead
-                        gradeColorCls,
-                      ].join(" ")}
-                      aria-live="polite"
-                      title="ESG grade"
-                    >
-                      {ratingText || "N/A"}
+                  ) : (
+                    <div className="flex items-center justify-center gap-3">
+                      <div className={labelLeftCls}>ESG Rating</div>
+                      <div
+                        className={[
+                          "leading-none font-extrabold tracking-tight",
+                          valueSizeCls,
+                          gradeColorCls,
+                        ].join(" ")}
+                        title="ESG grade"
+                      >
+                        {ratingText || "N/A"}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Composite */}
-                <div className="min-w-[220px]">
-                  <div className="mt-1 rounded-xl border border-gray-200 p-3">
-                    <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-600 text-left">
-                      ESG Composite Score
-                    </div>
-                    <div className="flex justify-center">
+                <div className={`${metricCardBase} ${metricCardPad} ${compositeMinW}`}>
+                  {labelAbove ? (
+                    <div className="flex flex-col items-center">
+                      <div className={labelAboveCls}>ESG Composite Score</div>
                       <div
-                        className={["font-bold text-gray-900", "text-3xl"].join(" ")}
+                        className={[
+                          "font-extrabold text-gray-900 leading-none tracking-tight text-center",
+                          valueSizeCls,
+                        ].join(" ")}
                         title="Composite score"
                       >
                         {typeof compositeVal === "number" ? Math.round(compositeVal) : "—"}
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-3">
+                      <div className={labelLeftCls}>ESG Composite Score</div>
+                      <div
+                        className={[
+                          "font-extrabold text-gray-900 leading-none tracking-tight",
+                          valueSizeCls,
+                        ].join(" ")}
+                        title="Composite score"
+                      >
+                        {typeof compositeVal === "number" ? Math.round(compositeVal) : "—"}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Right: action */}
-          <div className="flex-shrink-0">{addBtn}</div>
+          {/* RIGHT: action button (unpinned scale, stays put) */}
+          <div className="justify-self-end">{addBtn}</div>
         </div>
-      </section>
-    );
-  };
+      </div>
+    </section>
+  );
+};
+
 
   /* =========================
      Render
@@ -509,37 +551,39 @@ const subtitleCls = isStuck ? "text-sm" : "text-base";
             <section className="relative">
               <StickyContextBar />
 
-              {/* Details card */}
-              {renderSelectionCard()}
+              <div className="space-y-4">
+                {/* Details card */}
+                {renderSelectionCard()}
 
-              {/* Analysis card */}
-              <AnalysisCard selectedItem={selectedItem} allCompanyData={allCompanyData} />
+                {/* Analysis card */}
+                <AnalysisCard selectedItem={selectedItem} allCompanyData={allCompanyData} />
 
-              {/* Comparison lists */}
-              {selectedItem.type === "Funds" && selectedFunds.length > 0 && (
-                <FundsComparisonTable
-                  mode="funds"
-                  funds={selectedFunds}
-                  onRemoveFund={handleRemoveFundFromList}
-                />
-              )}
+                {/* Comparison lists */}
+                {selectedItem.type === "Funds" && selectedFunds.length > 0 && (
+                  <FundsComparisonTable
+                    mode="funds"
+                    funds={selectedFunds}
+                    onRemoveFund={handleRemoveFundFromList}
+                  />
+                )}
 
-              {selectedItem.type === "Sectors" && selectedSectors.length > 0 && (
-                <FundsComparisonTable
-                  mode="sectors"
-                  sectors={selectedSectors}
-                  allCompanyData={allCompanyData}
-                  onRemoveSector={handleRemoveSectorFromList}
-                />
-              )}
+                {selectedItem.type === "Sectors" && selectedSectors.length > 0 && (
+                  <FundsComparisonTable
+                    mode="sectors"
+                    sectors={selectedSectors}
+                    allCompanyData={allCompanyData}
+                    onRemoveSector={handleRemoveSectorFromList}
+                  />
+                )}
 
-              {selectedItem.type === "Companies" && portfolioCompanies.length > 0 && (
-                <FundsComparisonTable
-                  mode="companies"
-                  companies={portfolioCompanies}
-                  onRemoveCompany={handleRemoveCompanyFromList}
-                />
-              )}
+                {selectedItem.type === "Companies" && portfolioCompanies.length > 0 && (
+                  <FundsComparisonTable
+                    mode="companies"
+                    companies={portfolioCompanies}
+                    onRemoveCompany={handleRemoveCompanyFromList}
+                  />
+                )}
+              </div>
             </section>
           ) : null}
         </div>

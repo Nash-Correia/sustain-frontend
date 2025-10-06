@@ -82,161 +82,140 @@ export default function RatingTable(p: Props) {
     return onSortRating(null);
   }
 
-  return (
-    <div className="pt-4 sm:pt-6">
-      <div className="rounded-[14px] border border-gray-300 bg-white shadow-sm overflow-hidden">
-        {/* ====================== TABLE HEADER ====================== */}
-        <div className="grid grid-cols-[1.2fr_1fr_.6fr_.6fr] items-center px-4 sm:px-6 h-14 rounded-t-[14px] border-b border-gray-200 text-[15px] font-semibold text-[#1C6C6C] bg-white sticky top-0 z-10">
-          {/* Company (multi-select) */}
-          <div className="relative">
-            <MultiSelectDropdown
-              label="Company"
-              options={companyOptions}
-              selected={filterCompanies}
-              onChange={onFilterCompanies}
-              placeholder="Search companies..."
-            />
-          </div>
-
-          {/* Sector (multi-select) */}
-          <div className="relative flex items-left justify-left">
-            <MultiSelectDropdown
-              label="ESG Sector"
-              options={sectorOptions}
-              selected={filterSectors}
-              onChange={onFilterSectors}
-              placeholder="Search sectors..."
-              center
-            />
-          </div>
-
-          {/* Rating (sort asc/desc) */}
-          <div className="relative flex items-center justify-center">
-            <button
-              type="button"
-              onClick={toggleRatingSort}
-              aria-pressed={!!sortRating}
-              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[#195D5D] hover:bg-gray-50"
-              title="Toggle rating sort"
-            >
-              <span>ESG Rating</span>
-              {sortRating === "asc" ? (
-                <SortUp className="h-4 w-4 text-gray-400" />
-              ) : sortRating === "desc" ? (
-                <SortDown className="h-4 w-4 text-gray-400" />
-              ) : (
-                <SortBoth className="h-4 w-4 text-gray-400" />
-              )}
-            </button>
-          </div>
-
-          {/* Year */}
-          <div className="relative flex items-center justify-center">
-            <HeaderDropdown label={`${p.filterYear} Report`} chevron center>
-              <MenuList align="right">
-                {p.yearOptions.map((y) => (
-                  <MenuItem key={y} selected={p.filterYear === y} onClick={() => p.onFilterYear(y)}>
-                    {y} Report
-                  </MenuItem>
-                ))}
-              </MenuList>
-            </HeaderDropdown>
-          </div>
+return (
+  <div className="pt-4 sm:pt-6">
+    <div className="rounded-[14px] border border-gray-300 bg-white shadow-sm overflow-hidden">
+      {/* ====================== TABLE HEADER ====================== */}
+      <div className="grid grid-cols-[1.2fr_1fr_.4fr_.6fr] items-center px-4 sm:px-6 h-14 rounded-t-[14px] border-b border-gray-200 text-[15px] font-semibold text-[#1C6C6C] bg-white sticky top-0 z-10">
+        {/* Company (multi-select) — left aligned */}
+        <div className="relative justify-self-start">
+          <MultiSelectDropdown
+            label="Company"
+            options={companyOptions}
+            selected={filterCompanies}
+            onChange={onFilterCompanies}
+            placeholder="Search companies..."
+          />
         </div>
 
-        {/* ====================== SCROLLABLE TABLE BODY ====================== */}
-        <div className="overflow-y-auto max-h-[600px]">
-          <ul className="divide-y divide-gray-200">
-            {(p.rows ?? []).length === 0 ? (
-              <li className="px-4 sm:px-6 py-12 text-center text-gray-500">
-                No results found
-              </li>
+        {/* Sector (multi-select) — left aligned */}
+        <div className="relative justify-self-start">
+          <MultiSelectDropdown
+            label="ESG Sector"
+            options={sectorOptions}
+            selected={filterSectors}
+            onChange={onFilterSectors}
+            placeholder="Search sectors..."
+            center
+          />
+        </div>
+
+        {/* Rating — header centered */}
+        <div className="relative flex items-center justify-center">
+          <button
+            type="button"
+            onClick={toggleRatingSort}
+            aria-pressed={!!sortRating}
+            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[#195D5D] hover:bg-gray-50"
+            title="Toggle rating sort"
+          >
+            <span>ESG Rating</span>
+            {sortRating === "asc" ? (
+              <SortUp className="h-4 w-4 text-gray-400" />
+            ) : sortRating === "desc" ? (
+              <SortDown className="h-4 w-4 text-gray-400" />
             ) : (
-              (p.rows ?? []).map((r, i) => {
-                const owned = hasReport(r.company, r.year);
-                return (
-                  <li
-                    key={`${r.company}-${i}`}
-                    className={`grid min-w-0 grid-cols-[1.2fr_1fr_.6fr_.6fr] items-center px-4 sm:px-6 ${ROW_H}`}
-                  >
-                    <div className="min-w-0 truncate text-[15px] text-gray-900">{r.company}</div>
-                    <div className="text-left text-[14px] text-gray-600">{r.sector}</div>
-                    <div className="text-center text-[14px] font-extrabold text-gray-900">{r.rating}</div>
-                    <div className="text-center">
-                      {owned ? (
-                        <button
-                          className="text-[14px] font-medium text-[#195D5D] hover:underline"
-                          onClick={() => onShow(r)}
-                        >
-                          Show
-                        </button>
-                      ) : isLoggedIn ? (
-                        <button
-                          className="text-[14px] font-medium text-[#1D7AEA] hover:underline"
-                          onClick={() => p.onRequest(r.company)}
-                        >
-                          Download
-                        </button>
-                      ) : (
-                        <button
-                          className="text-[14px] font-medium text-gray-400 cursor-not-allowed"
-                          disabled
-                          title="Sign in to download"
-                        >
-                          Download
-                        </button>
-                      )}
-                    </div>
-                  </li>
-                );
-              })
+              <SortBoth className="h-4 w-4 text-gray-400" />
             )}
-          </ul>
+          </button>
         </div>
 
-        {/* ====================== FOOTER / PAGINATION (COMMENTED OUT) ====================== */}
-        {/* 
-        <div className="flex items-center justify-center gap-2 px-4 h-16 border-t border-gray-200 rounded-b-[14px]">
-          <PagerButton ariaLabel="First" disabled={p.page === 1} onClick={() => p.onPage(1)}>
-            <ChevronsLeft className="h-4 w-4" />
-          </PagerButton>
-          <PagerButton ariaLabel="Prev" disabled={p.page === 1} onClick={() => p.onPage(p.page - 1)}>
-            <ChevronLeft className="h-4 w-4" />
-          </PagerButton>
-
-          <div className="mx-2 flex items-center gap-2">
-            {makeWindow(p.page, p.pages).map((n, idx) =>
-              n === -1 ? (
-                <span key={`dots-${idx}`} className="select-none text-gray-400">
-                  …
-                </span>
-              ) : (
-                <button
-                  key={n}
-                  onClick={() => p.onPage(n)}
-                  className={
-                    n === p.page
-                      ? "h-8 w-8 rounded-full bg-gray-900 text-[13px] font-semibold text-white"
-                      : "h-8 w-8 rounded-full text-[13px] text-gray-500 hover:bg-gray-100"
-                  }
+        {/* Year — centered */}
+        <div className="relative flex items-center justify-center">
+          <HeaderDropdown label={`${p.filterYear} Report`} chevron center>
+            <MenuList align="right">
+              {p.yearOptions.map((y) => (
+                <MenuItem
+                  key={y}
+                  selected={p.filterYear === y}
+                  onClick={() => p.onFilterYear(y)}
                 >
-                  {n}
-                </button>
-              )
-            )}
-          </div>
-
-          <PagerButton ariaLabel="Next" disabled={p.page === p.pages} onClick={() => p.onPage(p.page + 1)}>
-            <ChevronRight className="h-4 w-4" />
-          </PagerButton>
-          <PagerButton ariaLabel="Last" disabled={p.page === p.pages} onClick={() => p.onPage(p.pages)}>
-            <ChevronsRight className="h-4 w-4" />
-          </PagerButton>
+                  {y} Report
+                </MenuItem>
+              ))}
+            </MenuList>
+          </HeaderDropdown>
         </div>
-        */}
+      </div>
+
+      {/* ====================== SCROLLABLE TABLE BODY ====================== */}
+      <div className="overflow-y-auto h-[600px]">
+        <ul className="divide-y divide-gray-200">
+          {(p.rows ?? []).length === 0 ? (
+            <li className="px-4 sm:px-6 py-12 text-center text-gray-500">
+              No results found
+            </li>
+          ) : (
+            (p.rows ?? []).map((r, i) => {
+              const owned = hasReport(r.company, r.year);
+              return (
+                <li
+                  key={`${r.company}-${i}`}
+                  className={`grid min-w-0 grid-cols-[1.2fr_1fr_.4fr_.6fr] items-center px-4 sm:px-6 ${ROW_H}`}
+                >
+                  {/* Company — left */}
+                  <div className="min-w-0 truncate text-[15px] text-gray-900 justify-self-start">
+                    {r.company}
+                  </div>
+
+                  {/* Sector — left */}
+                  <div className="text-left text-[14px] text-gray-600 justify-self-start">
+                    {r.sector}
+                  </div>
+
+                  {/* Rating — column centered, text left-aligned inside */}
+                  <div className="justify-self-center">
+                    <span className="inline-block w-[3.5ch] text-left text-[14px] font-extrabold text-gray-900">
+                      {r.rating}
+                    </span>
+                  </div>
+
+                  {/* Action — centered */}
+                  <div className="text-center">
+                    {owned ? (
+                      <button
+                        className="text-[14px] font-medium text-[#195D5D] hover:underline"
+                        onClick={() => onShow(r)}
+                      >
+                        Show
+                      </button>
+                    ) : isLoggedIn ? (
+                      <button
+                        className="text-[14px] font-medium text-[#1D7AEA] hover:underline"
+                        onClick={() => p.onRequest(r.company)}
+                      >
+                        Purchase
+                      </button>
+                    ) : (
+                      <button
+                        className="text-[14px] font-medium text-[#1D7AEA] hover:underline "
+                        onClick={() => p.onRequest(r.company)}
+                      >
+                        Purchase
+                      </button>
+                    )}
+                  </div>
+                </li>
+              );
+            })
+          )}
+        </ul>
       </div>
     </div>
-  );
+  </div>
+);
+
+
 }
 
 /* ====================== MULTI-SELECT DROPDOWN ====================== */
@@ -274,11 +253,20 @@ function MultiSelectDropdown({
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
+  // Case-insensitive search
   const filtered = useMemo(() => {
-    if (!q.trim()) return safeOptions;
+    if (!q.trim()) return [...safeOptions];
     const nq = q.toLowerCase();
     return safeOptions.filter((o) => o.toLowerCase().includes(nq));
   }, [safeOptions, q]);
+
+  // Pin selected to the top (still obeying search)
+  const { topSelected, bottomUnselected } = useMemo(() => {
+    const selSet = new Set(safeSelected);
+    const selectedList = filtered.filter((o) => selSet.has(o)).sort((a, b) => a.localeCompare(b));
+    const unselectedList = filtered.filter((o) => !selSet.has(o)).sort((a, b) => a.localeCompare(b));
+    return { topSelected: selectedList, bottomUnselected: unselectedList };
+  }, [filtered, safeSelected]);
 
   const allSelected = safeSelected.length === safeOptions.length && safeOptions.length > 0;
 
@@ -317,6 +305,7 @@ function MultiSelectDropdown({
         ].join(" ")}
         role="menu"
       >
+        {/* Search + bulk actions */}
         <div className="p-3 border-b border-gray-100">
           <div className="flex items-center gap-2 rounded-md border border-gray-200 px-2">
             <SearchIcon className="h-4 w-4 text-gray-400" />
@@ -353,27 +342,57 @@ function MultiSelectDropdown({
           </div>
         </div>
 
+        {/* Options: selected group on top, then the rest */}
         <div className="max-h-64 overflow-auto py-2">
-          {filtered.length === 0 ? (
+          {topSelected.length === 0 && bottomUnselected.length === 0 ? (
             <div className="px-4 py-2 text-sm text-gray-500">No matches</div>
           ) : (
-            filtered.map((opt) => {
-              const isChecked = safeSelected.includes(opt);
-              return (
-                <label
-                  key={opt}
-                  className="flex cursor-pointer items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50"
-                >
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 text-[#195D5D] focus:ring-[#195D5D]"
-                    checked={isChecked}
-                    onChange={() => toggleOne(opt)}
-                  />
-                  <span className={isChecked ? "font-medium text-gray-900" : "text-gray-700"}>{opt}</span>
-                </label>
-              );
-            })
+            <>
+              {topSelected.length > 0 && (
+                <>
+                  <div className="px-4 pb-1 pt-1 text-[11px] uppercase tracking-wide text-gray-400">
+                    Selected ({topSelected.length})
+                  </div>
+                  {topSelected.map((opt) => (
+                    <label
+                      key={`sel-${opt}`}
+                      className="flex cursor-pointer items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50"
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-gray-300 text-[#195D5D] focus:ring-[#195D5D]"
+                        checked
+                        onChange={() => toggleOne(opt)}
+                      />
+                      <span className="font-medium text-gray-900">{opt}</span>
+                    </label>
+                  ))}
+                  {bottomUnselected.length > 0 && (
+                    <div className="px-4 pt-3 pb-1 text-[11px] uppercase tracking-wide text-gray-400">
+                      Others
+                    </div>
+                  )}
+                </>
+              )}
+
+              {bottomUnselected.map((opt) => {
+                const isChecked = false; // by construction they’re unselected
+                return (
+                  <label
+                    key={`unsel-${opt}`}
+                    className="flex cursor-pointer items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50"
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-[#195D5D] focus:ring-[#195D5D]"
+                      checked={isChecked}
+                      onChange={() => toggleOne(opt)}
+                    />
+                    <span className="text-gray-700">{opt}</span>
+                  </label>
+                );
+              })}
+            </>
           )}
         </div>
 

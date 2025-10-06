@@ -191,7 +191,7 @@ export default function RatingsClient({ initial = [] as RatingRow[] }) {
 
   // ===== Actions =====
   function handleRequest(company: string) {
-    if (!LOGIN) return;
+
     setReqDefaultCompany(company);
     setReqOpen(true);
   }

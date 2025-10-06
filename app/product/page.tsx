@@ -1,4 +1,3 @@
-// app/product/page.tsx
 import type { Metadata } from 'next'
 import { baseMetadata } from '@/lib/seo'
 import ProductCard from '@/components/product/ProductCard'
@@ -11,35 +10,53 @@ export const metadata: Metadata = baseMetadata({
   path: '/product',
 })
 
-// SVG Icon for Comparison Tool
-// SVG Icon for Comparison Tool (inspired by the image)
+// Enhanced icon with subtle background elements.
 const ComparisonIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    {/* Balance Scale */}
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3-.895-3-2 1.343-2 3-2zM9 14h6m-6 4h6m-7.243-8.243A4 4 0 0110.5 5.5M13.5 5.5a4 4 0 013.743 4.257m-4.243 0l-1.5 1.5m1.5-1.5l1.5 1.5M10.5 9.5a.5.5 0 11-1 0 .5.5 0 011 0zm3 0a.5.5 0 11-1 0 .5.5 0 011 0zM12 21v-7a1 1 0 011-1h2.5a1 1 0 011 1v7M12 21v-7a1 1 0 00-1-1H8.5a1 1 0 00-1 1v7" />
-    {/* Bar Chart (simplified) */}
-    <rect x="17" y="10" width="2" height="7" rx="0.5" fill="currentColor" opacity="0.4" />
-    <rect x="20" y="7" width="2" height="10" rx="0.5" fill="currentColor" opacity="0.6" />
-    <rect x="14" y="13" width="2" height="4" rx="0.5" fill="currentColor" opacity="0.2" />
-    {/* Magnifying Glass (simplified) */}
-    <path strokeLinecap="round" strokeLinejoin="round" d="M10 17l-3 3m0 0l-3-3m3 3V3" />
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-24 w-24 text-teal-600"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* Background Elements */}
+    <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.05" />
+    <path d="M20 12a8 8 0 0 1-8 8" stroke="currentColor" strokeWidth="1" opacity="0.1" />
+    
+    {/* Main Icon */}
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    <line x1="11" y1="8" x2="11" y2="14" />
+    <line x1="8" y1="11" x2="14" y2="11" />
   </svg>
 );
 
-// SVG Icon for Reports
-// SVG Icon for Reports (inspired by the image)
+
+// Enhanced icon with a subtle background grid.
 const ReportIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    {/* Document icon */}
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-    {/* Small bar chart on the side for 'ratings' */}
-    <rect x="16" y="10" width="1.5" height="5" rx="0.5" fill="currentColor" opacity="0.4" />
-    <rect x="18.5" y="7" width="1.5" height="8" rx="0.5" fill="currentColor" opacity="0.6" />
-    <rect x="13.5" y="13" width="1.5" height="2" rx="0.5" fill="currentColor" opacity="0.2" />
-    {/* ESG Badge - text only for simplicity in SVG, or a circle with a check */}
-    <circle cx="7" cy="17" r="3" stroke="currentColor" fill="none" />
-    <text x="7" y="17.7" textAnchor="middle" fontSize="4" fill="currentColor" fontFamily="sans-serif">ESG</text>
-  </svg>
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-24 w-24 text-teal-600"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        {/* Background Elements */}
+        <path d="M4 8h16M8 4v16" stroke="currentColor" opacity="0.07" strokeWidth="1" />
+        
+        {/* Main Icon */}
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+        <polyline points="10 9 9 9 8 9" />
+    </svg>
 );
 
 
