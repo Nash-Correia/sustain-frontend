@@ -43,7 +43,7 @@ export default function Hero({ isVisible }: { isVisible: boolean }) {
   return (
     <section 
       className={clsx(
-        "mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 transition-all duration-1000 ease-out",
+        "mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3 transition-all duration-1000 ease-out",
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
       )}
     >

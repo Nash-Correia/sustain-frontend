@@ -21,8 +21,6 @@ type InfoTooltipProps = {
   panelWidthClass?: string; // e.g., "w-80"
   className?: string;
   titleOverride?: string;
-  href?: string;
-  newTab?: boolean;
 };
 
 const InfoIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
@@ -141,21 +139,19 @@ export function InfoTooltip({
   panelWidthClass = "w-80",
   className,
   titleOverride,
-  href,
-  newTab = false,
 }: InfoTooltipProps) {
   const info = tooltipData[id];
+
+  // If no info found, just render a static icon (no navigation)
   if (!info) {
     return (
-      <a
-        href={href ?? `/info#${id}`}
-        target={newTab ? "_blank" : undefined}
-        rel={newTab ? "noopener noreferrer" : undefined}
-        className={`ml-1 inline-flex h-6 w-6 items-center justify-center rounded-full  text-gray-700 ${className ?? ""}`}
-        title={titleOverride ?? (id as string)}
-      >
-        <InfoIcon />
-      </a>
+<span
+  className={`ml-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-gray-700 ${className ?? ""}`}
+  aria-label={titleOverride ?? (id as string)}
+  role="img"
+>
+  <InfoIcon />
+</span>
     );
   }
 
@@ -178,13 +174,11 @@ export function InfoTooltip({
       align={align}
       panelWidthClass={panelWidthClass}
       className={className}
-      href={href ?? `/info#${id}`}
-      newTab={newTab}
     />
   );
 }
 
-/* ------------------ Hover Tooltip (portal + fixed + link on click) ------------------ */
+/* ------------------ Hover Tooltip (portal + fixed; NO redirect) ------------------ */
 
 function HoverTooltip({
   id,
@@ -193,8 +187,6 @@ function HoverTooltip({
   align,
   panelWidthClass,
   className,
-  href,
-  newTab,
 }: {
   id: string;
   title: string;
@@ -202,14 +194,12 @@ function HoverTooltip({
   align: Align;
   panelWidthClass: string;
   className?: string;
-  href: string;
-  newTab: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const reducedMotion = usePrefersReducedMotion();
 
   const wrapRef = useRef<HTMLSpanElement | null>(null);
-  const triggerRef = useRef<HTMLAnchorElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const panelId = React.useId();
   const closeTimer = useRef<number | null>(null);
@@ -261,19 +251,17 @@ function HoverTooltip({
         }}
         onBlur={scheduleClose}
       >
-        {/* Click navigates; hover shows tooltip */}
-        <a
-          ref={triggerRef}
-          href={href}
-          target={newTab ? "_blank" : undefined}
-          rel={newTab ? "noopener noreferrer" : undefined}
-          aria-describedby={panelId}
-          className="ml-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-gray-700 hover:bg-amber-500/20 focus:outline-none"
-          title={title}
-        >
-          <InfoIcon />
-          <span className="sr-only">More info about {id}</span>
-        </a>
+        {/* Button that ONLY shows tooltip; no navigation */}
+<button
+  ref={triggerRef}
+  type="button"
+  aria-describedby={panelId}
+  aria-label={title}
+  className="ml-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-gray-700 hover:bg-amber-500/20 focus:outline-none"
+>
+  <InfoIcon />
+  <span className="sr-only">More info about {id}</span>
+</button>
       </span>
 
       {open &&
@@ -294,7 +282,6 @@ function HoverTooltip({
           >
             <h4 className="font-semibold text-gray-900 text-left">{title}</h4>
             <p className="mt-1 text-gray-600 text-left leading-relaxed">{desc}</p>
-            {/* <p className="mt-1 text-gray-600 justify-center leading-relaxed">{desc}</p> */}
           </div>,
           document.body
         )}
@@ -302,7 +289,7 @@ function HoverTooltip({
   );
 }
 
-/* ------------------ Click Popover (portal + fixed, non-modal) ------------------ */
+/* ------------------ Click Popover (portal + fixed, non-modal; NO redirect) ------------------ */
 
 function ClickPopover({
   title,
@@ -361,25 +348,20 @@ function ClickPopover({
 
   return (
     <>
-      <button
-        ref={triggerRef}
-        type="button"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-controls={panelId}
-        onClick={() => setOpen((v) => !v)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setOpen((v) => !v);
-          }
-        }}
-        className={`ml-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-gray-700 hover:bg-gray-50 focus:outline-none ${className ?? ""}`}
-        title={title}
-      >
-        <InfoIcon />
-        <span className="sr-only">Show info</span>
-      </button>
+<button
+  ref={triggerRef}
+  type="button"
+  aria-haspopup="dialog"
+  aria-expanded={open}
+  aria-controls={panelId}
+  aria-label={title}
+  onClick={() => setOpen((v) => !v)}
+  onKeyDown={(e) => { /* … */ }}
+  className={`ml-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-gray-700 hover:bg-gray-50 focus:outline-none ${className ?? ""}`}
+>
+  <InfoIcon />
+  <span className="sr-only">Show info</span>
+</button>
 
       {open &&
         typeof document !== "undefined" &&

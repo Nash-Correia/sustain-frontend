@@ -19,7 +19,7 @@ export default function LandingPageClient() {
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsHeroVisible(true);
-          observer.disconnect(); // trigger only once
+          observer.disconnect(); // trigger only once 
         }
       },
       {
@@ -36,7 +36,7 @@ export default function LandingPageClient() {
   return (
     <div className="space-y-0">
       {/* SearchHero above */}
-  <div className="mb-0">
+  <div className="mb-16">
     <SearchHero />
   </div>
       <div className="py-1"/>

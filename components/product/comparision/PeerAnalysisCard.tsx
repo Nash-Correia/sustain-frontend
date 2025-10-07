@@ -589,7 +589,7 @@ function SectorPerformanceList({
     <div>
       <h4 className={`font-semibold ${titleClass} mb-4 inline-flex items-center gap-1`}>
         Sectoral Average ESG Composite Performance
-        <InfoTooltip id="sectoralAverage" align="left" panelWidthClass="w-80" />
+        <InfoTooltip id="fundSectorAverageCompositeScore" align="left" panelWidthClass="w-80" />
       </h4>
       <div className="max-h-[12.2rem] overflow-y-auto pr-2">
         <div className="space-y-2">
@@ -665,7 +665,7 @@ function FundsSection({
                 label={
                   <>
                     Fund Average
-                    <InfoTooltip id="esgCompositeScore" align="center" panelWidthClass="w-72" />
+                    <InfoTooltip id="fundWeightedCompositeScore" align="center" panelWidthClass="w-72" />
                   </>
                 }
                 value={selection.averageScore}
@@ -679,7 +679,7 @@ function FundsSection({
                 label={
                   <>
                     Top ESG Composite Score
-                    <InfoTooltip id="esgCompositeScore" align="center" panelWidthClass="w-72" />
+                    <InfoTooltip id="fundTopHoldingCompositeScore" align="center" panelWidthClass="w-72" />
                   </>
                 }
                 value={selection.highestScore}
@@ -790,7 +790,7 @@ function SectorsSection({
                 label={
                   <>
                     Sectoral Average
-                    <InfoTooltip id="esgCompositeScore" align="center" panelWidthClass="w-72" />
+                    <InfoTooltip id="sectorAverageCompositeScore" align="center" panelWidthClass="w-72" />
                   </>
                 }
                 value={selection.averageScore}
@@ -804,7 +804,7 @@ function SectorsSection({
                 label={
                   <>
                     Sectoral Top ESG Composite Score
-                    <InfoTooltip id="esgCompositeScore" align="center" panelWidthClass="w-72" />
+                    <InfoTooltip id="sectorAverageCompositeScore" align="center" panelWidthClass="w-72" />
                   </>
                 }
                 value={selection.highestScore}
@@ -1135,7 +1135,7 @@ function CompaniesSection({
                 label={
                   <>
                     Sectoral Average
-                    <InfoTooltip id="esgCompositeScore" align="center" panelWidthClass="w-72" />
+                    <InfoTooltip id="sectorAverageCompositeScore" align="center" panelWidthClass="w-72" />
                   </>
                 }
                 value={selection.averageScore}
@@ -1149,7 +1149,7 @@ function CompaniesSection({
                 label={
                   <>
                     Sectoral Top ESG Composite Score
-                    <InfoTooltip id="esgCompositeScore" align="center" panelWidthClass="w-72" />
+                    <InfoTooltip id="sectorAverageCompositeScore" align="center" panelWidthClass="w-72" />
                   </>
                 }
                 value={selection.highestScore}

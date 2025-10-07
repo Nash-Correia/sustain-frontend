@@ -128,7 +128,7 @@ const SectorDetails = ({
             <p className="text-sm text-gray-600 font-medium inline-flex items-center gap-1">
               Average ESG Composite Score
               <InfoTooltip
-                id="esgCompositeScore"
+                id="sectorAverageCompositeScore"
                 align="left"
                 panelWidthClass="w-72"
               />
@@ -164,7 +164,7 @@ const SectorDetails = ({
             <p className="text-3xl font-bold text-gray-800">{sectorGrade}</p>
             <p className="text-sm text-gray-600 font-medium inline-flex items-center gap-1">
               Sector Rating
-              <InfoTooltip id="esgRating" align="left" panelWidthClass="w-64" />
+              <InfoTooltip id="sectorAverageRating" align="left" panelWidthClass="w-64" />
             </p>
           </div>
         </div>

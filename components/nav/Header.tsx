@@ -65,16 +65,21 @@ function Dropdown({
   children,
   className,
   align = "right",
-  panelClassName, // <-- Add panelClassName here
+  panelClassName,
 }: {
   label: React.ReactNode;
   children: React.ReactNode;
   className?: string;
   align?: "right" | "center";
-  panelClassName?: string; // <-- And here
+  panelClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {
@@ -109,18 +114,22 @@ function Dropdown({
         </svg>
       </button>
 
-      <div
-        className={clsx(
-          "absolute z-30 mt-2 min-w-[10rem] rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden transition-all duration-150 ease-out",
-          align === "center" ? "left-1/2 -translate-x-1/2" : "right-0",
-          open ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none",
-          panelClassName // <-- Use it here
-        )}
-        role="menu"
-        aria-hidden={!open}
-      >
-        <div className="p-1">{renderedChildren}</div>
-      </div>
+      {hasMounted && (
+        <div
+          className={clsx(
+            "absolute z-30 mt-2 min-w-[10rem] rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden transition-all duration-150 ease-out",
+            align === "center" ? "left-1/2 -translate-x-1/2" : "right-0",
+            open
+              ? "opacity-100 scale-100"
+              : "opacity-0 scale-95 pointer-events-none",
+            panelClassName
+          )}
+          role="menu"
+          aria-hidden={!open}
+        >
+          <div className="p-1">{renderedChildren}</div>
+        </div>
+      )}
     </div>
   );
 }
@@ -180,7 +189,10 @@ export default function Header() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target as Node)
+      ) {
         setMobileOpen(false);
       }
     }
@@ -210,7 +222,11 @@ export default function Header() {
         <div className="flex h-20 items-center justify-between">
           {/* Logo */}
           <Link href={ROUTES.home} className="flex items-center gap-2">
-            <img src="/logo/iias-sustain-logo.png" alt="IIAS Sustain" className="h-18 w-22" />
+            <img
+              src="/logo/iias-sustain-logo.png"
+              alt="IIAS Sustain"
+              className="h-18 w-22"
+            />
           </Link>
 
           {/* Desktop Nav */}
@@ -220,9 +236,11 @@ export default function Header() {
                 label="Products"
                 className={navLinkClasses}
                 align="center"
-                panelClassName="w-50" // Now this prop will work
+                panelClassName="w-64"
               >
-                <MenuItem href={ROUTES.productA}>ESG Rating Comparison</MenuItem>
+                <MenuItem href={ROUTES.productA}>
+                  ESG Rating Comparison
+                </MenuItem>
                 <MenuItem href={ROUTES.productB}>ESG Reports</MenuItem>
               </Dropdown>
 
@@ -235,7 +253,11 @@ export default function Header() {
             </nav>
 
             {/* Auth Trigger (icon or "Login") with consistent button size */}
-            <Dropdown label={authLabel} className={authButtonClasses} align="right">
+            <Dropdown
+              label={authLabel}
+              className={authButtonClasses}
+              align="right"
+            >
               {!isLoggedIn ? (
                 <>
                   <MenuItem href={ROUTES.login}>Login</MenuItem>
@@ -261,8 +283,18 @@ export default function Header() {
             aria-label="Toggle menu"
             aria-expanded={mobileOpen}
           >
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              {mobileOpen ? <path d="M6 18L18 6M6 6l12 12" /> : <path d="M3 6h18M3 12h18M3 18h18" />}
+            <svg
+              className="h-6 w-6"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              {mobileOpen ? (
+                <path d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path d="M3 6h18M3 12h18M3 18h18" />
+              )}
             </svg>
           </button>
         </div>

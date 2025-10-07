@@ -117,7 +117,7 @@ export default function FundDetails({ fund, allCompanyData }: Props) {
                 Weighted ESG Composite Score
                 <span className="-translate-y-[1px] inline-flex">
                   <InfoTooltip
-                    id="esgCompositeScore"
+                    id="fundWeightedCompositeScore"
                     align="left"
                     panelWidthClass="w-72"
                   />

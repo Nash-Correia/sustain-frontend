@@ -1,102 +1,270 @@
 "use client";
+import React, { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState, useRef } from "react";
+import { getCompanyData, getFundData, type CompanyDataRow, type FundDataRow } from "@/lib/excel-data";
+import { ROUTES } from "@/lib/constants";
 
-// A simple, reusable Search Icon component
+/* ================= Icons ================= */
 const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+       fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <circle cx="11" cy="11" r="8" />
     <line x1="21" y1="21" x2="16.65" y2="16.65" />
   </svg>
 );
 
-// Clear icon for clearing search input
 const ClearIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+       fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <line x1="18" y1="6" x2="6" y2="18" />
     <line x1="6" y1="6" x2="18" y2="18" />
   </svg>
 );
 
+/* ============== Routing helper (client-side only) ============== */
+function buildRouteForSelection(
+  term: string,
+  data: { companies: string[]; funds: string[]; sectors: string[] }
+) {
+  const q = term.trim();
+  if (!q) return "/";
+
+  const lc = q.toLowerCase();
+  if (lc.includes("report")) return ROUTES.productB;
+  if (lc.includes("methodology")) return ROUTES.methodology;
+  if (lc.includes("about")) return ROUTES.about;
+
+  if (data.companies.some((c) => c.toLowerCase() === lc)) return ROUTES.productA;
+  if (data.funds.some((f) => f.toLowerCase() === lc)) return ROUTES.productA;
+
+  // allow "X sector" to match sector X too
+  if (data.sectors.some((s) => s.toLowerCase() === lc || `${s} sector`.toLowerCase() === lc)) {
+    return ROUTES.productA;
+  }
+
+  // fallback keeps the free-text query
+  return `/product/Compare?q=${encodeURIComponent(q)}`;
+}
+
+/* ================= Component ================= */
 export default function SearchHero() {
   const router = useRouter();
   const [q, setQ] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+  const [activeIndex, setActiveIndex] = useState<number>(-1);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const query = q.trim();
-    if (!query) return;
-    // You can update this URL to a dedicated search results page if you have one
-    const url = `/?q=${encodeURIComponent(query)}`;
-    router.push(url);
+  // Load excel data on client
+  const [loading, setLoading] = useState(true);
+  const [companyRows, setCompanyRows] = useState<CompanyDataRow[]>([]);
+  const [fundRows, setFundRows] = useState<FundDataRow[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const [companies, funds] = await Promise.all([getCompanyData(), getFundData()]);
+        if (!cancelled) {
+          setCompanyRows(companies || []);
+          setFundRows(funds || []);
+        }
+      } catch (e) {
+        console.error("Search: excel load error", e);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Normalize datasets
+  const data = useMemo(() => {
+    const companies = Array.from(
+      new Set(companyRows.map((r) => r.companyName).filter(Boolean))
+    ).sort((a, b) => a.localeCompare(b));
+    const sectors = Array.from(
+      new Set(companyRows.map((r) => r.sector).filter(Boolean))
+    ).sort((a, b) => a.localeCompare(b));
+    const funds = Array.from(
+      new Set(fundRows.map((r) => r.fundName).filter(Boolean))
+    ).sort((a, b) => a.localeCompare(b));
+    return { companies, sectors, funds };
+  }, [companyRows, fundRows]);
+
+  // Build suggestions
+  type Group = "Companies" | "Funds" | "Sectors" | "Popular" | "Keywords";
+  type Suggestion = { label: string; group: Group };
+
+  // Fair merge (round-robin) so companies can't starve funds/sectors
+  function roundRobinMerge(lists: { group: Group; items: string[] }[], cap = 20): Suggestion[] {
+    const queues = lists.map(({ group, items }) => ({ group, items: [...items] }));
+    const out: Suggestion[] = [];
+    let gi = 0;
+    while (out.length < cap && queues.some((q) => q.items.length)) {
+      const qlen = queues.length;
+      for (let step = 0; step < qlen && out.length < cap; step++) {
+        const idx = (gi + step) % qlen;
+        const bucket = queues[idx];
+        if (bucket.items.length) {
+          out.push({ label: bucket.items.shift()!, group: bucket.group });
+        }
+      }
+      gi++;
+    }
+    return out;
   }
+
+  const suggestions: Suggestion[] = useMemo(() => {
+    const v = q.trim().toLowerCase();
+
+    // Empty state: only Popular (as requested)
+    if (!v) {
+      return ["Reports", "Methodology", "About"].map((label) => ({
+        label,
+        group: "Popular" as const,
+      }));
+    }
+
+    // When typing: search all three
+    const startsWith = (s: string) => s.toLowerCase().startsWith(v);
+    const includes = (s: string) => s.toLowerCase().includes(v);
+
+    const rankAndFilter = (arr: string[]) => [
+      ...arr.filter(startsWith),
+      ...arr.filter((s) => !startsWith(s) && includes(s)),
+    ];
+
+    const comp = rankAndFilter(data.companies);
+    const funds = rankAndFilter(data.funds);
+    const sect = rankAndFilter(data.sectors);
+    const keywords = ["Reports", "Methodology", "About"].filter(includes);
+
+    // Round-robin merge to ensure visibility across groups, then append keyword hits
+    const merged = roundRobinMerge(
+      [
+        { group: "Companies" as const, items: comp },
+        { group: "Funds" as const, items: funds },
+        { group: "Sectors" as const, items: sect },
+      ],
+      18 // leave a little room for keywords
+    );
+
+    const kw = keywords.map((label) => ({ label, group: "Keywords" as const }));
+    return [...merged, ...kw].slice(0, 20);
+  }, [q, data]);
+
+  // Reset selection on input/focus change
+  useEffect(() => setActiveIndex(-1), [q, isFocused]);
 
   function clearSearch() {
     setQ("");
+    setActiveIndex(-1);
     inputRef.current?.focus();
   }
 
+  function go(selection: string) {
+    router.push(buildRouteForSelection(selection || q, data));
+  }
+
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const selected = activeIndex >= 0 ? suggestions[activeIndex]?.label : q;
+    if (!selected?.trim()) return;
+    go(selected);
+  }
+
+  function onKeyDown(e: React.KeyboardEvent) {
+    if (!isFocused) return;
+    const max = suggestions.length - 1;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((i) => Math.min(max, i + 1));
+      queueMicrotask(() => {
+        const el = listRef.current?.querySelector<HTMLButtonElement>(
+          `[data-index="${Math.min(max, activeIndex + 1)}"]`
+        );
+        el?.scrollIntoView({ block: "nearest" });
+      });
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((i) => Math.max(0, i - 1));
+      queueMicrotask(() => {
+        const el = listRef.current?.querySelector<HTMLButtonElement>(
+          `[data-index="${Math.max(0, activeIndex - 1)}"]`
+        );
+        el?.scrollIntoView({ block: "nearest" });
+      });
+    } else if (e.key === "Enter") {
+      if (activeIndex >= 0 && suggestions[activeIndex]) {
+        e.preventDefault();
+        go(suggestions[activeIndex].label);
+      }
+    } else if (e.key === "Escape") {
+      setActiveIndex(-1);
+      setIsFocused(false);
+    }
+  }
+
+  // Grouped rendering uses the *global index* from the unified array (no recompute)
+  const grouped = useMemo(() => {
+    const groups: Record<Group, { index: number; s: Suggestion }[]> = {
+      Companies: [],
+      Funds: [],
+      Sectors: [],
+      Popular: [],
+      Keywords: [],
+    };
+    suggestions.forEach((s, index) => {
+      groups[s.group].push({ index, s });
+    });
+    return groups;
+  }, [suggestions]);
+
   return (
-    <section aria-label="Site search" className="pt-8 pb-4">
+    <section aria-label="Site search" className="relative z-[39] pt-8 pb-4">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <form onSubmit={onSubmit} className="mx-auto max-w-3xl">
+        <form onSubmit={onSubmit} className="mx-auto max-w-3xl" onKeyDown={onKeyDown}>
           <div className="relative">
-            {/* Search input container */}
+            {/* Input shell */}
             <div
               className={`relative flex items-center overflow-hidden rounded-xl border-2 bg-white shadow-sm transition-all duration-200 ${
-                isFocused
-                  ? "shadow-lg ring-1 ring-opacity-20"
-                  : "border-gray-200 hover:border-gray-300"
+                isFocused ? "shadow-lg ring-1 ring-opacity-20" : "border-gray-200 hover:border-gray-300"
               }`}
-              style={isFocused ? {
-                borderColor: 'var(--color-login-btn)',
-                '--tw-ring-color': 'var(--color-login-btn)'
-              } as React.CSSProperties : {}}
+              style={
+                isFocused
+                  ? ({
+                      borderColor: "var(--color-login-btn)",
+                      ["--tw-ring-color" as any]: "var(--color-login-btn)",
+                    } as React.CSSProperties)
+                  : {}
+              }
             >
-              {/* Search icon */}
               <div className="pl-4 pr-3">
                 <SearchIcon className="text-gray-400 h-5 w-5" />
               </div>
 
-              {/* Input field */}
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Search Reports, Ratings, Funds..."
+                placeholder={loading ? "Loading data…" : "Search company, fund, sector, report…"}
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
+                // keep blur, but selection is protected by onMouseDown prevention below
+                onBlur={() => setTimeout(() => setIsFocused(false), 120)}
                 className="flex-1 py-4 pr-4 text-base placeholder-gray-500 border-0 focus:outline-none focus:ring-0 bg-transparent"
                 autoComplete="off"
                 spellCheck="false"
+                aria-autocomplete="list"
+                aria-expanded={isFocused}
+                aria-controls="search-suggestions"
+                disabled={loading}
               />
 
-              {/* Clear button - shows when there's text */}
               {q && (
                 <button
                   type="button"
@@ -108,62 +276,85 @@ export default function SearchHero() {
                 </button>
               )}
 
-              {/* Search button */}
               <button
                 type="submit"
-                disabled={!q.trim()}
+                disabled={!q.trim() || loading}
                 className={`m-1.5 inline-flex items-center justify-center gap-2 rounded-lg px-6 py-2.5 text-sm font-semibold shadow-sm transition-all duration-200 text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                  q.trim()
-                    ? "cursor-pointer hover:opacity-90"
-                    : "opacity-50 cursor-not-allowed"
+                  q.trim() && !loading ? "cursor-pointer hover:opacity-90" : "opacity-50 cursor-not-allowed"
                 }`}
-                style={q.trim() ? {
-                  backgroundColor: 'var(--color-login-btn)',
-                  '--tw-ring-color': 'var(--color-login-btn)'
-                } as React.CSSProperties : {
-                  backgroundColor: '#f3f4f6',
-                  color: '#9ca3af'
-                }}
+                style={
+                  q.trim() && !loading
+                    ? ({
+                        backgroundColor: "var(--color-login-btn)",
+                        ["--tw-ring-color" as any]: "var(--color-login-btn)",
+                      } as React.CSSProperties)
+                    : { backgroundColor: "#f3f4f6", color: "#9ca3af" }
+                }
               >
                 <SearchIcon className="h-4 w-4" />
                 <span className="hidden sm:inline">Search</span>
               </button>
             </div>
 
-            {/* Optional: Search suggestions or recent searches */}
-            {isFocused && !q && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50">
-                <div className="p-4">
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">
-                    Popular searches
-                  </h3>
-                  <div className="space-y-0">
-                    {[
-                      "ESG compliance",
-                      "Corporate governance",
-                      "Proxy voting",
-                      "Sustainability reports",
-                    ].map((suggestion) => (
-                      <button
-                        key={suggestion}
-                        type="button"
-                        onClick={() => {
-                          setQ(suggestion);
-                          inputRef.current?.focus();
-                        }}
-                        className="block w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
-                      >
-                        <SearchIcon className="inline h-4 w-4 mr-2 text-gray-400" />
-                        {suggestion}
-                      </button>
-                    ))}
+            {/* Suggestions dropdown */}
+            {isFocused && (
+              <div
+                id="search-suggestions"
+                className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-[60]"
+                // prevent input blur so the list doesn't unmount before click/mousedown
+                onMouseDownCapture={(e) => e.preventDefault()}
+                onPointerDownCapture={(e) => e.preventDefault()}
+                role="listbox"
+                aria-label="Search suggestions"
+              >
+                {suggestions.length === 0 ? (
+                  <div className="p-4 text-sm text-gray-500">No matches.</div>
+                ) : (
+                  <div ref={listRef} className="max-h-72 overflow-auto py-2">
+                    {(["Popular", "Companies", "Funds", "Sectors", "Keywords"] as Group[]).map((group) =>
+                      grouped[group].length ? (
+                        <div key={group}>
+                          <div className="px-3 pt-2 pb-1 text-[11px] uppercase tracking-wide text-gray-400">
+                            {group}
+                          </div>
+                          {grouped[group].map(({ index, s }) => {
+                            const active = index === activeIndex;
+                            return (
+                              <button
+                                key={`${group}-${s.label}`}
+                                type="button"
+                                data-index={index}
+                                onMouseEnter={() => setActiveIndex(index)}
+                                // Use mousedown so navigation happens even if input blur cancels click
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  setIsFocused(false);
+                                  go(s.label);
+                                }}
+                                onClick={() => {
+                                  // Fallback if click does fire
+                                  setIsFocused(false);
+                                  go(s.label);
+                                }}
+                                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${
+                                  active ? "bg-gray-50" : "hover:bg-gray-50"
+                                }`}
+                                role="option"
+                                aria-selected={active}
+                              >
+                                <SearchIcon className="h-4 w-4 text-gray-400" />
+                                <span className="truncate">{s.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : null
+                    )}
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>
-
-
         </form>
       </div>
     </section>

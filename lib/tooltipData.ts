@@ -67,6 +67,39 @@ export const tooltipData = {
     description:
       "The final letter grade assigned based on the ESG Composite Score. It reflects a company's relative ESG performance and risk profile, with A+ representing leadership and D indicating nascent practices.",
   },
+  //NEW ADDITIONS 
+
+  fundWeightedCompositeScore: {
+    title: "Weighted ESG Composite Score",
+    description:
+      "The fund-level ESG score, calculated as the weighted average of the ESG Composite Scores of its constituent companies using the latest available portfolio weights. Reported only when IiAS coverage spans at least 80% of the fund’s holdings by value.",
+  },
+
+  
+  fundTopHoldingCompositeScore: {
+    title: "Top ESG Composite Score",
+    description:
+      "The highest company-level ESG Composite Score among all holdings in the selected fund (within IiAS coverage).",
+  },
+
+  fundSectorAverageCompositeScore: {
+    title: "Sector Average ESG Composite Score",
+    description:
+      "Within the selected fund, the arithmetic mean of ESG Composite Scores for all covered companies that belong to the chosen sector. Reflects how that sector’s holdings in the fund perform on a 0–100 scale.",
+  },
+
+  sectorAverageRating: {
+    title: "Sector Average ESG Rating",
+    description:
+      "The letter grade (A+ to D) derived from the sector’s average ESG Composite Score by applying the IiAS rating scale. Provides an at-a-glance view of the sector’s standing.",
+  },
+
+  sectorAverageCompositeScore: {
+    title: "Sector Average ESG Composite Score",
+    description:
+      "The average ESG Composite Score for all covered companies in the selected sector across the broader IiAS universe (not limited to the fund). Useful as a sector benchmark on a 0–100 scale.",
+  },
+
 } as const;
 
 // Strongly-typed id that matches the keys of tooltipData

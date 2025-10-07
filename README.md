@@ -1,58 +1,103 @@
+
+
 ```
-sustain-frontend/
-├─ app/
-│  ├─ page.tsx                 # Landing page
-│  ├─ globals.css              # Tailwind base/components/utilities
-│  ├─ layout.tsx               # Shell: header/footer + fonts + metadata
-│  ├─ product/
-│  │  ├─ page.tsx              # Product hub
-│  │  ├─ a/page.tsx            # Product A
-│  │  └─ b/page.tsx            # Product B
-│  ├─ methodology/page.tsx
-│  └─ about/page.tsx
+.
+├── app/
+│   ├── about/
+│   │   └── page.tsx
+│   ├── auth/
+│   │   ├── login/
+│   │   │   └── page.tsx
+│   │   └── signup/
+│   │       └── page.tsx
+│   ├── methodology/
+│   │   └── page.tsx
+│   ├── product/
+│   │   ├── Comparision/
+│   │   │   └── page.tsx
+│   │   ├── Report/
+│   │   │   └── page.tsx
+│   │   └── page.tsx
+│   ├── fonts.ts
+│   ├── globals.css
+│   ├── layout.tsx
+│   ├── page.tsx
+│   └── providers.tsx
 │
-├─ components/
-│  ├─ nav/
-│  │  ├─ Header.tsx            # Logo + Product dropdown + Methodology + About + Login dropdown
-│  │  └─ MobileMenu.tsx
-│  ├─ ui/                      # Small, dependency-free primitives
-│  │  ├─ Button.tsx
-│  │  ├─ Card.tsx
-│  │  ├─ Input.tsx
-│  │  ├─ Textarea.tsx
-│  │  ├─ Select.tsx
-│  │  └─ Badge.tsx
-│  ├─ Hero.tsx
-│  ├─ StatsGrid.tsx
-│  ├─ InsightCard.tsx
-│  ├─ ContactForm.tsx
-│  ├─ Footer.tsx
-|  └─NewsletterForm.tsx
-|   
+├── components/
+│   ├── auth/
+│   │   └── AuthProvider.tsx
+│   ├── methodology/
+│   │   ├── cards/
+│   │   │   ├── CompositeRatingCard.tsx
+│   │   │   ├── ... (other card components)
+│   │   │   └── SocialPillarCard.tsx
+│   │   ├── InfoSection.tsx
+│   │   ├── InteractiveFlowchart.tsx
+│   │   ├── MethodologyOverviewPanel.tsx
+│   │   └── OverviewTrigger.tsx
+│   ├── nav/
+│   │   ├── Header.tsx
+│   │   └── MobileMenu.tsx
+│   ├── product/
+│   │   ├── comparision/
+│   │   │   ├── details/
+│   │   │   │   ├── CompanyDetails.tsx
+│   │   │   │   ├── FundDetails.tsx
+│   │   │   │   └── SectorDetails.tsx
+│   │   │   ├── CustomComparisonTable.tsx
+│   │   │   ├── PeerAnalysisCard.tsx
+│   │   │   └── TabbedSearch.tsx
+│   │   ├── reports/
+│   │   │   ├── ReportsClient.tsx
+│   │   │   ├── ReportsTable.tsx
+│   │   │   └── RequestReportModal.tsx
+│   │   ├── GreenRatingGauge.tsx
+│   │   ├── MultiSelect.tsx
+│   │   ├── ProductCard.tsx
+│   │   ├── ProductHero.tsx
+│   │   ├── RatingTable.tsx
+│   │   └── productUtils.ts
+│   ├── ui/
+│   │   ├── BackToTopButton.tsx
+│   │   ├── InfoTooltip.tsx
+│   │   ├── Modal.tsx
+│   │   └── SearchableSelect.tsx
+│   ├── ContactForm.tsx
+│   ├── Footer.tsx
+│   ├── Hero.tsx
+│   ├── InsightCard.tsx
+│   ├── Insights.tsx
+│   ├── LandingPageClient.tsx
+│   ├── NewsletterForm.tsx
+│   ├── SearchHero.tsx
+│   ├── StatsGrid.tsx
+│   └── Subscribe.tsx
 │
-├─ lib/
-│  ├─ utils.ts                 # clsx, regex, helpers
-│  ├─ constants.ts             # ROUTES, site name/tagline, etc.
-│  └─ api.client.ts            # (commented) fetch wrappers for later backend
+├── lib/
+│   ├── api.client.ts
+│   ├── constants.ts
+│   ├── excel-data.ts
+│   ├── feature-flags.ts
+│   ├── seo.ts
+│   ├── tooltipData.ts
+│   └── utils.ts
 │
-├─ public/
-│  ├─ logos/                   # iias-sustain.svg etc.
-│  └─ images/
-│     └─ placeholders/
+├── public/
+│   ├── about/
+│   │   ├── disclosures/
+│   │   ├── policies/
+│   │   └── team/
+│   ├── images/
+│   ├── logo/
+│   └── reports/
 │
-├─ styles/
-│  └─ tokens.css               # optional CSS vars for colors/spacing
+├── styles/
+│   └── tokens.css
 │
-├─ tests/                      # (optional) unit tests
-│  └─ ContactForm.test.tsx
-│
-├─ .gitignore
-├─ .env.example
-├─ next.config.mjs
-├─ package.json
-├─ postcss.config.mjs
-├─ tailwind.config.ts
-├─ tsconfig.json
-├─ next-env.d.ts               # keep this tracked (don’t ignore)
-└─ README.md                   # your own, not the Next.js boilerplate
+├── .gitignore
+├── next.config.ts
+├── package.json
+├── postcss.config.mjs
+└── tsconfig.json
 ```
