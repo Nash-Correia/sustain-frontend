@@ -279,6 +279,7 @@ function CompanyDetailCard({
 
       {/* Full details */}
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        
         <div className="rounded-lg border border-gray-100 p-3">
           <DetailRow
             label={
@@ -388,6 +389,166 @@ function CompanyDetailCard({
       </div>
     </div>
   );
+//   return (
+//     <div className="bg-white rounded-xl bordermin-w-[500] border-gray-200 shadow-sm p-4">
+//       <div className="flex items-start justify-between">
+//         <p
+//           className={`text-m py-3 font-semibold uppercase tracking-wider ${
+//             tone === "positive" ? "text-green-700" : "text-red-700"
+//           } inline-flex items-center gap-1`}
+//         >
+//           {title}
+//           {title === "Top ESG Performer" ? (
+//             <InfoTooltip id="topPerformer" align="left" panelWidthClass="w-72" />
+//           ) : title === "Needs Improvement" ? (
+//             <InfoTooltip
+//               id="needsImprovement"
+//               align="left"
+//               panelWidthClass="w-72"
+//             />
+//           ) : null}
+//         </p>
+//         <div
+//           className={`p-2 rounded-full ${
+//             tone === "positive" ? "bg-green-50" : "bg-rose-50"
+//           }`}
+//         >
+//           {tone === "positive" ? (
+//             <CheckCircle2 className="w-6 h-6 text-green-600" />
+//           ) : (
+//             <XCircle className="w-6 h-6 text-rose-600" />
+//           )}
+//         </div>
+//       </div>
+
+//       <div className="mt-1">
+//         <p
+//           className={`font-semibold ${
+//             tone === "positive" ? "text-green-700" : "text-red-700"
+//           } truncate`}
+//         >
+//           {name || "N/A"}
+//         </p>
+//       </div>
+
+//       {/* Full details */}
+//       <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+
+//             <div className="rounded-lg border border-gray-100 p-3">
+
+// <DetailRow
+//             label={
+//               <>
+//                 ESG Rating
+//                 <InfoTooltip id="esgRating" align="right" panelWidthClass="w-72" />
+//               </>
+//             }
+//             value={row?.grade || "—"}
+//           />
+
+//           <DetailRow
+//             label={
+//               <>
+//                 ESG Pillar Score
+//                 <InfoTooltip id="esgPillarScore" align="right" panelWidthClass="w-72" />
+//               </>
+//             }
+//             value={row ? formatNumber(row.esgScore) : "—"}
+//           />
+//           <DetailRow
+//             label={
+//               <>
+//                 ESG Composite Score
+//                 <InfoTooltip
+//                   id="esgCompositeScore"
+//                   align="right"
+//                   panelWidthClass="w-72"
+//                 />
+//               </>
+//             }
+//             value={row ? formatNumber(row.composite) : "—"}
+//           />
+//             </div>
+
+
+//         <div className="rounded-lg border border-gray-100 p-3">
+//           <DetailRow
+//             label={
+//               <>
+//                 E-Pillar Score
+//                 <InfoTooltip
+//                   id="environmentalPillar"
+//                   align="right"
+//                   panelWidthClass="w-72"
+//                 />
+//               </>
+//             }
+//             value={row ? formatNumber(row.e_score) : "—"}
+//           />
+//           <DetailRow
+//             label={
+//               <>
+//                 S-Pillar Score
+//                 <InfoTooltip id="socialPillar" align="right" panelWidthClass="w-72" />
+//               </>
+//             }
+//             value={row ? formatNumber(row.s_score) : "—"}
+//           />
+//           <DetailRow
+//             label={
+//               <>
+//                 G-Pillar Score
+//                 <InfoTooltip
+//                   id="governancePillar"
+//                   align="right"
+//                   panelWidthClass="w-72"
+//                 />
+//               </>
+//             }
+//             value={row ? formatNumber(row.g_score) : "—"}
+//           />
+//         </div>
+
+//         <div className="rounded-lg border border-gray-100 p-3">
+//           <DetailRow
+//             label={
+//               <>
+//                 Positive Screen
+//                 <InfoTooltip id="positiveScreen" align="right" panelWidthClass="w-72" />
+//               </>
+//             }
+//             value={
+//               row?.positive ? <Badge tone="positive">{row.positive}</Badge> : <Badge>—</Badge>
+//             }
+//           />
+//           <DetailRow
+//             label={
+//               <>
+//                 Negative Screen
+//                 <InfoTooltip id="negativeScreen" align="right" panelWidthClass="w-72" />
+//               </>
+//             }
+//             value={
+//               row?.negative ? <Badge tone="negative">{row.negative}</Badge> : <Badge>—</Badge>
+//             }
+//           />
+//           <DetailRow
+//             label={
+//               <>
+//                 Controversy Rating
+//                 <InfoTooltip
+//                   id="controversyRating"
+//                   align="right"
+//                   panelWidthClass="w-72"
+//                 />
+//               </>
+//             }
+//             value={row?.controversy ? <Badge tone="warn">{row.controversy}</Badge> : <Badge>—</Badge>}
+//           />
+//         </div>
+//       </div>
+//     </div>
+//   );
 }
 
 function TopAndBottom({ result }: { result: AnalysisResult }) {
@@ -395,7 +556,7 @@ function TopAndBottom({ result }: { result: AnalysisResult }) {
   const worst = result.worstRow;
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-6xl">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <CompanyDetailCard
           title="Top ESG Performer"

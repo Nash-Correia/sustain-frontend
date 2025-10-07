@@ -1,4 +1,3 @@
-// components/nav/Header.tsx
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
@@ -37,8 +36,7 @@ function isElement(node: React.ReactNode): node is React.ReactElement {
 }
 function isFragmentElement(
   node: React.ReactNode
-): node is React.ReactElement<{ children?: React.ReactNode }>
-{
+): node is React.ReactElement<{ children?: React.ReactNode }> {
   return isElement(node) && node.type === React.Fragment;
 }
 function isDomTag(el: React.ReactElement): boolean {
@@ -67,11 +65,13 @@ function Dropdown({
   children,
   className,
   align = "right",
+  panelClassName, // <-- Add panelClassName here
 }: {
   label: React.ReactNode;
   children: React.ReactNode;
   className?: string;
   align?: "right" | "center";
+  panelClassName?: string; // <-- And here
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
@@ -113,7 +113,8 @@ function Dropdown({
         className={clsx(
           "absolute z-30 mt-2 min-w-[10rem] rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden transition-all duration-150 ease-out",
           align === "center" ? "left-1/2 -translate-x-1/2" : "right-0",
-          open ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+          open ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none",
+          panelClassName // <-- Use it here
         )}
         role="menu"
         aria-hidden={!open}
@@ -215,7 +216,12 @@ export default function Header() {
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-12">
             <nav className="flex items-center gap-6 text-xl">
-              <Dropdown label="Products" className={navLinkClasses} align="center">
+              <Dropdown
+                label="Products"
+                className={navLinkClasses}
+                align="center"
+                panelClassName="w-50" // Now this prop will work
+              >
                 <MenuItem href={ROUTES.productA}>ESG Rating Comparison</MenuItem>
                 <MenuItem href={ROUTES.productB}>ESG Reports</MenuItem>
               </Dropdown>
@@ -241,7 +247,7 @@ export default function Header() {
                   <MenuAction onClick={signOut}>Logout</MenuAction>
                   */}
                   <div className="px-3 py-1.5 text-sm text-gray-600 select-none">
-                    Logout 
+                    Logout
                   </div>
                 </>
               )}

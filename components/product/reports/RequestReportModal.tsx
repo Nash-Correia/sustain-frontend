@@ -131,36 +131,37 @@ export default function RequestReportModal({
     try {
       // Build message body
       let body = `Dear IiAS Team,\n\nPlease find below a request for an ESG report based on the following details:\n\n`;
-      body += `--- Request Details ---\n`;
-      body += `Report Year: ${year}\n`;
-      body += `Companies Requested:\n${companies.map((c) => `- ${c}`).join("\n")}\n\n`;
-      body += `--- User Information ---\n`;
+
+      body += `User Information\n`;
       body += `Subscriber/Investor: ${isSubscriber ? "Yes" : "No"}\n`;
       body += `Full Name: ${sanitizeInput(name)}\n`;
       body += `Email: ${sanitizeInput(email)}\n`;
       body += `Organization: ${sanitizeInput(organization) || "N/A"}\n`;
       body += `Designation: ${sanitizeInput(designation) || "N/A"}\n`;
       body += `Phone: ${sanitizeInput(contact) || "N/A"}\n\n`;
+      body += `Request Details\n`;
+      body += `Report Year: ${year}\n`;
+      body += `Companies Requested:\n${companies.map((c) => `- ${c}`).join("\n")}\n\n`;
       body += `Thank you.\n`;
 
       // Web3Forms payload
       const fd = new FormData();
       fd.append("access_key", accessKey);
-      fd.append("subject", `ESG Report Request — ${year}`);
+      fd.append("subject", `ESG Report Request — ${name}`);
       fd.append("from_name", sanitizeInput(name) || "IiAS Sustain Website");
       fd.append("replyto", sanitizeInput(email));
 
       // Flatten fields (easy to read in inbox)
-      fd.append("Name", sanitizeInput(name));
-      if (organization) fd.append("Organization", sanitizeInput(organization));
-      if (designation) fd.append("Designation", sanitizeInput(designation));
-      if (contact) fd.append("Contact", sanitizeInput(contact));
-      fd.append("Subscriber_Investor", isSubscriber ? "Yes" : "No");
-      fd.append("Year", String(year));
-      fd.append("Companies", companies.join(", "));
+      // fd.append("Name", sanitizeInput(name));
+      // if (organization) fd.append("Organization", sanitizeInput(organization));
+      // if (designation) fd.append("Designation", sanitizeInput(designation));
+      // if (contact) fd.append("Contact", sanitizeInput(contact));
+      // fd.append("Subscriber_Investor", isSubscriber ? "Yes" : "No");
+      // fd.append("Year", String(year));
+      // fd.append("Companies", companies.join(", "));
 
       // Include formatted message
-      fd.append("Message", body);
+      fd.append("", body);
 
       const res = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
@@ -281,13 +282,13 @@ export default function RequestReportModal({
 
         {/* Companies MultiSelect + Select All */}
         <div className="mt-4 grid grid-cols-[1fr_auto] items-start gap-3">
-          <MultiSelect
-            options={companyOptions}
-            selected={companies}
-            onChange={setCompanies}
-            onReset={() => setCompanies(defaultCompany ? [defaultCompany] : [])}
-            resetLabel={defaultCompany ? "Reset" : "Reset"}
-          />
+        <MultiSelect
+          options={companyOptions}
+          selected={companies}
+          onChange={setCompanies}
+          onReset={() => setCompanies(defaultCompany ? [defaultCompany] : [])}
+        />
+
           <button
             type="button"
             className="rounded-lg border border-gray-300 px-4 py-2 text-[14px] text-gray-800 hover:bg-gray-50"
@@ -330,3 +331,7 @@ export default function RequestReportModal({
     </Modal>
   );
 }
+
+
+
+

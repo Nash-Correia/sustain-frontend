@@ -3,8 +3,8 @@
 // Toggle these for UI testing without wiring real auth & DB.
 
 
-//export const LOGIN = true; 
-export const LOGIN = false; 
+export const LOGIN = true; 
+//export const LOGIN = false; 
 
 
 

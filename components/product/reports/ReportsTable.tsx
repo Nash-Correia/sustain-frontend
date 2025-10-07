@@ -547,36 +547,7 @@ function ChevronDown(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
-function ChevronLeft(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
-      <path d="M15 18l-6-6 6-6" />
-    </svg>
-  );
-}
-function ChevronRight(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
-      <path d="M9 6l6 6-6 6" />
-    </svg>
-  );
-}
-function ChevronsLeft(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
-      <path d="M11 19l-7-7 7-7" />
-      <path d="M18 19l-7-7 7-7" />
-    </svg>
-  );
-}
-function ChevronsRight(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
-      <path d="M13 5l7 7-7 7" />
-      <path d="M6 5l7 7-7 7" />
-    </svg>
-  );
-}
+
 function SortBoth(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>

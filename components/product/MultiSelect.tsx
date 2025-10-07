@@ -1,4 +1,4 @@
-// components/ui/MultiSelect.tsx
+// components/product/MultiSelect.tsx
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -9,164 +9,172 @@ type Props = {
   onChange: (values: string[]) => void;
   placeholder?: string;
   className?: string;
-  label?: string;          // optional inline label above the field
-  onReset?: () => void;    // OPTIONAL: show a "Reset" action if provided
-  resetLabel?: string;     // OPTIONAL: label for the reset button (default: "Reset")
+  /** Optional Reset button in header (e.g., to default to a single company) */
+  onReset?: () => void;
+  resetLabel?: string;
+  /** Inline label above the trigger (optional) */
+  label?: string;
 };
 
 export default function MultiSelect({
-  options,
-  selected,
+  options = [],
+  selected = [],
   onChange,
-  placeholder = "Search companies…",
+  placeholder = "Search...",
   className = "",
-  label,
   onReset,
   resetLabel = "Reset",
+  label,
 }: Props) {
+  // ---- State / refs
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const wrapRef = useRef<HTMLDivElement | null>(null);
-  const listRef = useRef<HTMLDivElement | null>(null);
-  const [activeIndex, setActiveIndex] = useState<number>(-1);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const [popStyle, setPopStyle] = useState<{
+    left: number;
+    top: number;
+    width: number;
+    maxHeight: number;
+  }>({ left: 0, top: 0, width: 320, maxHeight: 280 });
 
-  // For quick lookups
-  const selectedSet = useMemo(() => new Set(selected), [selected]);
-
-  // Filter first, then sort: selected → non-selected; both groups A→Z
-  const filtered = useMemo(() => {
-    const nq = q.trim().toLowerCase();
-    const base = nq
-      ? options.filter((o) => o.toLowerCase().includes(nq))
-      : options.slice();
-
-    return base.sort((a, b) => {
-      const aSel = selectedSet.has(a);
-      const bSel = selectedSet.has(b);
-      if (aSel !== bSel) return aSel ? -1 : 1; // selected first
-      return a.localeCompare(b, undefined, { sensitivity: "base" });
-    });
-  }, [options, q, selectedSet]);
-
-  // Open/close handlers
+  // ---- Close on outside click
   useEffect(() => {
     function onDoc(e: MouseEvent) {
       if (!wrapRef.current) return;
-      if (!wrapRef.current.contains(e.target as Node)) {
-        setOpen(false);
-        setActiveIndex(-1);
-      }
+      if (!wrapRef.current.contains(e.target as Node)) setOpen(false);
     }
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  // When opening, reset search & focus the input
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  // ---- Recalculate popover placement on open/resize/scroll
   useEffect(() => {
+    function update() {
+      const t = triggerRef.current;
+      if (!t) return;
+      const r = t.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      const margin = 8;
+      const width = Math.max(280, Math.min(420, Math.floor(r.width)));
+      const left = Math.min(Math.max(margin, r.left), vw - width - margin);
+      // Prefer below; if not enough room, place above
+      const spaceBelow = vh - r.bottom - margin;
+      const spaceAbove = r.top - margin;
+      const want = 340; // desired max height
+      const maxHeight =
+        spaceBelow >= 200
+          ? Math.min(want, Math.max(200, spaceBelow))
+          : Math.min(want, Math.max(200, spaceAbove));
+
+      const top = spaceBelow >= 200 ? r.bottom + window.scrollY : r.top + window.scrollY - maxHeight;
+
+      setPopStyle({
+        left: Math.round(left + window.scrollX),
+        top: Math.round(top),
+        width,
+        maxHeight,
+      });
+    }
+
     if (open) {
-      setTimeout(() => inputRef.current?.focus(), 0);
-    } else {
-      setQ("");
-      setActiveIndex(-1);
+      update();
+      const ro = new ResizeObserver(update);
+      ro.observe(document.documentElement);
+      window.addEventListener("scroll", update, true);
+      window.addEventListener("resize", update, true);
+      return () => {
+        ro.disconnect();
+        window.removeEventListener("scroll", update, true);
+        window.removeEventListener("resize", update, true);
+      };
     }
   }, [open]);
 
-  function toggle(value: string) {
-    if (selectedSet.has(value)) {
-      onChange(selected.filter((v) => v !== value));
+  // ---- Search + selected pinned to top (like ReportsTable)
+  const safeOptions = options ?? [];
+  const safeSelected = selected ?? [];
+  const selSet = useMemo(() => new Set(safeSelected), [safeSelected]);
+
+  const filtered = useMemo(() => {
+    if (!q.trim()) return [...safeOptions];
+    const nq = q.toLowerCase();
+    return safeOptions.filter((o) => o.toLowerCase().includes(nq));
+  }, [safeOptions, q]);
+
+  const { topSelected, bottomUnselected } = useMemo(() => {
+    const sel = filtered.filter((o) => selSet.has(o)).sort((a, b) => a.localeCompare(b));
+    const rest = filtered.filter((o) => !selSet.has(o)).sort((a, b) => a.localeCompare(b));
+    return { topSelected: sel, bottomUnselected: rest };
+  }, [filtered, selSet]);
+
+  const allSelected = safeSelected.length > 0 && safeSelected.length === safeOptions.length;
+
+  // ---- Actions
+  function toggleOne(value: string) {
+    if (selSet.has(value)) {
+      onChange(safeSelected.filter((v) => v !== value));
     } else {
-      onChange([...selected, value]);
+      onChange([...safeSelected, value]);
     }
   }
-
   function selectAll() {
-    onChange([...options]);
+    onChange([...safeOptions]);
   }
   function clearAll() {
     onChange([]);
   }
 
-  const allSelected = selected.length === options.length && options.length > 0;
-
-  // Keyboard navigation inside the list
-  function onKeyDown(e: React.KeyboardEvent) {
-    if (!open) return;
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setActiveIndex((i) => {
-        const next = Math.min(filtered.length - 1, i + 1);
-        scrollActiveIntoView(next);
-        return next;
-      });
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setActiveIndex((i) => {
-        const next = Math.max(0, i - 1);
-        scrollActiveIntoView(next);
-        return next;
-      });
-    } else if (e.key === "Enter" && activeIndex >= 0 && activeIndex < filtered.length) {
-      e.preventDefault();
-      toggle(filtered[activeIndex]);
-    } else if (e.key === "Escape") {
-      setOpen(false);
-    }
-  }
-
-  function scrollActiveIntoView(index: number) {
-    const list = listRef.current;
-    if (!list) return;
-    const item = list.querySelector<HTMLButtonElement>(`[data-index="${index}"]`);
-    if (!item) return;
-
-    const listRect = list.getBoundingClientRect();
-    const itemRect = item.getBoundingClientRect();
-    const overTop = itemRect.top < listRect.top;
-    const overBottom = itemRect.bottom > listRect.bottom;
-
-    if (overTop) list.scrollTop -= listRect.top - itemRect.top + 4;
-    else if (overBottom) list.scrollTop += itemRect.bottom - listRect.bottom + 4;
-  }
-
   return (
-    <div ref={wrapRef} className={`w-full ${className}`} onKeyDown={onKeyDown}>
-      {label && (
-        <label className="mb-1 block text-[13px] font-medium text-gray-700">{label}</label>
-      )}
+    <div ref={wrapRef} className={`w-full ${className}`}>
+      {label && <label className="mb-1 block text-[13px] font-medium text-gray-700">{label}</label>}
 
       {/* Trigger */}
       <button
+        ref={triggerRef}
         type="button"
         className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-left text-[14px] text-gray-900 hover:bg-gray-50 focus:outline-none"
         onClick={() => setOpen((v) => !v)}
-        aria-haspopup="listbox"
+        aria-haspopup="menu"
         aria-expanded={open}
       >
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0 truncate">
-            {selected.length === 0 ? (
+            {safeSelected.length === 0 ? (
               <span className="text-gray-400">Select companies</span>
-            ) : selected.length === 1 ? (
-              <span>{selected[0]}</span>
+            ) : safeSelected.length === 1 ? (
+              <span>{safeSelected[0]}</span>
             ) : (
-              <span>{selected.length} selected</span>
+              <span>{safeSelected.length} selected</span>
             )}
           </div>
           <ChevronDown className="h-4 w-4 text-gray-400" />
         </div>
       </button>
 
-      {/* Popover */}
+      {/* Popover (fixed & clamped to viewport) */}
       {open && (
-        <div className="relative z-50" role="dialog" aria-label="Select companies">
-          <div className="absolute left-0 top-2 w-full min-w-[280px] rounded-xl border border-gray-200 bg-white shadow-xl">
+        <div
+          className="fixed z-[200]"
+          role="dialog"
+          aria-label="Company multi-select"
+          style={{
+            left: popStyle.left,
+            top: popStyle.top,
+            width: popStyle.width,
+          }}
+        >
+          <div
+            className="min-w-[280px] rounded-xl border border-gray-200 bg-white shadow-xl overflow-hidden"
+            style={{ maxHeight: popStyle.maxHeight }}
+          >
             {/* Search + bulk actions */}
             <div className="p-3 border-b border-gray-100">
               <div className="flex items-center gap-2 rounded-md border border-gray-200 px-2">
                 <SearchIcon className="h-4 w-4 text-gray-400" />
                 <input
-                  ref={inputRef}
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   placeholder={placeholder}
@@ -185,22 +193,6 @@ export default function MultiSelect({
 
               <div className="mt-2 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  {/* Reset only shows if onReset is provided */}
-                  {onReset && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onReset?.();
-                      }}
-                      className="text-xs font-medium text-gray-600 hover:text-gray-800 hover:underline"
-                      title="Reset selection"
-                    >
-                      {resetLabel}
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={allSelected ? clearAll : selectAll}
@@ -208,52 +200,86 @@ export default function MultiSelect({
                   >
                     {allSelected ? "Clear all" : "Select all"}
                   </button>
-                  {selected.length > 0 && (
-                    <span className="text-xs text-gray-500">{selected.length} selected</span>
+                  {/* {safeSelected.length > 0 && !allSelected && (
+                    <button
+                      type="button"
+                      onClick={clearAll}
+                      className="text-xs text-gray-500 hover:underline"
+                    >
+                      Reset
+                    </button>
+                  )} */}
+                  {onReset && (
+                    <button
+                      type="button"
+                      onClick={onReset}
+                      className="text-xs text-gray-500 hover:underline"
+                    >
+                      {resetLabel}
+                    </button>
                   )}
                 </div>
+
+                {safeSelected.length > 0 && (
+                  <span className="text-xs text-gray-500">{safeSelected.length} selected</span>
+                )}
               </div>
             </div>
 
-            {/* List */}
+            {/* Options: selected group on top, then others (scrollable) */}
             <div
-              ref={listRef}
-              className="max-h-64 overflow-auto py-2"
-              role="listbox"
-              aria-multiselectable="true"
+              className="overflow-auto py-2"
+              style={{
+                // keep the search area visible: subtract ~80px from container max height
+                maxHeight: Math.max(140, popStyle.maxHeight - 80),
+              }}
             >
-              {filtered.length === 0 ? (
+              {topSelected.length === 0 && bottomUnselected.length === 0 ? (
                 <div className="px-4 py-2 text-sm text-gray-500">No matches</div>
               ) : (
-                filtered.map((opt, idx) => {
-                  const checked = selectedSet.has(opt);
-                  const active = idx === activeIndex;
-                  return (
-                    <button
-                      key={opt}
-                      type="button"
-                      data-index={idx}
-                      onMouseEnter={() => setActiveIndex(idx)}
-                      onClick={() => toggle(opt)}
-                      role="option"
-                      aria-selected={checked}
-                      className={[
-                        "flex w-full cursor-pointer items-center gap-3 px-4 py-2 text-left text-sm",
-                        active ? "bg-gray-50" : "",
-                      ].join(" ")}
+                <>
+                  {topSelected.length > 0 && (
+                    <>
+                      <div className="px-4 pb-1 pt-1 text-[11px] uppercase tracking-wide text-gray-400">
+                        Selected ({topSelected.length})
+                      </div>
+                      {topSelected.map((opt) => (
+                        <label
+                          key={`sel-${opt}`}
+                          className="flex cursor-pointer items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50"
+                        >
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-gray-300 text-[#195D5D] focus:ring-[#195D5D]"
+                            checked
+                            onChange={() => toggleOne(opt)}
+                          />
+                          <span className="font-medium text-gray-900">{opt}</span>
+                        </label>
+                      ))}
+                      {bottomUnselected.length > 0 && (
+                        <div className="px-4 pt-3 pb-1 text-[11px] uppercase tracking-wide text-gray-400">
+                          Others
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {bottomUnselected.map((opt) => (
+                    <label
+                      key={`unsel-${opt}`}
+                      className="flex cursor-pointer items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50"
                     >
                       <input
-                        readOnly
                         type="checkbox"
                         className="h-4 w-4 rounded border-gray-300 text-[#195D5D] focus:ring-[#195D5D]"
-                        checked={checked}
+                        checked={false}
+                        onChange={() => toggleOne(opt)}
                       />
-                      <span className={checked ? "font-medium text-gray-900" : "text-gray-700"}>
-                        {opt}
-                      </span>
-                    </button>
-                  );
-                })
+                      <span className="text-gray-700">{opt}</span>
+                    </label>
+                  ))}
+                </>
               )}
             </div>
 
@@ -262,10 +288,7 @@ export default function MultiSelect({
               <button
                 type="button"
                 className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
-                onClick={() => {
-                  setOpen(false);
-                  setActiveIndex(-1);
-                }}
+                onClick={() => setOpen(false)}
               >
                 Close
               </button>
@@ -277,7 +300,7 @@ export default function MultiSelect({
   );
 }
 
-/* Inline icons (tiny) */
+/* Tiny inline icons (same look as in ReportsTable) */
 function ChevronDown(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
